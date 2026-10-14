@@ -2,7 +2,9 @@
    The family sets the place (forest, graveyard, workshop, lava field…), the creature's elements tint the sky,
    and the creature's name seeds the details (what stands where, moon or sun, how many props), so no two cards match. ---------- */
 function libBgHash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
-function libBg(i){const p=PETS[i],els=petEls(p),c1=ELC[els[0]]||'#7a8cff',c2=ELC[els[1]||els[0]]||c1;
+/* 0.40 Anton 22:23 «не привязывай фон к стихиям никак вообще»: the sky tint comes from the family, never from elements */
+const FAM_SKY={beast:['#3f6a8a','#5d86a8'],plant:['#2f7a54','#5aa36e'],insect:['#7a7a3a','#a3a05a'],magic:['#5a4fa8','#8a7fd0'],undead:['#4b4f86','#7b6fae'],mech:['#3f6f86','#8a7a52'],elem:['#3a7a9a','#6aa8c0'],demon:['#8a3a4a','#b0604a'],aberr:['#6a3a8a','#8a5ab0'],dragon:['#8a5a2a','#b08a4a']};
+function libBg(i){const p=PETS[i],fs=FAM_SKY[p.fam]||['#4a5a9a','#6a7ab0'],c1=fs[0],c2=fs[1];
   let sd=libBgHash(p.n)||1;const R=()=>(sd=Math.imul(sd^(sd>>>15),2246822507)>>>0,(sd%100000)/100000),
     rr=(a,b)=>a+R()*(b-a),ri=(a,b)=>Math.floor(rr(a,b+1)),pick=a=>a[ri(0,a.length-1)],f=n=>n.toFixed(1);
   const W=100,H=137,hz=rr(78,92);
@@ -42,7 +44,7 @@ function libBg(i){const p=PETS[i],els=petEls(p),c1=ELC[els[0]]||'#7a8cff',c2=ELC
   case'mech':{sky=['#0a0e14',c1,'#24303a'];let g='';for(let k=0,n=ri(2,4);k<n;k++)g+=gear(side(),rr(10,hz-10),rr(6,14),pick(['#c08a4a','#8aa0b8',c1]),f(rr(.12,.3)));
     back=g+`<rect x="${f(rr(4,20))}" y="${f(hz-rr(30,44))}" width="${f(rr(5,8))}" height="60" fill="#121820"/><rect x="${f(rr(76,90))}" y="${f(hz-rr(24,38))}" width="${f(rr(6,10))}" height="60" fill="#121820"/>`+dots(ri(3,6),'#cfd8e0',4,hz-30,.8,2.4).replace(/fill="#cfd8e0"/g,'fill="#cfd8e0" fill-opacity=".12"');
     const py=hz-rr(4,10);front=ground('#070a0e')+`<rect x="0" y="${f(py)}" width="100" height="2.4" fill="#5a4630" opacity=".7"/>`+dots(ri(4,8),'#ffb84a',py-1,py+3,.3,.6);break}
-  case'elem':{const e=els[0];sky=['#070a18',c1,'#1a1a34'];back=stars(ri(4,10))+orb();
+  case'elem':{const e=pick(['f','w','a','e','l','d','n','x']);sky=['#070a18',c1,'#1a1a34'];back=stars(ri(4,10))+orb();
     if(e==='f'){let fl='';for(let k=0;k<ri(4,7);k++){const x=rr(0,100),h=rr(8,20);fl+=`<path d="M${f(x-4)} ${f(hz+4)} Q${f(x-3)} ${f(hz-h*.5)} ${f(x)} ${f(hz-h)} Q${f(x+3)} ${f(hz-h*.5)} ${f(x+4)} ${f(hz+4)}Z" fill="${pick(['#ff6a2a','#ffb03a'])}" opacity=".55"/>`}front=ground('#140603')+fl+dots(ri(5,9),'#ffb84a',20,hz,.4,.9)}
     else if(e==='w'){let wv='';for(let k=0;k<4;k++){const y=hz+k*6-4;wv+=`<path d="M0 ${f(y)} q6 -3 12.5 0 t12.5 0 t12.5 0 t12.5 0 t12.5 0 t12.5 0 t12.5 0 t12.5 0 V${H} H0Z" fill="${pick(['#0b3060','#08264c','#103a70'])}" opacity="${f(.6+k*.1)}"/>`}front=wv+dots(ri(4,8),'#bfe8ff',20,hz-4,.5,1.4).replace(/fill="#bfe8ff"/g,'fill="none" stroke="#bfe8ff" stroke-width=".4"')}
     else if(e==='a'){let sw='';for(let k=0;k<ri(3,5);k++){const x=rr(5,90),y=rr(15,hz-8),r=rr(5,10);sw+=`<path d="M${f(x)} ${f(y)} a${f(r)} ${f(r)} 0 1 1 ${f(r)} ${f(r)} a${f(r/2)} ${f(r/2)} 0 1 1 ${f(-r/2)} ${f(-r/2)}" stroke="#d8fff4" stroke-opacity=".3" stroke-width="1" fill="none"/>`}front=sw+hills(hz,6,'#0c1c24',1)}
