@@ -29,40 +29,18 @@ libTile=function(i){const p=PETS[i],m=mp(p.n),need=m.un?QUP[m.q]:{fr:UNLOCK_FR},
   const els=petEls(p),ec=ELC[els[0]]||'#5AA9F0',qc=m.un?qC(m.q):'#46526A',f=FAM[p.fam]||{ic:'',n:''};
   const nmS=p.n.length>11?'font-size:11px':p.n.length>8?'font-size:12px':'';
   return`<button class="lcd ${m.un?'':'lock'} ${ready?'rdy':''}" data-act="lib-${i}" style="--qc:${qc};--ec:${ec}">
-  <span class="lcd-sc"></span>
+  <span class="lcd-sc">${typeof libBg==='function'?libBg(i):''}</span>
   <span class="lcd-q" title="${m.un?QN[m.q]:''}"></span>${m.un?`<span class="lcd-lv">Ур. ${m.lv}</span>`:'<span class="lcd-lk">🔒</span>'}
   <span class="lcd-art">${m.un?qArt(p,m.q,1):`<span class="sil0">${petIc(p,1)}</span>`}</span>
   <span class="lcd-ft"><span class="lcd-nm" style="${nmS}">${m.un?p.n:'???'}</span>
   <span class="lcd-row"><span class="lcd-fm" title="${f.n}">${f.ic}${m.un?'':' '+f.n}</span>${m.un?`<span class="lcd-el">${els.map(e=>`<span class="lcd-e">${EI(e,1)}</span>`).join('')}</span>`:''}</span>
   <span class="lcd-bar"><span class="lcd-bi">🧩</span><span class="lcd-tr"><i style="width:${fp*100}%"></i></span><b>${m.fr}${need?'/'+need.fr:''}</b></span></span>
-  ${ready?'<span class="lcd-up">▲</span>':''}</button>`};
+  ${ready?'<span class="lcd-up">▲</span>':''}${typeof libInk==='function'?libInk(i):''}</button>`};
 
 /* ----- 3) main screen + quests page ----- */
 function heroTeam(){const own=i=>PETS[i]&&mp(PETS[i].n).un;let l=(META.lastQ||[]).filter(own);
   if(l.length<3)l=l.concat(PETS.map((p,i)=>i).filter(i=>own(i)&&!l.includes(i)));return l.slice(0,3)}
 function questReady(){return questsToday().filter(q=>q.p>=QDEF[q.k].g&&!q.cl).length+questsWeek().filter(q=>!q.cl&&q.p>=WDEF[q.k].g).length}
-renderMenu=function(){
-  const lg=LEAGUES[lgOf(rk().pts)],up=PETS.filter(p=>canQUp(p.n)).length,qr=questReady(),ar=achReady(),own=PETS.filter(p=>mp(p.n).un).length;
-  const dot=n=>n?`<span class="qdot">${n}</span>`:'';
-  const tile=(act,ic,t,s)=>`<button class="mt" data-act="${act}"><span class="mt-ic">${ic}</span><b>${t}</b><span class="mt-s">${s}</span></button>`;
-  const ht=heroTeam();
-  setApp(`<div class="lb-top"><span class="lb-me"><span class="lb-av">🐾</span><span><b>Стая</b><span class="lb-lg">${lg.ic} ${lg.n}</span></span></span>
-  <span class="lb-r"><span class="lb-cur">💎 <b>${META.stones}</b></span><button class="pill lb-mb${ui.mm?' on':''}" data-act="mm-menu">☰</button></span></div>
-  <div class="lb-hero"><div class="lb-logo">Бой стаи</div>
-  <div class="lb-team">${ht.map((i,k)=>`<span class="lb-pet p${k}">${petIc(PETS[i],1)}</span>`).join('')}</div><div class="lb-plat"></div></div>
-  ${typeof renderRun==='function'?`<button class="lb-go" data-act="m-run"><span class="lb-goi">🧭</span><span><b>${META.run?'Продолжить забег':'Забег'}</b><span>${META.run?`Акт ${META.run.act+1}, ❤ ${META.run.lives}`:'Путь через три земли: бои, находки, боссы'}</span></span></button>`:''}
-  ${typeof goalHtml==='function'?goalHtml():''}
-  <div class="mtg">
-  ${tile('m-quick','⚔️','Быстрый бой','против бота')}
-  ${tile('m-quick4','4️⃣','Бой четвёрок','4 на 4, поле 3×4')}
-  ${tile('m-rank','🏆','Лига',`${plN(rk().pts,'очко','очка','очков',1)}`)}
-  ${tile('m-lair','👑','Логова',`⭐ ${Object.keys(BOSSES).reduce((a,k)=>a+lairOf(k).t,0)} из ${Object.keys(BOSSES).length*3}`)}
-  ${tile('m-puz','🧩','Задачи',`${Object.keys(pzs().done).length} из ${PUZ.length}`)}
-  ${tile('m-codex','📖','Кодекс',`${cdxCount()} из ${cdxTotal()}`)}
-  </div>
-  <div class="lb-ver">v${VER} · сборка ${BUILD}</div>
-  <div class="lb-nav"><button data-act="m-lib"><span class="lb-ni">📚${dot(up)}</span>Библиотека<small>${own} из ${PETS.length}</small></button><button data-act="m-quests"><span class="lb-ni">📋${dot(qr)}</span>Задания<small>день и неделя</small></button><button data-act="m-ach"><span class="lb-ni">🏅${dot(ar)}</span>Достижения<small>${ACH.filter(a=>META.ach&&META.ach[a.k]).length} из ${ACH.length}</small></button></div>
-  ${ui.mm?`<div class="lmenu-over" data-act="mm-x"><div class="lmenu-pop lb-pop"><button class="pill lmi" data-act="fs">⛶<span class="lmi-l">Весь экран</span></button><button class="pill lmi" data-act="lay-open">🎛<span class="lmi-l">Вид экрана боя</span></button><button class="pill lmi" data-act="m-cheat">🛠<span class="lmi-l">Читы</span></button><span class="m lb-pv">v${VER} · сборка ${BUILD}</span></div></div>`:''}`)};
 function renderQuests(){const qd=questsToday().filter(q=>q.p>=QDEF[q.k].g&&!q.cl).length,wd=questsWeek().filter(q=>!q.cl&&q.p>=WDEF[q.k].g).length;
   setApp(`<div class="top"><button class="pill sm" data-act="m-menu">‹ Меню</button><div class="title">Задания</div><span class="m">💎 ${META.stones}</span></div>
   <div class="msec" style="margin-top:2px">Задания дня${qd?` <span class="qdot">${qd}</span>`:''}</div><div class="qlist">${questsHtml()}</div>
@@ -70,6 +48,8 @@ function renderQuests(){const qd=questsToday().filter(q=>q.p>=QDEF[q.k].g&&!q.cl
 if(typeof renderScreen==='function'){const rs0=renderScreen;renderScreen=function(){if(G&&G.phase==='quests'){syncRar();return renderQuests()}return rs0()}}
 if(typeof modeClick==='function'){const mc0=modeClick;modeClick=function(act){
   if(act==='m-quests'){ui.mm=false;CTX=null;G={phase:'quests'};render();return true}
+  if(act==='lfl-open'){ui.lflt=true;render();return true}
+  if(act==='lfl-x'){if(bgHit(act)||(LASTE&&LASTE.target&&LASTE.target.closest&&LASTE.target.closest('button[data-act="lfl-x"]'))){ui.lflt=false;render()}return true}
   if(act==='mm-menu'){ui.mm=!ui.mm;render();return true}
   if(act==='mm-x'){if(bgHit(act)){ui.mm=false;render()}return true}
   return mc0(act)}}
@@ -85,9 +65,22 @@ if(typeof setApp==='function'){const sa0=setApp;setApp=function(h){
     const b=f.querySelector('[data-act="to-place"]');if(b){b.dataset.act='start';if(TEAM.length>=TN)b.textContent='В бой'}
     const hint=[...f.querySelectorAll('.m')].find(x=>/«\+»: сразу в стаю/.test(x.textContent));if(hint)hint.remove();
     h=t.innerHTML}
+  if(ph==='lib'){const t=document.createElement('template');t.innerHTML=h;const f=t.content,ms=[...f.children].filter(x=>x.classList.contains('modes'));
+    if(ms.length>=3){const shop=ms[0].querySelector('[data-act="lib-shop"]');if(shop)shop.remove();
+      const n=(LIBF.show!=='all'?1:0)+(LIBF.fam?1:0)+(LIBF.sort!=='q'?1:0);
+      for(const b of ms[1].querySelectorAll('[data-act^="lfam-"]')){const k=b.dataset.act.slice(5);if(k&&FAM[k])b.textContent=FAM[k].ic+' '+FAM[k].n}
+      const lb=ms[2].querySelector('span.m');if(lb)lb.remove();
+      ms[0].insertAdjacentHTML('beforebegin',`<div class="lfb"><button class="pill sm ${n?'on':''}" data-act="lfl-open">⚙ Фильтры и сортировка${n?' · '+n:''}</button><button class="pill sm" data-act="lib-shop">🛒 Лавка</button></div>`);
+      if(ui.lflt){const ov=document.createElement('div');ov.className='over';ov.dataset.act='lfl-x';ov.innerHTML='<div class="box lflbox"><div class="boxhd"><h2>Фильтры и сортировка</h2><button class="xb" data-act="lfl-x" aria-label="Закрыть">✕</button></div></div>';
+        const bx=ov.firstChild;[['Показать',ms[0]],['Семейства',ms[1]],['Сортировка',ms[2]]].forEach(([t,m])=>{const h4=document.createElement('h4');h4.textContent=t;m.removeAttribute('style');bx.append(h4,m)});
+        bx.insertAdjacentHTML('beforeend','<div class="acts"><button class="btn main" data-act="lfl-x">Готово</button></div>');f.appendChild(ov)}
+      else ms.forEach(m=>m.remove());
+      h=t.innerHTML}}
   return sa0(h)}}
 
 if(typeof document!=='undefined'&&document.body){const st=document.createElement('style');st.textContent=`
+.lfb{display:flex;gap:6px;flex-wrap:wrap}
+.lflbox h4{margin:10px 0 4px}.lflbox .modes{flex-wrap:wrap}
 /* placement on the pick screen */
 .pkw{margin-top:6px;padding:6px 6px 7px;border-radius:14px;background:linear-gradient(#18243a,#111a29);border:1px solid #2F3F58}
 .pkhd{display:flex;gap:8px;align-items:baseline;margin:0 2px 5px}.pkhd .m{font-size:11px;line-height:1.2}
@@ -120,39 +113,4 @@ if(typeof document!=='undefined'&&document.body){const st=document.createElement
 .lcd.rdy{box-shadow:0 0 0 2px #E9C46A88,0 0 14px #E9C46A66}.lcd.rdy .lcd-tr i{background:linear-gradient(90deg,#E9C46A,#FFE59A)}
 .lcd-up{position:absolute;left:50%;top:5px;transform:translateX(-50%);z-index:3;font-size:11px;font-weight:900;color:#1A1206;background:#E9C46A;border-radius:6px;padding:1px 6px}
 .lcd.lock{border-color:#46526A}.lcd.lock .lcd-sc{filter:saturate(.3) brightness(.7)}
-/* main screen */
-.lb-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.lb-me{display:flex;align-items:center;gap:8px}.lb-me b{display:block;font-size:15px;line-height:1.1}
-.lb-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:21px;background:radial-gradient(circle at 35% 30%,#3a5584,#16233a);border:2px solid var(--gold);box-shadow:0 0 10px #E9C46A44}
-.lb-lg{font-size:11px;color:var(--mut)}
-.lb-r{display:flex;align-items:center;gap:6px}
-.lb-cur{padding:5px 11px;border-radius:999px;background:#0b111b;border:1px solid #5AA9F055;font-size:13px}.lb-cur b{color:#BFE3FF}
-.lb-mb{font-size:16px;padding:6px 12px}
-.lb-hero{position:relative;height:210px;border-radius:18px;overflow:hidden;border:1px solid #33456a;
-  background:${SCN} bottom/100% 55% no-repeat,radial-gradient(36px 36px at 80% 22%,#fff6d0,#f3dc9a 45%,transparent 72%),radial-gradient(90px 90px at 80% 22%,#f3dc9a33,transparent 70%),
-  radial-gradient(1.5px 1.5px at 12% 18%,#fff,transparent),radial-gradient(1.5px 1.5px at 30% 9%,#fff,transparent),radial-gradient(1px 1px at 46% 24%,#fff,transparent),radial-gradient(1.5px 1.5px at 62% 12%,#fff,transparent),radial-gradient(1px 1px at 92% 40%,#fff,transparent),radial-gradient(1px 1px at 22% 36%,#fff,transparent),
-  linear-gradient(#1a2550,#2a2a5c 45%,#162038)}
-.lb-logo{position:absolute;left:0;right:0;top:12px;text-align:center;font-family:var(--disp,inherit);font-size:34px;font-weight:900;letter-spacing:.02em;color:#FFE7A3;
-  text-shadow:0 2px 0 #9a5a12,0 4px 0 #4a2a08,0 0 18px #ffb84a66;-webkit-text-stroke:1px #6a3c0c}
-.lb-team{position:absolute;left:0;right:0;bottom:22px;display:flex;justify-content:center;align-items:flex-end;gap:2px;z-index:1}
-.lb-pet{display:flex;align-items:flex-end;justify-content:center;width:96px;height:100px;font-size:52px;animation:lbB 3.2s ease-in-out infinite}
-.lb-pet.p1{width:118px;height:122px;animation-delay:-1.1s}.lb-pet.p2{animation-delay:-2s}
-.lb-pet img{width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 6px 5px #000b)}
-@keyframes lbB{50%{transform:translateY(-4px)}}
-.lb-plat{position:absolute;left:12%;right:12%;bottom:12px;height:26px;border-radius:50%;background:radial-gradient(closest-side,#7fb8ff55,#3b5c9a33 60%,transparent)}
-.lb-go{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 16px;border-radius:16px;color:#2A1A05;
-  background:linear-gradient(#FFE08A,#E9B44A 55%,#C98A2A);border:2px solid #FFF0B8;box-shadow:0 4px 0 #8a5a14,0 8px 16px #0008}
-.lb-go:active{transform:translateY(2px);box-shadow:0 2px 0 #8a5a14,0 4px 10px #0008}
-.lb-goi{font-size:30px}.lb-go b{display:block;font-size:19px;font-weight:900}.lb-go span span{font-size:12px;opacity:.8}
-.mtg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.mt{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 9px;border-radius:14px;background:linear-gradient(#22324d,#172234);border:1px solid #33466a;box-shadow:0 3px 0 #0c1320;color:var(--fg)}
-.mt:active{transform:translateY(2px);box-shadow:0 1px 0 #0c1320}
-.mt-ic{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:25px;background:radial-gradient(circle at 35% 30%,#3a5584,#121c2e);border:2px solid #4a6290}
-.mt b{font-size:12.5px;line-height:1.1;text-align:center}.mt-s{font-size:10px;color:var(--mut);text-align:center;line-height:1.15}
-.lb-ver{text-align:center;font-size:10px;color:var(--mut);opacity:.7;margin-top:2px}
-.lb-nav{position:sticky;bottom:6px;z-index:5;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:6px;border-radius:18px;background:#0e1626f0;border:1px solid #33466a;box-shadow:0 -4px 16px #0009;margin-top:4px}
-.lb-nav button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;border-radius:12px;color:var(--fg);font-size:12px;font-weight:700;background:linear-gradient(#22324d,#172234)}
-.lb-nav small{font-size:9.5px;font-weight:400;color:var(--mut)}
-.lb-ni{position:relative;font-size:24px;line-height:1.1}.lb-ni .qdot{position:absolute;right:-12px;top:-2px}
-.lb-pop .lb-pv{font-size:10px;text-align:center;padding:4px 0 0}
 `;document.body.appendChild(st)}

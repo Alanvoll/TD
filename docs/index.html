@@ -741,7 +741,7 @@ body.dragging .hsheet,body.dragging .hs-back{opacity:0;pointer-events:none}
 <div id="app"></div>
 
 <script>
-const VER='0.39.0',BUILD=138;
+const VER='0.39.1',BUILD=139;
 /* ART-BEGIN: creatures drawn in code (SVG + CSS idle animation), one file per family */
 const ARTS={};function ART_ADD(o){Object.assign(ARTS,o)}
 ART_ADD({
@@ -5858,40 +5858,18 @@ libTile=function(i){const p=PETS[i],m=mp(p.n),need=m.un?QUP[m.q]:{fr:UNLOCK_FR},
   const els=petEls(p),ec=ELC[els[0]]||'#5AA9F0',qc=m.un?qC(m.q):'#46526A',f=FAM[p.fam]||{ic:'',n:''};
   const nmS=p.n.length>11?'font-size:11px':p.n.length>8?'font-size:12px':'';
   return`<button class="lcd ${m.un?'':'lock'} ${ready?'rdy':''}" data-act="lib-${i}" style="--qc:${qc};--ec:${ec}">
-  <span class="lcd-sc"></span>
+  <span class="lcd-sc">${typeof libBg==='function'?libBg(i):''}</span>
   <span class="lcd-q" title="${m.un?QN[m.q]:''}"></span>${m.un?`<span class="lcd-lv">Ур. ${m.lv}</span>`:'<span class="lcd-lk">🔒</span>'}
   <span class="lcd-art">${m.un?qArt(p,m.q,1):`<span class="sil0">${petIc(p,1)}</span>`}</span>
   <span class="lcd-ft"><span class="lcd-nm" style="${nmS}">${m.un?p.n:'???'}</span>
   <span class="lcd-row"><span class="lcd-fm" title="${f.n}">${f.ic}${m.un?'':' '+f.n}</span>${m.un?`<span class="lcd-el">${els.map(e=>`<span class="lcd-e">${EI(e,1)}</span>`).join('')}</span>`:''}</span>
   <span class="lcd-bar"><span class="lcd-bi">🧩</span><span class="lcd-tr"><i style="width:${fp*100}%"></i></span><b>${m.fr}${need?'/'+need.fr:''}</b></span></span>
-  ${ready?'<span class="lcd-up">▲</span>':''}</button>`};
+  ${ready?'<span class="lcd-up">▲</span>':''}${typeof libInk==='function'?libInk(i):''}</button>`};
 
 /* ----- 3) main screen + quests page ----- */
 function heroTeam(){const own=i=>PETS[i]&&mp(PETS[i].n).un;let l=(META.lastQ||[]).filter(own);
   if(l.length<3)l=l.concat(PETS.map((p,i)=>i).filter(i=>own(i)&&!l.includes(i)));return l.slice(0,3)}
 function questReady(){return questsToday().filter(q=>q.p>=QDEF[q.k].g&&!q.cl).length+questsWeek().filter(q=>!q.cl&&q.p>=WDEF[q.k].g).length}
-renderMenu=function(){
-  const lg=LEAGUES[lgOf(rk().pts)],up=PETS.filter(p=>canQUp(p.n)).length,qr=questReady(),ar=achReady(),own=PETS.filter(p=>mp(p.n).un).length;
-  const dot=n=>n?`<span class="qdot">${n}</span>`:'';
-  const tile=(act,ic,t,s)=>`<button class="mt" data-act="${act}"><span class="mt-ic">${ic}</span><b>${t}</b><span class="mt-s">${s}</span></button>`;
-  const ht=heroTeam();
-  setApp(`<div class="lb-top"><span class="lb-me"><span class="lb-av">🐾</span><span><b>Стая</b><span class="lb-lg">${lg.ic} ${lg.n}</span></span></span>
-  <span class="lb-r"><span class="lb-cur">💎 <b>${META.stones}</b></span><button class="pill lb-mb${ui.mm?' on':''}" data-act="mm-menu">☰</button></span></div>
-  <div class="lb-hero"><div class="lb-logo">Бой стаи</div>
-  <div class="lb-team">${ht.map((i,k)=>`<span class="lb-pet p${k}">${petIc(PETS[i],1)}</span>`).join('')}</div><div class="lb-plat"></div></div>
-  ${typeof renderRun==='function'?`<button class="lb-go" data-act="m-run"><span class="lb-goi">🧭</span><span><b>${META.run?'Продолжить забег':'Забег'}</b><span>${META.run?`Акт ${META.run.act+1}, ❤ ${META.run.lives}`:'Путь через три земли: бои, находки, боссы'}</span></span></button>`:''}
-  ${typeof goalHtml==='function'?goalHtml():''}
-  <div class="mtg">
-  ${tile('m-quick','⚔️','Быстрый бой','против бота')}
-  ${tile('m-quick4','4️⃣','Бой четвёрок','4 на 4, поле 3×4')}
-  ${tile('m-rank','🏆','Лига',`${plN(rk().pts,'очко','очка','очков',1)}`)}
-  ${tile('m-lair','👑','Логова',`⭐ ${Object.keys(BOSSES).reduce((a,k)=>a+lairOf(k).t,0)} из ${Object.keys(BOSSES).length*3}`)}
-  ${tile('m-puz','🧩','Задачи',`${Object.keys(pzs().done).length} из ${PUZ.length}`)}
-  ${tile('m-codex','📖','Кодекс',`${cdxCount()} из ${cdxTotal()}`)}
-  </div>
-  <div class="lb-ver">v${VER} · сборка ${BUILD}</div>
-  <div class="lb-nav"><button data-act="m-lib"><span class="lb-ni">📚${dot(up)}</span>Библиотека<small>${own} из ${PETS.length}</small></button><button data-act="m-quests"><span class="lb-ni">📋${dot(qr)}</span>Задания<small>день и неделя</small></button><button data-act="m-ach"><span class="lb-ni">🏅${dot(ar)}</span>Достижения<small>${ACH.filter(a=>META.ach&&META.ach[a.k]).length} из ${ACH.length}</small></button></div>
-  ${ui.mm?`<div class="lmenu-over" data-act="mm-x"><div class="lmenu-pop lb-pop"><button class="pill lmi" data-act="fs">⛶<span class="lmi-l">Весь экран</span></button><button class="pill lmi" data-act="lay-open">🎛<span class="lmi-l">Вид экрана боя</span></button><button class="pill lmi" data-act="m-cheat">🛠<span class="lmi-l">Читы</span></button><span class="m lb-pv">v${VER} · сборка ${BUILD}</span></div></div>`:''}`)};
 function renderQuests(){const qd=questsToday().filter(q=>q.p>=QDEF[q.k].g&&!q.cl).length,wd=questsWeek().filter(q=>!q.cl&&q.p>=WDEF[q.k].g).length;
   setApp(`<div class="top"><button class="pill sm" data-act="m-menu">‹ Меню</button><div class="title">Задания</div><span class="m">💎 ${META.stones}</span></div>
   <div class="msec" style="margin-top:2px">Задания дня${qd?` <span class="qdot">${qd}</span>`:''}</div><div class="qlist">${questsHtml()}</div>
@@ -5899,6 +5877,8 @@ function renderQuests(){const qd=questsToday().filter(q=>q.p>=QDEF[q.k].g&&!q.cl
 if(typeof renderScreen==='function'){const rs0=renderScreen;renderScreen=function(){if(G&&G.phase==='quests'){syncRar();return renderQuests()}return rs0()}}
 if(typeof modeClick==='function'){const mc0=modeClick;modeClick=function(act){
   if(act==='m-quests'){ui.mm=false;CTX=null;G={phase:'quests'};render();return true}
+  if(act==='lfl-open'){ui.lflt=true;render();return true}
+  if(act==='lfl-x'){if(bgHit(act)||(LASTE&&LASTE.target&&LASTE.target.closest&&LASTE.target.closest('button[data-act="lfl-x"]'))){ui.lflt=false;render()}return true}
   if(act==='mm-menu'){ui.mm=!ui.mm;render();return true}
   if(act==='mm-x'){if(bgHit(act)){ui.mm=false;render()}return true}
   return mc0(act)}}
@@ -5914,9 +5894,22 @@ if(typeof setApp==='function'){const sa0=setApp;setApp=function(h){
     const b=f.querySelector('[data-act="to-place"]');if(b){b.dataset.act='start';if(TEAM.length>=TN)b.textContent='В бой'}
     const hint=[...f.querySelectorAll('.m')].find(x=>/«\+»: сразу в стаю/.test(x.textContent));if(hint)hint.remove();
     h=t.innerHTML}
+  if(ph==='lib'){const t=document.createElement('template');t.innerHTML=h;const f=t.content,ms=[...f.children].filter(x=>x.classList.contains('modes'));
+    if(ms.length>=3){const shop=ms[0].querySelector('[data-act="lib-shop"]');if(shop)shop.remove();
+      const n=(LIBF.show!=='all'?1:0)+(LIBF.fam?1:0)+(LIBF.sort!=='q'?1:0);
+      for(const b of ms[1].querySelectorAll('[data-act^="lfam-"]')){const k=b.dataset.act.slice(5);if(k&&FAM[k])b.textContent=FAM[k].ic+' '+FAM[k].n}
+      const lb=ms[2].querySelector('span.m');if(lb)lb.remove();
+      ms[0].insertAdjacentHTML('beforebegin',`<div class="lfb"><button class="pill sm ${n?'on':''}" data-act="lfl-open">⚙ Фильтры и сортировка${n?' · '+n:''}</button><button class="pill sm" data-act="lib-shop">🛒 Лавка</button></div>`);
+      if(ui.lflt){const ov=document.createElement('div');ov.className='over';ov.dataset.act='lfl-x';ov.innerHTML='<div class="box lflbox"><div class="boxhd"><h2>Фильтры и сортировка</h2><button class="xb" data-act="lfl-x" aria-label="Закрыть">✕</button></div></div>';
+        const bx=ov.firstChild;[['Показать',ms[0]],['Семейства',ms[1]],['Сортировка',ms[2]]].forEach(([t,m])=>{const h4=document.createElement('h4');h4.textContent=t;m.removeAttribute('style');bx.append(h4,m)});
+        bx.insertAdjacentHTML('beforeend','<div class="acts"><button class="btn main" data-act="lfl-x">Готово</button></div>');f.appendChild(ov)}
+      else ms.forEach(m=>m.remove());
+      h=t.innerHTML}}
   return sa0(h)}}
 
 if(typeof document!=='undefined'&&document.body){const st=document.createElement('style');st.textContent=`
+.lfb{display:flex;gap:6px;flex-wrap:wrap}
+.lflbox h4{margin:10px 0 4px}.lflbox .modes{flex-wrap:wrap}
 /* placement on the pick screen */
 .pkw{margin-top:6px;padding:6px 6px 7px;border-radius:14px;background:linear-gradient(#18243a,#111a29);border:1px solid #2F3F58}
 .pkhd{display:flex;gap:8px;align-items:baseline;margin:0 2px 5px}.pkhd .m{font-size:11px;line-height:1.2}
@@ -5949,42 +5942,269 @@ if(typeof document!=='undefined'&&document.body){const st=document.createElement
 .lcd.rdy{box-shadow:0 0 0 2px #E9C46A88,0 0 14px #E9C46A66}.lcd.rdy .lcd-tr i{background:linear-gradient(90deg,#E9C46A,#FFE59A)}
 .lcd-up{position:absolute;left:50%;top:5px;transform:translateX(-50%);z-index:3;font-size:11px;font-weight:900;color:#1A1206;background:#E9C46A;border-radius:6px;padding:1px 6px}
 .lcd.lock{border-color:#46526A}.lcd.lock .lcd-sc{filter:saturate(.3) brightness(.7)}
-/* main screen */
-.lb-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.lb-me{display:flex;align-items:center;gap:8px}.lb-me b{display:block;font-size:15px;line-height:1.1}
-.lb-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:21px;background:radial-gradient(circle at 35% 30%,#3a5584,#16233a);border:2px solid var(--gold);box-shadow:0 0 10px #E9C46A44}
-.lb-lg{font-size:11px;color:var(--mut)}
-.lb-r{display:flex;align-items:center;gap:6px}
-.lb-cur{padding:5px 11px;border-radius:999px;background:#0b111b;border:1px solid #5AA9F055;font-size:13px}.lb-cur b{color:#BFE3FF}
-.lb-mb{font-size:16px;padding:6px 12px}
-.lb-hero{position:relative;height:210px;border-radius:18px;overflow:hidden;border:1px solid #33456a;
-  background:${SCN} bottom/100% 55% no-repeat,radial-gradient(36px 36px at 80% 22%,#fff6d0,#f3dc9a 45%,transparent 72%),radial-gradient(90px 90px at 80% 22%,#f3dc9a33,transparent 70%),
-  radial-gradient(1.5px 1.5px at 12% 18%,#fff,transparent),radial-gradient(1.5px 1.5px at 30% 9%,#fff,transparent),radial-gradient(1px 1px at 46% 24%,#fff,transparent),radial-gradient(1.5px 1.5px at 62% 12%,#fff,transparent),radial-gradient(1px 1px at 92% 40%,#fff,transparent),radial-gradient(1px 1px at 22% 36%,#fff,transparent),
-  linear-gradient(#1a2550,#2a2a5c 45%,#162038)}
-.lb-logo{position:absolute;left:0;right:0;top:12px;text-align:center;font-family:var(--disp,inherit);font-size:34px;font-weight:900;letter-spacing:.02em;color:#FFE7A3;
-  text-shadow:0 2px 0 #9a5a12,0 4px 0 #4a2a08,0 0 18px #ffb84a66;-webkit-text-stroke:1px #6a3c0c}
-.lb-team{position:absolute;left:0;right:0;bottom:22px;display:flex;justify-content:center;align-items:flex-end;gap:2px;z-index:1}
-.lb-pet{display:flex;align-items:flex-end;justify-content:center;width:96px;height:100px;font-size:52px;animation:lbB 3.2s ease-in-out infinite}
-.lb-pet.p1{width:118px;height:122px;animation-delay:-1.1s}.lb-pet.p2{animation-delay:-2s}
-.lb-pet img{width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 6px 5px #000b)}
-@keyframes lbB{50%{transform:translateY(-4px)}}
-.lb-plat{position:absolute;left:12%;right:12%;bottom:12px;height:26px;border-radius:50%;background:radial-gradient(closest-side,#7fb8ff55,#3b5c9a33 60%,transparent)}
-.lb-go{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 16px;border-radius:16px;color:#2A1A05;
-  background:linear-gradient(#FFE08A,#E9B44A 55%,#C98A2A);border:2px solid #FFF0B8;box-shadow:0 4px 0 #8a5a14,0 8px 16px #0008}
-.lb-go:active{transform:translateY(2px);box-shadow:0 2px 0 #8a5a14,0 4px 10px #0008}
-.lb-goi{font-size:30px}.lb-go b{display:block;font-size:19px;font-weight:900}.lb-go span span{font-size:12px;opacity:.8}
-.mtg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.mt{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 9px;border-radius:14px;background:linear-gradient(#22324d,#172234);border:1px solid #33466a;box-shadow:0 3px 0 #0c1320;color:var(--fg)}
-.mt:active{transform:translateY(2px);box-shadow:0 1px 0 #0c1320}
-.mt-ic{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:25px;background:radial-gradient(circle at 35% 30%,#3a5584,#121c2e);border:2px solid #4a6290}
-.mt b{font-size:12.5px;line-height:1.1;text-align:center}.mt-s{font-size:10px;color:var(--mut);text-align:center;line-height:1.15}
-.lb-ver{text-align:center;font-size:10px;color:var(--mut);opacity:.7;margin-top:2px}
-.lb-nav{position:sticky;bottom:6px;z-index:5;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:6px;border-radius:18px;background:#0e1626f0;border:1px solid #33466a;box-shadow:0 -4px 16px #0009;margin-top:4px}
-.lb-nav button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;border-radius:12px;color:var(--fg);font-size:12px;font-weight:700;background:linear-gradient(#22324d,#172234)}
-.lb-nav small{font-size:9.5px;font-weight:400;color:var(--mut)}
-.lb-ni{position:relative;font-size:24px;line-height:1.1}.lb-ni .qdot{position:absolute;right:-12px;top:-2px}
-.lb-pop .lb-pv{font-size:10px;text-align:center;padding:4px 0 0}
 `;document.body.appendChild(st)}
+/* ---------- 0.39.1 Anton: the main screen is a game lobby, drawn in code (SVG + CSS):
+   a living night scene (stars, moon, clouds, castle with lit windows, graveyard, fog, fireflies),
+   the player's pack standing on a glowing rune circle, round buttons for modes on both sides,
+   a big «Забег» button with quick fights beside it, and a bottom bar (Стая · Бой · Лавка).
+   Only the look changes: every button runs the same action as before. ---------- */
+
+const LBY_SCENE=(()=>{
+  let sd=7;const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647;
+  const stars=[0,1,2].map(g=>{let s='';for(let i=0;i<16;i++){const x=(rnd()*400).toFixed(1),y=(rnd()*330).toFixed(1),r=(rnd()*1.1+.4).toFixed(2);s+=`<circle cx="${x}" cy="${y}" r="${r}"/>`}return`<g class="ls-st s${g}" fill="#fff">${s}</g>`}).join('');
+  const tomb=(x,y,s,k)=>k?`<path d="M${x-1.2*s} ${y}v${-9*s}h${-3*s}v${-2.4*s}h${3*s}v${-3*s}h${2.4*s}v${3*s}h${3*s}v${2.4*s}h${-3*s}v${9*s}z"/>`:`<path d="M${x-4*s} ${y}v${-8*s}a${4*s} ${4*s} 0 0 1 ${8*s} 0v${8*s}z"/>`;
+  const tree=(x,y,s,f)=>`<path transform="translate(${x} ${y}) scale(${f?-s:s} ${s})" d="M-3 0 L-2 -40 L-14 -62 L-12 -64 L-1 -48 L0 -78 L3 -78 L3 -52 L16 -70 L18 -68 L5 -44 L4 -24 L14 -32 L15 -30 L4 -16 L3 0Z"/>`;
+  const wins=[[254,384],[263,384],[289,364],[300,352],[300,366],[333,380],[342,380],[318,328]].map(([x,y],i)=>`<rect class="ls-w w${i%3}" x="${x}" y="${y}" width="4" height="7" rx="2"/>`).join('');
+  return`<svg class="ls-svg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <linearGradient id="lsSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070b24"/><stop offset=".35" stop-color="#161a4a"/><stop offset=".55" stop-color="#2e2766"/><stop offset=".66" stop-color="#4a3270"/><stop offset=".8" stop-color="#1a1636"/><stop offset="1" stop-color="#0a0b1a"/></linearGradient>
+    <radialGradient id="lsMoonG"><stop offset="0" stop-color="#fff4cf" stop-opacity=".55"/><stop offset=".35" stop-color="#f7d98e" stop-opacity=".18"/><stop offset="1" stop-color="#f7d98e" stop-opacity="0"/></radialGradient>
+    <radialGradient id="lsMoon" cx=".4" cy=".38"><stop offset="0" stop-color="#fffbe8"/><stop offset=".7" stop-color="#f6e2a6"/><stop offset="1" stop-color="#e2bf6e"/></radialGradient>
+    <linearGradient id="lsM1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b3a7a"/><stop offset="1" stop-color="#231f4c"/></linearGradient>
+    <linearGradient id="lsM2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f1d48"/><stop offset="1" stop-color="#141333"/></linearGradient>
+    <linearGradient id="lsGr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121633"/><stop offset="1" stop-color="#05060f"/></linearGradient>
+    <radialGradient id="lsHz" cx=".5" cy="0"><stop offset="0" stop-color="#8a5cff" stop-opacity=".35"/><stop offset="1" stop-color="#8a5cff" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="400" height="800" fill="url(#lsSky)"/>
+  ${stars}
+  <circle class="ls-mg" cx="306" cy="150" r="120" fill="url(#lsMoonG)"/>
+  <circle cx="306" cy="150" r="40" fill="url(#lsMoon)"/>
+  <g fill="#d9b86a" opacity=".35"><circle cx="292" cy="140" r="7"/><circle cx="318" cy="166" r="5"/><circle cx="320" cy="136" r="3.5"/><circle cx="298" cy="168" r="3"/></g>
+  <g class="ls-cl c1" fill="#8f86d6" opacity=".16"><ellipse cx="90" cy="190" rx="90" ry="14"/><ellipse cx="140" cy="180" rx="60" ry="12"/></g>
+  <g class="ls-cl c2" fill="#b0a6ff" opacity=".12"><ellipse cx="300" cy="235" rx="110" ry="12"/><ellipse cx="250" cy="226" rx="50" ry="9"/></g>
+  <ellipse cx="200" cy="470" rx="300" ry="90" fill="url(#lsHz)"/>
+  <path d="M0 430 L30 400 L60 415 L95 370 L130 405 L160 385 L190 410 L230 360 L265 395 L300 375 L340 400 L370 380 L400 395 V520 H0Z" fill="url(#lsM1)"/>
+  <g fill="#120f2e">
+    <path d="M232 470 V372 L240 352 L248 372 V392 H262 V376 L270 360 L278 376 V392 H282 V350 L291 318 L300 300 L309 318 L318 350 V392 H326 V372 L334 356 L342 372 V470Z"/>
+    <path d="M296 300 L300 284 L304 300Z"/><rect x="299" y="276" width="1.6" height="10"/><path d="M300.8 276 L310 279 L300.8 282Z" fill="#c94a4a"/>
+  </g>
+  <g fill="#ffcf6a">${wins}</g>
+  <path d="M0 470 Q60 440 120 462 T240 458 T400 450 V560 H0Z" fill="url(#lsM2)"/>
+  <g fill="#0c0b22">${tree(40,470,1.05)}${tree(372,466,.9,1)}${tree(120,468,.6)}</g>
+  <path d="M0 520 Q100 496 200 510 T400 505 V800 H0Z" fill="url(#lsGr)"/>
+  <g fill="#0a0a1c">${tomb(30,528,1.4,0)}${tomb(58,532,1.1,1)}${tomb(84,526,.9,0)}${tomb(330,526,1.2,1)}${tomb(356,530,1.5,0)}${tomb(382,524,1,0)}${tomb(305,530,.8,0)}</g>
+  <path d="M0 560 Q200 540 400 560" stroke="#6f5bd6" stroke-opacity=".12" stroke-width="10" fill="none"/>
+  </svg>`})();
+
+const LBY_RUNES=`<svg viewBox="-100 -100 200 200" aria-hidden="true"><defs><radialGradient id="lsRg"><stop offset="0" stop-color="#9fd0ff" stop-opacity=".55"/><stop offset=".6" stop-color="#5a6cff" stop-opacity=".18"/><stop offset="1" stop-color="#5a6cff" stop-opacity="0"/></radialGradient></defs>
+  <circle r="98" fill="url(#lsRg)"/><circle r="86" fill="none" stroke="#bfe1ff" stroke-opacity=".7" stroke-width="2"/><circle r="78" fill="none" stroke="#bfe1ff" stroke-opacity=".45" stroke-width="1" stroke-dasharray="6 5"/>
+  <g class="ls-rr">${[...Array(12).keys()].map(i=>`<g transform="rotate(${i*30})"><path d="M0 -82 l3 6 l-3 6 l-3 -6z" fill="#e6f3ff" fill-opacity=".85"/></g>`).join('')}</g>
+  <circle r="58" fill="none" stroke="#ffe7a3" stroke-opacity=".55" stroke-width="1.5"/><path d="M0 -58 L50 29 L-50 29Z M0 58 L-50 -29 L50 -29Z" fill="none" stroke="#ffe7a3" stroke-opacity=".35" stroke-width="1.2"/></svg>`;
+
+function lbyTeam(){const own=i=>PETS[i]&&mp(PETS[i].n).un;let l=(META.lastQ||[]).filter(own);
+  if(l.length<3)l=l.concat(PETS.map((p,i)=>i).filter(i=>own(i)&&!l.includes(i)));return l.slice(0,3)}
+const lbyFF=[...Array(14).keys()].map(i=>`<i style="left:${(i*37+11)%100}%;top:${48+(i*23)%40}%;animation-delay:${-(i*1.7)%9}s;animation-duration:${7+i%5}s"></i>`).join('');
+
+renderMenu=function(){
+  const lg=LEAGUES[lgOf(rk().pts)],up=PETS.filter(p=>canQUp(p.n)).length,qr=questReady(),ar=achReady();
+  const dot=n=>n?`<span class="lby-dot">${n}</span>`:'';
+  const rb=(act,ic,t,n)=>`<button class="lby-rb" data-act="${act}"><span class="lby-rbi">${ic}${dot(n)}</span><span class="lby-rbt">${t}</span></button>`;
+  const t=lbyTeam(),g=typeof goalNext==='function'?goalNext():null,R=META.run;
+  setApp(`<div class="lby">
+  <div class="lby-bg">${LBY_SCENE}<div class="lby-fog f1"></div><div class="lby-fog f2"></div><div class="lby-ff">${lbyFF}</div></div>
+  <div class="lby-in">
+    <div class="lby-hud">
+      <button class="lby-me" data-act="m-rank"><span class="lby-av"><span>🐾</span></span><span class="lby-mt"><b>Стая</b><span>${lg.ic} ${lg.n} · ${plN(rk().pts,'очко','очка','очков',1)}</span></span></button>
+      <span class="lby-cur"><span class="lby-gem">💎</span><b>${META.stones}</b></span>
+      <button class="lby-gear${ui.mm?' on':''}" data-act="mm-menu" aria-label="Меню">☰</button>
+    </div>
+    <div class="lby-logo"><div class="lby-lt">Бой стаи</div><div class="lby-ver">v${VER} · сборка ${BUILD}</div></div>
+    <div class="lby-stage">
+      <div class="lby-side">${rb('m-rank','🏆','Лига',0)}${rb('m-lair','👑','Логова',0)}${rb('m-puz','🧩','Задачи',0)}</div>
+      <button class="lby-arena" data-act="m-lib" aria-label="Библиотека"><span class="lby-beam"></span><span class="lby-ring">${LBY_RUNES}</span>
+        ${t.map((i,k)=>`<span class="lby-pet q${k}"><span class="lby-sh"></span>${petIc(PETS[i],1)}</span>`).join('')}</button>
+      <div class="lby-side">${rb('m-quests','📜','Задания',qr)}${rb('m-ach','🏅','Награды',ar)}${rb('m-codex','📖','Кодекс',0)}</div>
+    </div>
+    ${g?`<button class="lby-goal" data-act="${g.a}"><span class="lby-gi">${g.ic}</span><span>${g.t}</span></button>`:''}
+    <div class="lby-play">
+      <button class="lby-sb" data-act="m-quick"><span>⚔️</span><b>Быстрый<br>бой</b></button>
+      <button class="lby-go" data-act="m-run"><span class="lby-shine"></span><span class="lby-goi">🧭</span><span class="lby-got"><b>${R?'Продолжить':'Забег'}</b><small>${R?`акт ${R.act+1} · ❤ ${R.lives}`:'бои, находки, боссы'}</small></span></button>
+      <button class="lby-sb" data-act="m-quick4"><span class="lby-4">4</span><b>Бой<br>четвёрок</b></button>
+    </div>
+    <div class="lby-nav">
+      <button data-act="m-lib"><span class="lby-ni">📚${dot(up)}</span>Стая</button>
+      <button class="on" data-act="mm-home"><span class="lby-ni">⚔️</span>Бой</button>
+      <button data-act="m-shop"><span class="lby-ni">🛒</span>Лавка</button>
+    </div>
+  </div>
+  ${ui.mm?`<div class="lmenu-over" data-act="mm-x"><div class="lmenu-pop lb-pop"><button class="pill lmi" data-act="fs">⛶<span class="lmi-l">Весь экран</span></button><button class="pill lmi" data-act="lay-open">🎛<span class="lmi-l">Вид экрана боя</span></button><button class="pill lmi" data-act="m-cheat">🛠<span class="lmi-l">Читы</span></button><span class="m lb-pv">v${VER} · сборка ${BUILD}</span></div></div>`:''}
+  </div>`)};
+if(typeof modeClick==='function'){const mc1=modeClick;modeClick=function(act){
+  if(act==='mm-home')return true;
+  if(act==='m-shop'){ui.mm=false;CTX=null;G={phase:'lib'};ui.lp=null;ui.shop=true;render();return true}
+  return mc1(act)}}
+// the lobby owns the whole screen: no page scroll behind it
+if(typeof setApp==='function'){const sa1=setApp;setApp=function(h){const r=sa1(h);if(typeof document!=='undefined'&&document.body)document.body.classList.toggle('lby-on',typeof G!=='undefined'&&!!G&&G.phase==='menu');return r}}
+
+if(typeof document!=='undefined'&&document.body){const st=document.createElement('style');st.textContent=`
+body.lby-on{overflow:hidden;height:100dvh}
+.lby{position:fixed;inset:0;z-index:1;overflow:hidden;color:#fff}
+.lby-bg{position:absolute;inset:0;background:#0a0b1a}
+.ls-svg{position:absolute;inset:0;width:100%;height:100%}
+.ls-st{animation:lsTw 4s ease-in-out infinite}.ls-st.s1{animation-delay:-1.3s;animation-duration:5s}.ls-st.s2{animation-delay:-2.6s;animation-duration:3.4s}
+@keyframes lsTw{0%,100%{opacity:.9}50%{opacity:.25}}
+.ls-mg{animation:lsMg 6s ease-in-out infinite;transform-origin:306px 150px}@keyframes lsMg{50%{opacity:.7;transform:scale(1.06)}}
+.ls-cl{animation:lsCl 60s linear infinite}.ls-cl.c2{animation-duration:85s;animation-direction:reverse}@keyframes lsCl{0%{transform:translateX(-60px)}50%{transform:translateX(60px)}100%{transform:translateX(-60px)}}
+.ls-w{animation:lsW 3s steps(1) infinite}.ls-w.w1{animation-delay:-1s;animation-duration:4.4s}.ls-w.w2{animation-delay:-2.2s;animation-duration:2.6s}@keyframes lsW{0%,100%{opacity:1}47%{opacity:.55}50%{opacity:1}83%{opacity:.75}}
+.lby-fog{position:absolute;left:-50%;width:200%;height:26%;pointer-events:none;background:radial-gradient(40% 50% at 25% 50%,#a99cff22,transparent 70%),radial-gradient(35% 45% at 70% 55%,#a99cff1c,transparent 70%);animation:lsFog 40s linear infinite}
+.lby-fog.f1{top:52%}.lby-fog.f2{top:70%;animation-duration:55s;animation-direction:reverse;opacity:.8}
+@keyframes lsFog{0%{transform:translateX(0)}50%{transform:translateX(18%)}100%{transform:translateX(0)}}
+.lby-ff i{position:absolute;width:4px;height:4px;border-radius:50%;background:#fff3a0;box-shadow:0 0 6px 2px #ffe06a99;animation:lsFF 8s ease-in-out infinite;opacity:0}
+@keyframes lsFF{0%{opacity:0;transform:translate(0,0)}20%{opacity:1}50%{transform:translate(18px,-26px)}80%{opacity:.8}100%{opacity:0;transform:translate(-10px,-48px)}}
+.lby-in{position:relative;z-index:1;height:100%;box-sizing:border-box;max-width:460px;margin:0 auto;display:flex;flex-direction:column;padding:max(10px,env(safe-area-inset-top)) 12px max(8px,env(safe-area-inset-bottom))}
+/* top bar */
+.lby-hud{display:flex;align-items:center;gap:8px}
+.lby-me{display:flex;align-items:center;gap:8px;flex:1;min-width:0;text-align:left;color:#fff}
+.lby-av{width:46px;height:46px;flex:none;border-radius:50%;padding:3px;background:conic-gradient(from 200deg,#ffe7a3,#b4661c,#ffe7a3,#8a4a12,#ffe7a3);box-shadow:0 3px 8px #0009}
+.lby-av>span{display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;font-size:22px;background:radial-gradient(circle at 35% 30%,#4a5fa0,#151b3c)}
+.lby-mt{display:flex;flex-direction:column;min-width:0;padding:3px 12px 3px 10px;margin-left:-14px;border-radius:0 12px 12px 0;background:linear-gradient(90deg,#0b0f24cc,#0b0f2499);border:1px solid #ffffff1a;border-left:0}
+.lby-mt b{font-family:var(--display);font-size:13px;letter-spacing:.02em;padding-left:6px}.lby-mt span{font-size:10.5px;color:#c9c6ef;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:6px}
+.lby-cur{display:flex;align-items:center;gap:5px;padding:4px 12px 4px 4px;border-radius:999px;background:linear-gradient(#0b0f24e6,#141a3ae6);border:1.5px solid #6fb2ff66;box-shadow:inset 0 1px 0 #ffffff1a}
+.lby-gem{display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle,#2a5aa8,#0f2148);font-size:13px}.lby-cur b{font-size:14px;color:#d6ecff}
+.lby-gear{width:40px;height:40px;border-radius:12px;font-size:19px;color:#ffe7a3;background:linear-gradient(#3a3474,#1c1940);border:1.5px solid #ffe7a355;box-shadow:0 3px 0 #0b0920}
+/* logo */
+.lby-logo{text-align:center;margin-top:10px}
+.lby-lt{display:inline-block;font-family:var(--display);font-size:clamp(34px,11vw,46px);font-weight:900;line-height:1.05;letter-spacing:.02em;text-transform:uppercase;
+  background:linear-gradient(#fffbe6 10%,#ffd66b 45%,#e08a23 70%,#ffcf5a 90%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(1px 0 0 #3a1a05) drop-shadow(-1px 0 0 #3a1a05) drop-shadow(0 1px 0 #3a1a05) drop-shadow(0 -1px 0 #3a1a05) drop-shadow(0 4px 0 #5a2c08) drop-shadow(0 0 14px #ffb84a66)}
+.lby-ver{font-size:9.5px;color:#c9c6efaa;margin-top:2px}
+/* stage */
+.lby-stage{flex:1;min-height:0;display:flex;align-items:stretch;gap:4px;margin-top:4px}
+.lby-side{display:flex;flex-direction:column;justify-content:center;gap:12px;width:64px;flex:none}
+.lby-rb{display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff}
+.lby-rbi{position:relative;display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;font-size:26px;
+  background:radial-gradient(circle at 35% 28%,#5866b8,#232a63 60%,#141838);box-shadow:0 0 0 3px #0c0f26,0 0 0 5px #c79a45,0 5px 10px #000a,inset 0 2px 0 #ffffff33}
+.lby-rb:active .lby-rbi{transform:scale(.93)}
+.lby-rbt{font-size:11px;font-weight:700;text-shadow:0 1px 2px #000,0 0 6px #000;margin-top:3px}
+.lby-dot{position:absolute;right:-4px;top:-4px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#ff4d5e;border:2px solid #0c0f26;color:#fff;font-size:11px;font-weight:800;line-height:15px;text-align:center;animation:lsDot 1.6s ease-in-out infinite}
+@keyframes lsDot{50%{transform:scale(1.15)}}
+.lby-arena{position:relative;flex:1;min-width:0;display:block}
+.lby-ring{position:absolute;left:50%;bottom:2%;width:min(108%,290px);aspect-ratio:1;transform:translateX(-50%) perspective(500px) rotateX(70deg);transform-origin:50% 60%}
+.lby-ring svg{width:100%;height:100%;animation:lsRot 30s linear infinite}
+@keyframes lsRot{to{transform:rotate(360deg)}}
+.lby-beam{position:absolute;left:50%;bottom:16%;width:70%;height:70%;transform:translateX(-50%);background:radial-gradient(50% 60% at 50% 100%,#8fb8ff40,transparent 70%);animation:lsMg 5s ease-in-out infinite}
+.lby-pet{position:absolute;bottom:14%;display:flex;align-items:flex-end;justify-content:center;font-size:56px;animation:lsBob 3.4s ease-in-out infinite}
+.lby-pet img{width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 0 1px #000) drop-shadow(0 8px 6px #0009)}
+.lby-pet.q0{left:50%;width:min(64%,210px);height:min(62%,220px);margin-left:calc(min(64%,210px)/-2);bottom:8%;z-index:2}
+.lby-pet.q1{left:2%;width:min(46%,150px);height:min(46%,160px);bottom:24%;animation-delay:-1.2s;z-index:1}
+.lby-pet.q2{right:2%;width:min(46%,150px);height:min(46%,160px);bottom:24%;animation-delay:-2.3s;z-index:1}
+.lby-sh{position:absolute;left:15%;right:15%;bottom:-4px;height:12px;border-radius:50%;background:radial-gradient(closest-side,#000a,transparent)}
+@keyframes lsBob{50%{transform:translateY(-6px)}}
+/* goal + play */
+.lby-goal{display:flex;align-items:center;gap:8px;margin:6px auto 0;max-width:100%;padding:6px 12px 6px 6px;border-radius:999px;text-align:left;color:#f4ecd2;font-size:11.5px;line-height:1.2;
+  background:linear-gradient(90deg,#2a1f12ee,#3a2a16ee);border:1px solid #c79a4588;box-shadow:0 3px 8px #0008}
+.lby-gi{display:flex;align-items:center;justify-content:center;width:26px;height:26px;flex:none;border-radius:50%;background:#c79a45;font-size:15px}
+.lby-play{display:flex;align-items:stretch;gap:8px;margin-top:8px}
+.lby-sb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:78px;flex:none;padding:6px 2px;border-radius:16px;color:#fff;
+  background:linear-gradient(#4b5bc4,#2b3484 60%,#20286a);border:2px solid #9fb0ff88;box-shadow:0 4px 0 #141a48,0 6px 12px #0009,inset 0 2px 0 #ffffff33}
+.lby-sb span{font-size:22px;line-height:1}.lby-sb b{font-size:10.5px;line-height:1.1;text-align:center}
+.lby-4{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:#ffe7a3;color:#2a1a05;font-family:var(--display);font-weight:900;font-size:17px!important}
+.lby-sb:active,.lby-go:active{transform:translateY(3px);box-shadow:0 1px 0 #141a48,0 3px 6px #0009}
+.lby-go{position:relative;flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 10px;border-radius:18px;overflow:hidden;color:#3a1a05;
+  background:linear-gradient(#fff1b0,#ffcf4a 40%,#e9971f 75%,#c96d14);border:2.5px solid #fff6cf;box-shadow:0 5px 0 #7a3c08,0 8px 18px #000a,0 0 24px #ffb84a55,inset 0 -3px 0 #a8550e55}
+.lby-goi{font-size:32px;filter:drop-shadow(0 2px 0 #fff8)}
+.lby-got{display:flex;flex-direction:column;align-items:flex-start;min-width:0}.lby-got b{font-family:var(--display);font-size:clamp(19px,5.6vw,24px);font-weight:900;text-transform:uppercase;line-height:1;text-shadow:0 1px 0 #fff8}
+.lby-got small{font-size:11px;font-weight:600;opacity:.8;white-space:nowrap}
+.lby-shine{position:absolute;top:0;bottom:0;left:-40%;width:30%;background:linear-gradient(100deg,transparent,#ffffffa0,transparent);transform:skewX(-20deg);animation:lsSh 3.2s ease-in-out infinite}
+@keyframes lsSh{0%,60%{left:-40%}100%{left:130%}}
+/* bottom bar */
+.lby-nav{display:grid;grid-template-columns:1fr 1.2fr 1fr;align-items:end;gap:6px;margin-top:10px;padding:6px 8px;border-radius:20px;background:linear-gradient(#1b1f44f2,#0c0f26f2);border:1.5px solid #c79a4566;box-shadow:0 -2px 14px #0009,inset 0 1px 0 #ffffff14}
+.lby-nav button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 2px;border-radius:14px;color:#c9c6ef;font-size:11.5px;font-weight:700}
+.lby-nav button.on{color:#fff;margin-top:-20px;padding:8px 2px 5px;background:linear-gradient(#6a5cff,#3a2fa8);border:2px solid #c7bfff;box-shadow:0 4px 0 #1c1660,0 0 16px #6a5cff88}
+.lby-ni{position:relative;font-size:24px;line-height:1.1}.lby-nav .on .lby-ni{font-size:28px}.lby-ni .lby-dot{right:-12px;top:-4px}
+.lb-pop .lb-pv{font-size:10px;text-align:center;padding:4px 0 0}
+@media (max-height:640px){.lby-logo{margin-top:4px}.lby-lt{font-size:30px}.lby-rbi{width:48px;height:48px;font-size:22px}.lby-side{gap:8px}.lby-goal{display:none}}
+@media (prefers-reduced-motion:reduce){.lby *,.lby{animation:none!important}}
+`;document.body.appendChild(st)}
+// the first screen is drawn before this file loads: draw the lobby right away
+try{const tp=document.createElement('template');if(tp.content&&typeof tp.content.querySelector==='function'&&typeof G!=='undefined'&&G&&G.phase==='menu'&&typeof app!=='undefined'&&app&&typeof render==='function')render()}catch(e){}
+/* ---------- 0.39.1 Anton: every creature in the library gets its own fitting background, drawn in code.
+   The family sets the place (forest, graveyard, workshop, lava field…), the creature's elements tint the sky,
+   and the creature's name seeds the details (what stands where, moon or sun, how many props), so no two cards match. ---------- */
+function libBgHash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function libBg(i){const p=PETS[i],els=petEls(p),c1=ELC[els[0]]||'#7a8cff',c2=ELC[els[1]||els[0]]||c1;
+  let sd=libBgHash(p.n)||1;const R=()=>(sd=Math.imul(sd^(sd>>>15),2246822507)>>>0,(sd%100000)/100000),
+    rr=(a,b)=>a+R()*(b-a),ri=(a,b)=>Math.floor(rr(a,b+1)),pick=a=>a[ri(0,a.length-1)],f=n=>n.toFixed(1);
+  const W=100,H=137,hz=rr(78,92);
+  const D='#05070f',D2='#0b0f1f';
+  const orb=()=>{const t=R();if(t<.45){const x=rr(14,86),y=rr(12,34),r=rr(6,11);return`<circle cx="${f(x)}" cy="${f(y)}" r="${f(r*2.6)}" fill="#fff6d0" opacity=".10"/><circle cx="${f(x)}" cy="${f(y)}" r="${f(r)}" fill="#fff3c8" opacity=".85"/>${R()<.5?`<circle cx="${f(x+r*.45)}" cy="${f(y-r*.2)}" r="${f(r*.9)}" fill="${D2}" opacity=".9"/>`:''}`}return''};
+  const stars=n=>{let s='';for(let k=0;k<n;k++)s+=`<circle cx="${f(rr(2,98))}" cy="${f(rr(2,hz-30))}" r="${f(rr(.3,.9))}" fill="#fff" opacity="${f(rr(.3,.9))}"/>`;return s};
+  const hills=(y,amp,col,op)=>{let d=`M0 ${f(y)}`;const n=ri(3,5);for(let k=1;k<=n;k++){const x=W*k/n;d+=` Q${f(x-W/n/2)} ${f(y-rr(0,amp))} ${f(x)} ${f(y+rr(-amp/3,amp/3))}`}return`<path d="${d} V${H} H0Z" fill="${col}" opacity="${op}"/>`};
+  const ground=col=>`<path d="M0 ${f(hz)} Q50 ${f(hz-rr(2,6))} 100 ${f(hz+rr(-2,2))} V${H} H0Z" fill="${col||D}"/>`;
+  const side=()=>R()<.5?rr(-2,22):rr(78,102);
+  const pine=(x,y,h)=>{let s='';for(let k=0;k<3;k++){const w=h*(.42-k*.09),yy=y-h*(.25+k*.25);s+=`<path d="M${f(x-w)} ${f(yy+h*.3)} L${f(x)} ${f(yy-h*.12)} L${f(x+w)} ${f(yy+h*.3)}Z"/>`}return s+`<rect x="${f(x-1)}" y="${f(y-h*.1)}" width="2" height="${f(h*.12)}"/>`};
+  const deadTree=(x,y,s,fl)=>`<path transform="translate(${f(x)} ${f(y)}) scale(${f(fl?-s:s)} ${f(s)})" d="M-1.5 0 L-1 -20 L-7 -31 L-6 -32 L-.5 -24 L0 -39 L1.5 -39 L1.5 -26 L8 -35 L9 -34 L2.5 -22 L2 -12 L7 -16 L7.5 -15 L2 -8 L1.5 0Z"/>`;
+  const tomb=(x,y,s)=>R()<.4?`<path d="M${f(x-.7*s)} ${f(y)}v${f(-6*s)}h${f(-2*s)}v${f(-1.6*s)}h${f(2*s)}v${f(-2*s)}h${f(1.4*s)}v${f(2*s)}h${f(2*s)}v${f(1.6*s)}h${f(-2*s)}v${f(6*s)}z"/>`:`<path d="M${f(x-2.6*s)} ${f(y)}v${f(-5*s)}a${f(2.6*s)} ${f(2.6*s)} 0 0 1 ${f(5.2*s)} 0v${f(5*s)}z"/>`;
+  const leaf=(x,y,l,a,col)=>`<path transform="translate(${f(x)} ${f(y)}) rotate(${f(a)})" d="M0 0 Q${f(l*.35)} ${f(-l*.28)} ${f(l)} 0 Q${f(l*.35)} ${f(l*.28)} 0 0Z" fill="${col}"/>`;
+  const gear=(x,y,r,col,op)=>`<g opacity="${op}"><circle cx="${f(x)}" cy="${f(y)}" r="${f(r)}" fill="none" stroke="${col}" stroke-width="${f(r*.42)}" stroke-dasharray="${f(r*.45)} ${f(r*.38)}"/><circle cx="${f(x)}" cy="${f(y)}" r="${f(r*.72)}" fill="none" stroke="${col}" stroke-width="${f(r*.3)}"/></g>`;
+  const spark=(x,y,s,col)=>`<path d="M${f(x)} ${f(y-s)} L${f(x+s*.25)} ${f(y-s*.25)} L${f(x+s)} ${f(y)} L${f(x+s*.25)} ${f(y+s*.25)} L${f(x)} ${f(y+s)} L${f(x-s*.25)} ${f(y+s*.25)} L${f(x-s)} ${f(y)} L${f(x-s*.25)} ${f(y-s*.25)}Z" fill="${col}"/>`;
+  const dots=(n,col,y0,y1,r0,r1)=>{let s='';for(let k=0;k<n;k++)s+=`<circle cx="${f(rr(3,97))}" cy="${f(rr(y0,y1))}" r="${f(rr(r0,r1))}" fill="${col}" opacity="${f(rr(.4,1))}"/>`;return s};
+  let back='',front='',sky=[];
+  switch(p.fam){
+  case'beast':{sky=['#081226',c1,'#1d2a3a'];back=stars(ri(6,14))+orb()+hills(hz-rr(10,18),10,'#1d3550',.7)+hills(hz-rr(2,8),8,'#122438',.9);
+    let t='';for(let k=0,n=ri(3,6);k<n;k++){const x=side(),h=rr(20,38);t+=pine(x,hz+rr(0,6),h)}front=ground('#08121c')+`<g fill="#060d16">${t}</g>`+dots(ri(3,7),'#fff3a0',hz-30,hz+10,.5,1);break}
+  case'plant':{sky=['#06140f',c1,'#123a24'];back=orb()+hills(hz-rr(6,14),9,'#0f3a26',.8);
+    let v='';for(let k=0,n=ri(2,4);k<n;k++){const x=rr(4,96);v+=`<path d="M${f(x)} -2 Q${f(x+rr(-10,10))} ${f(rr(18,30))} ${f(x+rr(-6,6))} ${f(rr(30,50))}" stroke="#0a2a1a" stroke-width="1.6" fill="none"/>`+leaf(x+rr(-6,6),rr(20,44),rr(5,8),rr(0,360),'#0f3a22')}
+    let l='';for(let k=0,n=ri(4,7);k<n;k++){const x=side();l+=leaf(x,hz+rr(-2,10),rr(14,26),x<50?rr(-80,-20):rr(200,260),pick(['#0b2c1a','#0e3a20','#08241a']))}
+    let fl='';for(let k=0,n=ri(2,5);k<n;k++){const x=rr(6,94),y=hz+rr(4,14),c=pick([c1,c2,'#ff8fc8','#ffe07a']);fl+=`<circle cx="${f(x)}" cy="${f(y)}" r="2.2" fill="${c}" opacity=".85"/><circle cx="${f(x)}" cy="${f(y)}" r=".9" fill="#fff6c0"/>`}
+    front=v+ground('#06180f')+l+fl;break}
+  case'insect':{sky=['#14100a',c1,'#3a2e14'];let hx='';const ox=rr(-10,40),oy=rr(4,30);for(let a=0;a<4;a++)for(let b=0;b<3;b++){const x=ox+a*13+(b%2)*6.5,y=oy+b*11;hx+=`<path d="M${f(x)} ${f(y-6.5)} l5.6 3.2 v6.5 l-5.6 3.2 l-5.6 -3.2 v-6.5Z" fill="none" stroke="#ffcf5a" stroke-opacity="${f(rr(.08,.2))}" stroke-width="1"/>`}
+    back=hx+orb()+hills(hz-rr(4,12),7,'#2a2410',.8);let m='';for(let k=0,n=ri(2,4);k<n;k++){const x=side(),s=rr(.7,1.4),cc=pick(['#a8322a','#c46a1e','#6a4ab0']);m+=`<rect x="${f(x-1.4*s)}" y="${f(hz-2-7*s)}" width="${f(2.8*s)}" height="${f(9*s)}" fill="#d8ccb0" opacity=".6"/><path d="M${f(x-7*s)} ${f(hz-6*s)} Q${f(x)} ${f(hz-16*s)} ${f(x+7*s)} ${f(hz-6*s)}Z" fill="${cc}" opacity=".75"/>`}
+    let g='';for(let k=0;k<ri(8,14);k++){const x=rr(0,100);g+=`<path d="M${f(x)} ${f(hz+8)} Q${f(x+rr(-3,3))} ${f(hz-rr(4,12))} ${f(x+rr(-5,5))} ${f(hz-rr(8,16))}" stroke="#1a2a0e" stroke-width="1" fill="none"/>`}
+    front=ground('#100c06')+m+g+dots(ri(2,5),'#ffe58a',20,hz,.4,.9);break}
+  case'magic':{sky=['#0c0824',c1,'#2a1a4a'];back=stars(ri(10,18))+`<circle cx="50" cy="${f(hz-28)}" r="${f(rr(26,34))}" fill="none" stroke="${c2}" stroke-opacity=".22" stroke-width="1" stroke-dasharray="3 2"/><circle cx="50" cy="${f(hz-28)}" r="${f(rr(16,22))}" fill="none" stroke="${c1}" stroke-opacity=".2" stroke-width=".8"/>`+orb();
+    let c='';for(let k=0,n=ri(3,5);k<n;k++){const x=side(),y=rr(20,hz-10),s=rr(3,6),cc=pick([c1,c2]);c+=`<path d="M${f(x)} ${f(y-s*1.8)} L${f(x+s)} ${f(y)} L${f(x)} ${f(y+s*1.8)} L${f(x-s)} ${f(y)}Z" fill="${cc}" opacity=".5"/>`}
+    let sp='';for(let k=0;k<ri(4,8);k++)sp+=spark(rr(4,96),rr(6,hz),rr(1,2.4),'#fff6d0');front=c+sp+ground('#0a0618');break}
+  case'undead':{sky=['#06080f',c1,'#1c2430'];back=stars(ri(4,10))+(R()<.7?`<circle cx="${f(rr(20,80))}" cy="${f(rr(14,30))}" r="${f(rr(8,12))}" fill="#e8f0d8" opacity=".75"/>`:orb())+hills(hz-rr(6,14),8,'#18202a',.85);
+    let b='';for(let k=0;k<ri(1,4);k++){const x=rr(10,90),y=rr(10,40),s=rr(1.5,3);b+=`<path d="M${f(x-s*2)} ${f(y)} q${f(s)} ${f(-s)} ${f(s*2)} 0 q${f(s)} ${f(-s)} ${f(s*2)} 0 q${f(-s)} ${f(-.2*s)} ${f(-s*2)} ${f(s*.8)} q${f(-s)} ${f(-s)} ${f(-s*2)} ${f(-s*.8)}Z" fill="${D}"/>`}
+    let t='';for(let k=0,n=ri(3,6);k<n;k++)t+=tomb(side(),hz+rr(2,8),rr(1.1,1.9));
+    front=b+ground('#06080d')+`<g fill="#04060a">${R()<.8?deadTree(side(),hz+4,rr(.8,1.2),R()<.5):''}${t}</g><rect x="0" y="${f(hz-4)}" width="100" height="10" fill="${c2}" opacity=".08"/>`;break}
+  case'mech':{sky=['#0a0e14',c1,'#24303a'];let g='';for(let k=0,n=ri(2,4);k<n;k++)g+=gear(side(),rr(10,hz-10),rr(6,14),pick(['#c08a4a','#8aa0b8',c1]),f(rr(.12,.3)));
+    back=g+`<rect x="${f(rr(4,20))}" y="${f(hz-rr(30,44))}" width="${f(rr(5,8))}" height="60" fill="#121820"/><rect x="${f(rr(76,90))}" y="${f(hz-rr(24,38))}" width="${f(rr(6,10))}" height="60" fill="#121820"/>`+dots(ri(3,6),'#cfd8e0',4,hz-30,.8,2.4).replace(/fill="#cfd8e0"/g,'fill="#cfd8e0" fill-opacity=".12"');
+    const py=hz-rr(4,10);front=ground('#070a0e')+`<rect x="0" y="${f(py)}" width="100" height="2.4" fill="#5a4630" opacity=".7"/>`+dots(ri(4,8),'#ffb84a',py-1,py+3,.3,.6);break}
+  case'elem':{const e=els[0];sky=['#070a18',c1,'#1a1a34'];back=stars(ri(4,10))+orb();
+    if(e==='f'){let fl='';for(let k=0;k<ri(4,7);k++){const x=rr(0,100),h=rr(8,20);fl+=`<path d="M${f(x-4)} ${f(hz+4)} Q${f(x-3)} ${f(hz-h*.5)} ${f(x)} ${f(hz-h)} Q${f(x+3)} ${f(hz-h*.5)} ${f(x+4)} ${f(hz+4)}Z" fill="${pick(['#ff6a2a','#ffb03a'])}" opacity=".55"/>`}front=ground('#140603')+fl+dots(ri(5,9),'#ffb84a',20,hz,.4,.9)}
+    else if(e==='w'){let wv='';for(let k=0;k<4;k++){const y=hz+k*6-4;wv+=`<path d="M0 ${f(y)} q6 -3 12.5 0 t12.5 0 t12.5 0 t12.5 0 t12.5 0 t12.5 0 t12.5 0 t12.5 0 V${H} H0Z" fill="${pick(['#0b3060','#08264c','#103a70'])}" opacity="${f(.6+k*.1)}"/>`}front=wv+dots(ri(4,8),'#bfe8ff',20,hz-4,.5,1.4).replace(/fill="#bfe8ff"/g,'fill="none" stroke="#bfe8ff" stroke-width=".4"')}
+    else if(e==='a'){let sw='';for(let k=0;k<ri(3,5);k++){const x=rr(5,90),y=rr(15,hz-8),r=rr(5,10);sw+=`<path d="M${f(x)} ${f(y)} a${f(r)} ${f(r)} 0 1 1 ${f(r)} ${f(r)} a${f(r/2)} ${f(r/2)} 0 1 1 ${f(-r/2)} ${f(-r/2)}" stroke="#d8fff4" stroke-opacity=".3" stroke-width="1" fill="none"/>`}front=sw+hills(hz,6,'#0c1c24',1)}
+    else if(e==='e'){let rk='';for(let k=0;k<ri(3,6);k++){const x=side(),s=rr(6,14);rk+=`<path d="M${f(x-s)} ${f(hz+4)} L${f(x-s*.6)} ${f(hz-s*.8)} L${f(x+s*.2)} ${f(hz-s)} L${f(x+s)} ${f(hz-s*.3)} L${f(x+s*.9)} ${f(hz+4)}Z" fill="${pick(['#3a2c1c','#2a2014'])}"/>`}front=ground('#120d06')+rk}
+    else if(e==='l'){let ry='';const x0=rr(30,70);for(let k=0;k<ri(5,8);k++){const a=rr(-60,60);ry+=`<path d="M${f(x0)} -5 L${f(x0+Math.tan(a*Math.PI/180)*hz-3)} ${f(hz)} L${f(x0+Math.tan(a*Math.PI/180)*hz+3)} ${f(hz)}Z" fill="#fff3c0" opacity="${f(rr(.05,.12))}"/>`}front=ry+ground('#141006')+dots(ri(4,8),'#fff6d0',10,hz,.4,1)}
+    else if(e==='d'){front=`<circle cx="${f(rr(30,70))}" cy="${f(hz-30)}" r="${f(rr(16,24))}" fill="#000" opacity=".5"/><circle cx="50" cy="${f(hz-30)}" r="30" fill="none" stroke="${c1}" stroke-opacity=".25" stroke-width="2" stroke-dasharray="12 6"/>`+ground('#06030c')+dots(ri(4,8),c1,10,hz,.4,1)}
+    else if(e==='n'){let pl='';for(let k=0;k<ri(2,4);k++){const x=side(),h=rr(24,46);pl+=`<rect x="${f(x-3)}" y="${f(hz-h)}" width="6" height="${f(h)}" fill="#16161e"/><rect x="${f(x-4.5)}" y="${f(hz-h-2)}" width="9" height="2.4" fill="#22222c"/>`}front=`<path d="M50 ${f(hz-50)} L72 ${f(hz-12)} L28 ${f(hz-12)}Z" fill="none" stroke="#efe8d6" stroke-opacity=".15"/>`+ground('#0a0a10')+pl}
+    else{let sh='';for(let k=0;k<ri(4,7);k++){const x=rr(4,96),y=rr(10,hz),s=rr(2,5);sh+=`<path d="M${f(x)} ${f(y-s)} L${f(x+s*.6)} ${f(y+s*.4)} L${f(x-s*.5)} ${f(y+s*.7)}Z" fill="${pick([c1,'#ff3a6e'])}" opacity=".5"/>`}front=sh+ground('#12040a')}
+    break}
+  case'demon':{sky=['#120404',c1,'#4a1208'];back=orb().replace(/#fff3c8/g,'#ff9a5a').replace(/#fff6d0/g,'#ff7a3a')+hills(hz-rr(6,14),10,'#2a0806',.9);
+    let sp='';for(let k=0,n=ri(3,6);k<n;k++){const x=side(),h=rr(12,30);sp+=`<path d="M${f(x-4)} ${f(hz+4)} L${f(x+rr(-1,1))} ${f(hz-h)} L${f(x+4)} ${f(hz+4)}Z"/>`}
+    let cr='';for(let k=0;k<ri(2,4);k++){const x=rr(5,90),y=hz+rr(4,14);cr+=`<path d="M${f(x)} ${f(y)} l${f(rr(4,8))} ${f(rr(-2,2))} l${f(rr(3,7))} ${f(rr(-2,3))}" stroke="#ff7a2a" stroke-width="1" fill="none" opacity=".8"/>`}
+    front=ground('#0e0302')+`<g fill="#080101">${sp}</g>`+cr+dots(ri(6,10),'#ffa040',10,hz+6,.3,.8);break}
+  case'aberr':{sky=['#06030e',c1,'#1c0a2c'];back=stars(ri(12,20))+`<ellipse cx="${f(rr(30,70))}" cy="${f(rr(20,40))}" rx="${f(rr(16,26))}" ry="${f(rr(4,8))}" fill="none" stroke="${c2}" stroke-opacity=".25" stroke-width="1" transform="rotate(${f(rr(-20,20))} 50 30)"/>`;
+    let ey='';for(let k=0;k<ri(1,3);k++){const x=side(),y=rr(14,hz-14),s=rr(2.2,4);ey+=`<ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(s*1.6)}" ry="${f(s)}" fill="#f0e0ff" opacity=".55"/><circle cx="${f(x)}" cy="${f(y)}" r="${f(s*.6)}" fill="#8a1a5a"/>`}
+    let tn='';for(let k=0;k<ri(2,4);k++){const x=side();tn+=`<path d="M${f(x)} ${f(H)} Q${f(x+rr(-14,14))} ${f(hz-rr(0,14))} ${f(x+rr(-8,8))} ${f(hz-rr(14,30))}" stroke="#14061e" stroke-width="${f(rr(3,5))}" stroke-linecap="round" fill="none"/>`}
+    front=ey+ground('#07030c')+tn;break}
+  case'dragon':{sky=['#0c0a18',c1,'#3a1e1a'];back=orb()+`<path d="M0 ${f(hz-8)} L${f(rr(10,22))} ${f(hz-rr(34,48))} L${f(rr(30,40))} ${f(hz-rr(14,24))} L${f(rr(48,58))} ${f(hz-rr(40,56))} L${f(rr(66,76))} ${f(hz-rr(18,28))} L${f(rr(84,92))} ${f(hz-rr(30,44))} L100 ${f(hz-10)} V${H} H0Z" fill="#241c30" opacity=".9"/>`+hills(hz-rr(2,8),8,'#16121e',1);
+    const tx=side();front=ground('#0a0810')+`<g fill="#07050c"><rect x="${f(tx-4)}" y="${f(hz-24)}" width="8" height="26"/><path d="M${f(tx-5)} ${f(hz-24)} h10 v-3 h-2 v2 h-2 v-2 h-2 v2 h-2 v-2 h-2Z"/></g>`+dots(ri(2,5),'#ffb070',10,hz,.4,.8);break}
+  default:{sky=['#0a0e1c',c1,'#1a2034'];back=stars(10)+orb();front=ground()}}
+  const bg=`linear-gradient(${sky[0]} 0%,color-mix(in srgb,${sky[1]} 42%,${sky[0]}) 45%,color-mix(in srgb,${sky[2]} 70%,${c2}) ${f(hz-6)}%,${D} ${f(hz+8)}%)`;
+  return`<span class="lbg" style="background:radial-gradient(60% 40% at 50% ${f(hz-28)}%,color-mix(in srgb,${c1} 28%,transparent),transparent 72%),${bg}"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${back}${front}</svg></span>`}
+
+/* Anton 20:25: card borders look a little hand-drawn: two wobbly ink strokes in the quality colour, a bit different on every card */
+function libInk(i){const p=PETS[i];let sd=(libBgHash(p.n+'#ink')||3);const R=()=>(sd=Math.imul(sd^(sd>>>15),2246822507)>>>0,(sd%100000)/100000),f=n=>n.toFixed(2);
+  const path=(m,j)=>{const W=100,H=137,r=9,pts=[];const J=()=>(R()-.5)*j;
+    const seg=(x1,y1,x2,y2,n)=>{for(let k=0;k<n;k++){const t=k/n;pts.push([x1+(x2-x1)*t+J(),y1+(y2-y1)*t+J()])}};
+    seg(m+r,m,W-m-r,m,4);pts.push([W-m-r*.3+J(),m+r*.3+J()]);seg(W-m,m+r,W-m,H-m-r,5);pts.push([W-m-r*.3+J(),H-m-r*.3+J()]);
+    seg(W-m-r,H-m,m+r,H-m,4);pts.push([m+r*.3+J(),H-m-r*.3+J()]);seg(m,H-m-r,m,m+r,5);pts.push([m+r*.3+J(),m+r*.3+J()]);
+    let d=`M${f(pts[0][0])} ${f(pts[0][1])}`;for(let k=1;k<=pts.length;k++){const a=pts[k-1],b=pts[k%pts.length];d+=` Q${f(a[0])} ${f(a[1])} ${f((a[0]+b[0])/2)} ${f((a[1]+b[1])/2)}`}
+    const o=R()*1.5;return d+` L${f(pts[0][0]+o)} ${f(pts[0][1]-o*.4)}`};
+  return`<svg class="lcd-ink" viewBox="0 0 100 137" preserveAspectRatio="none" aria-hidden="true"><path d="${path(2.2,1.6)}" stroke="#0a0d18" stroke-width="5" opacity=".75"/><path d="${path(2.2,1.4)}" stroke="var(--qc)" stroke-width="2.6"/><path d="${path(3.6,2.2)}" stroke="var(--qc)" stroke-width="1" opacity=".55"/></svg>`}
+
+if(typeof document!=='undefined'&&document.body){const st=document.createElement('style');st.textContent=`
+.lbg{position:absolute;inset:0;display:block}.lbg svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.lib .lcd{border-color:transparent!important;border-width:0!important}
+.lib .lcd-ft{padding:14px 8px 8px}.lib .lcd-lv{right:8px;top:7px}.lib .lcd-lk{right:8px;top:6px}.lib .lcd-q{left:9px;top:9px}
+.lcd-ink{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;fill:none;overflow:visible}.lcd-ink path{vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}
+.lcd.lock .lbg{filter:saturate(.25) brightness(.55)}
+`;document.body.appendChild(st)}
+// both pictures depend only on the creature: draw each once
+{const bg0=libBg,ink0=libInk,cb=new Map(),ci=new Map();libBg=i=>{let v=cb.get(i);if(v==null){v=bg0(i);cb.set(i,v)}return v};libInk=i=>{let v=ci.get(i);if(v==null){v=ink0(i);ci.set(i,v)}return v}}
 // perspective field: the tilted board keeps its flat layout height, so pull it up by the difference to reclaim the freed space
 function fitBoard(){for(const b of document.querySelectorAll('.board')){b.style.marginTop='';const lh=b.offsetHeight,vh=b.getBoundingClientRect().height;b.style.marginTop=(-(lh-vh)+4)+'px'}}
 if(typeof MutationObserver!=='undefined')new MutationObserver(()=>{for(const b of document.querySelectorAll('.board'))if(!b.dataset.fit){b.dataset.fit=1;fitBoard();break}}).observe(document.body,{childList:true,subtree:true});
