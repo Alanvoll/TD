@@ -1,50 +1,130 @@
-/* ---------- 0.39.1 Anton: the main screen is a game lobby, drawn in code (SVG + CSS):
-   a living night scene (stars, moon, clouds, castle with lit windows, graveyard, fog, fireflies),
-   the player's pack standing on a glowing rune circle, round buttons for modes on both sides,
-   a big «Забег» button with quick fights beside it, and a bottom bar (Стая · Бой · Лавка).
+/* ---------- 0.39.1 Anton: the main screen is a game lobby, drawn in code (SVG + CSS).
+   0.39.3 Anton 20:38: «elements overlap, text doesn't fit, looks worse than hypercasual; make it hand-painted».
+   Now everything is painted: brush-textured sky, hills and castle with ink outlines and moonlit rims,
+   buttons are worn painted plates and medallions with scuffs, ink-drawn icons instead of emoji,
+   a storybook title. Layout: nothing overlaps at 360×640 … 412×915 (pets sized from the free space,
+   moon away from the title, bottom bar no longer climbs onto the play buttons).
    Only the look changes: every button runs the same action as before. ---------- */
 
+/* shared paint: filters (wobbly ink edge, brush texture, sky streaks) + plate colours, drawn once per screen */
+const LB_DEFS=(()=>{
+  const lg=(id,a,b,c)=>`<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset=".55" stop-color="${b}"/><stop offset="1" stop-color="${c}"/></linearGradient>`;
+  return`<svg class="lb-defs" width="0" height="0" aria-hidden="true"><defs>
+  <filter id="lbR" color-interpolation-filters="sRGB" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves="2" seed="4" result="t"/><feDisplacementMap in="SourceGraphic" in2="t" scale="3.2" xChannelSelector="R" yChannelSelector="G"/></filter>
+  <filter id="lbP" color-interpolation-filters="sRGB" x="-6%" y="-6%" width="112%" height="112%"><feTurbulence type="fractalNoise" baseFrequency=".06 .55" numOctaves="3" seed="9" result="n"/><feColorMatrix in="n" type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" result="g"/>
+    <feComposite in="SourceGraphic" in2="g" operator="arithmetic" k1=".8" k2=".6" k3="0" k4="0" result="b"/><feComposite in="b" in2="SourceGraphic" operator="in" result="c"/>
+    <feTurbulence type="fractalNoise" baseFrequency=".05" numOctaves="2" seed="2" result="w"/><feDisplacementMap in="c" in2="w" scale="3" xChannelSelector="R" yChannelSelector="G"/></filter>
+  <filter id="lbS" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".004 .045" numOctaves="3" seed="12" result="n"/><feColorMatrix in="n" type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" result="g"/>
+    <feComposite in="SourceGraphic" in2="g" operator="arithmetic" k1=".7" k2=".65" k3="0" k4="0" result="b"/><feComposite in="b" in2="SourceGraphic" operator="in"/></filter>
+  <filter id="lbB" color-interpolation-filters="sRGB" x="-30%" y="-30%" width="160%" height="160%"><feTurbulence type="fractalNoise" baseFrequency=".02 .09" numOctaves="2" seed="7" result="w"/><feDisplacementMap in="SourceGraphic" in2="w" scale="18" xChannelSelector="R" yChannelSelector="G" result="d"/><feGaussianBlur in="d" stdDeviation="1.6"/></filter>
+  ${lg('lbgGold','#ffe7a6','#e9a940','#9c5214')}${lg('lbgSlate','#6370bd','#38418a','#1d2350')}${lg('lbgWood','#3b3360','#241e40','#15122a')}
+  ${lg('lbgParch','#f4e6bd','#dcc18a','#b39050')}${lg('lbgViolet','#8a78ea','#5141b4','#2c2172')}
+  <radialGradient id="lbgRim" cx=".38" cy=".3"><stop offset="0" stop-color="#ffe9ad"/><stop offset=".55" stop-color="#d39a45"/><stop offset="1" stop-color="#7a4513"/></radialGradient>
+  <radialGradient id="lbgDisc" cx=".38" cy=".3"><stop offset="0" stop-color="#5b6bc0"/><stop offset=".6" stop-color="#2b3270"/><stop offset="1" stop-color="#171b42"/></radialGradient>
+  </defs></svg>`})();
+
+/* a worn painted plate behind a button: hand-drawn edge, brush texture, ink outline, top light, scuffs */
+const LB_PL_D='M3.2 6.4 Q2.6 2.4 7.4 2.8 L28 2.1 L52 2.9 L76 1.9 L93 2.7 Q97.9 2.3 97.4 7.2 L97.9 20 L97.2 33.4 Q97.6 38 92.8 37.5 L70 38.3 L46 37.4 L22 38.2 L6.8 37.6 Q2.1 37.9 2.6 33.2 L2.1 20Z';
+function lbPlate(k){const sc={Gold:['#fff3c8','#7a3c08'],Slate:['#c9d2ff','#0d1030'],Wood:['#b9a8ff','#06050f'],Parch:['#fffaf0','#6b4a1c'],Violet:['#e4dcff','#170f45']}[k];
+  return`<svg class="lb-pl" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+  <path d="${LB_PL_D}" fill="url(#lbg${k})" filter="url(#lbP)"/>
+  <path d="M9 7.5 Q50 5 91 7.2" stroke="${sc[0]}" stroke-opacity=".5" stroke-width="1.6" fill="none"/>
+  <path d="M12 31 l7 -1.6 M63 9.5 l9 .8 M80 29 l6 -2.4 M30 12 l4 1.4 M44 33 l7 .4" stroke="${sc[1]}" stroke-opacity=".38" stroke-width="1.1" fill="none"/>
+  <path d="M18 9.5 l5 -.6 M84 12 l3 2 M36 30.5 l6 -.8" stroke="${sc[0]}" stroke-opacity=".32" stroke-width="1" fill="none"/>
+  <path d="${LB_PL_D}" fill="none" stroke="#100b1a" stroke-width="2.6" filter="url(#lbR)"/></svg>`}
+/* round worn medallion (gold rim, blue painted disc) */
+const LB_MD=`<svg class="lb-md" viewBox="0 0 60 60" aria-hidden="true">
+  <circle cx="30" cy="31.5" r="28.6" fill="#0b0918" filter="url(#lbR)"/>
+  <circle cx="30" cy="30" r="26.4" fill="url(#lbgRim)" filter="url(#lbP)"/>
+  <path d="M47 41 l3 2.2 M41 51.5 l2.4 -3 M9 37 l3.2 1 M17 9.5 l2 2.6 M52 21 l-3 1.4" stroke="#4a2608" stroke-opacity=".7" stroke-width="1.3" stroke-linecap="round"/>
+  <circle cx="30" cy="30" r="20.6" fill="url(#lbgDisc)" filter="url(#lbP)"/>
+  <circle cx="30" cy="30" r="20.6" fill="none" stroke="#120c1c" stroke-width="2"/>
+  <path d="M13.5 22 A18 18 0 0 1 25 11.5" stroke="#ffffff" stroke-opacity=".28" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <path d="M9.5 18 A23 23 0 0 1 21 6.8" stroke="#fff6d8" stroke-opacity=".7" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <circle cx="30" cy="30" r="26.4" fill="none" stroke="#120c1c" stroke-width="2.2" filter="url(#lbR)"/></svg>`;
+
+/* ink-drawn icons in the creature-art manner: thick dark outline, flat paint, one highlight */
+const LB_IC=(()=>{const o='stroke="#150d0a" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"',h='fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.8" stroke-linecap="round"';
+  const w=b=>`<svg class="lb-ic" viewBox="0 0 48 48" aria-hidden="true"><g filter="url(#lbR)">${b}</g></svg>`;
+  const sword=`<path d="M10 8.5 L14.5 8 L35 28.5 L31.5 32 L11 11.5Z" fill="#dfe6f2" ${o}/><path d="M13 10.6 L32 29.6" ${h}/><path d="M28 35.5 L35.5 28 M32 31.5 L38.5 38" fill="none" ${o}/><path d="M31 32.5 L37.5 39" stroke="#8a4f1c" stroke-width="3.4" stroke-linecap="round"/><circle cx="39" cy="39.5" r="2.4" fill="#f2c25a" ${o}/>`;
+  return{
+  trophy:w(`<path d="M15 9h18v8c0 7-4 11.5-9 11.5S15 24 15 17z" fill="#f5c34e" ${o}/><path d="M15 12.5H9.5c0 6 2.6 8.5 6.4 8.8M33 12.5h5.5c0 6-2.6 8.5-6.4 8.8" fill="none" ${o}/><path d="M21.5 28.5h5v5.5h-5z" fill="#c7802a" ${o}/><path d="M14.5 34h19v5.5h-19z" fill="#8c4f22" ${o}/><path d="M19 12.5v6" ${h}/>`),
+  crown:w(`<path d="M8 34 L9.5 15 L17.5 23.5 L24 11 L30.5 23.5 L38.5 15 L40 34Z" fill="#f5c34e" ${o}/><path d="M8 34h32v5.5H8z" fill="#c7802a" ${o}/><circle cx="24" cy="27.5" r="3" fill="#e2483f" ${o}/><circle cx="15" cy="29" r="2" fill="#5fa8ff" ${o}/><circle cx="33" cy="29" r="2" fill="#5fa8ff" ${o}/><path d="M12.5 19.5l1 9" ${h}/>`),
+  puzzle:w(`<path d="M10 14h9a4.5 4.5 0 1 1 9 0h9v8.5a4.5 4.5 0 1 1 0 9V40h-8.5a4.5 4.5 0 1 0-9 0H10v-8.5a4.5 4.5 0 1 0 0-9z" fill="#6cc46a" ${o}/><path d="M14 18v9" ${h}/>`),
+  scroll:w(`<path d="M15 9h20a4 4 0 0 1 4 4v24H19a4 4 0 0 1-4-4z" fill="#f1dfb0" ${o}/><path d="M11 13a4 4 0 0 1 8 0v20" fill="#d9bd7e" ${o}/><path d="M19 37a4 4 0 0 1-8 0" fill="#d9bd7e" ${o}/><path d="M23 17h11M23 22h11M23 27h8" stroke="#7a5326" stroke-width="2" stroke-linecap="round"/>`),
+  medal:w(`<path d="M15 5.5h7l4.5 10-4.5 5-7-15z" fill="#e2483f" ${o}/><path d="M33 5.5h-7l-4.5 10 4.5 5 7-15z" fill="#4f8de0" ${o}/><circle cx="24" cy="30.5" r="11" fill="#f5c34e" ${o}/><path d="M24 23.5l2 4.4 4.6.4-3.5 3 1.1 4.6-4.2-2.5-4.2 2.5 1.1-4.6-3.5-3 4.6-.4z" fill="#fff1b8" stroke="#a9681c" stroke-width="1.4" stroke-linejoin="round"/>`),
+  book:w(`<path d="M5.5 13.5c6.5-2.5 12.5-2 18.5 2 6-4 12-4.5 18.5-2v23c-6.5-2-12.5-1.5-18.5 2.5-6-4-12-4.5-18.5-2.5z" fill="#f1dfb0" ${o}/><path d="M24 15.5v23.5" fill="none" ${o}/><path d="M9.5 19.5c4-1 7.5-.6 11 1M9.5 25c4-1 7.5-.6 11 1M27.5 20.5c3.5-1.6 7-2 11-1M27.5 26c3.5-1.6 7-2 11-1" stroke="#7a5326" stroke-width="1.7" fill="none" stroke-linecap="round"/><path d="M5.5 36.5c6.5-2 12.5-1.5 18.5 2.5 6-4 12-4.5 18.5-2.5" fill="none" stroke="#b5434a" stroke-width="3"/>`),
+  swords:w(`${sword}<g transform="translate(48 0) scale(-1 1)">${sword}</g>`),
+  compass:w(`<circle cx="24" cy="24" r="16.5" fill="#c7802a" ${o}/><circle cx="24" cy="24" r="12" fill="#f4e6bd" ${o}/><path d="M24 12.5 L28 24 L24 35.5 L20 24Z" fill="#fff" ${o}/><path d="M24 12.5 L28 24 L20 24Z" fill="#e2483f" stroke="#150d0a" stroke-width="1.6" stroke-linejoin="round"/><circle cx="24" cy="24" r="2" fill="#150d0a"/><path d="M12.5 15a14 14 0 0 1 7-5" ${h}/>`),
+  paw:w(`<path d="M24 23.5c-6 0-11 6.5-11 10.5 0 3.6 3 5.2 6 4.6 2-.4 3.3-1.1 5-1.1s3 .7 5 1.1c3 .6 6-1 6-4.6 0-4-5-10.5-11-10.5z" fill="#c98a5a" ${o}/><ellipse cx="11.5" cy="20" rx="3.6" ry="4.6" fill="#c98a5a" ${o}/><ellipse cx="18.5" cy="12.5" rx="3.8" ry="5" fill="#c98a5a" ${o}/><ellipse cx="29.5" cy="12.5" rx="3.8" ry="5" fill="#c98a5a" ${o}/><ellipse cx="36.5" cy="20" rx="3.6" ry="4.6" fill="#c98a5a" ${o}/><path d="M18 29.5c1.6-2 3.6-2.8 6-2.8" ${h}/>`),
+  bag:w(`<path d="M17.5 17c-7 5.5-9.5 20.5 6.5 21.5 16-1 13.5-16 6.5-21.5z" fill="#b57a45" ${o}/><path d="M17 11.5h14l-3.5 5.5h-7z" fill="#8c5428" ${o}/><path d="M18 17h12" fill="none" ${o}/><circle cx="24" cy="29" r="5" fill="#f5c34e" ${o}/><path d="M14.5 25c.6-2.6 1.6-4.4 3-5.6" ${h}/>`),
+  gem:w(`<path d="M11 18 L17 10 H31 L37 18 L24 38Z" fill="#5fb8ff" ${o}/><path d="M11 18H37M17 10l3 8 4 20M31 10l-3 8-4 20M20 18l4-8 4 8" fill="none" stroke="#150d0a" stroke-width="1.4" stroke-linejoin="round"/><path d="M14.5 17l3.5-4.5" ${h}/>`),
+  menu:w(`<path d="M11 15.5 Q24 14 37 15.8M11 24 Q24 22.8 37 24.4M11 32.5 Q24 31.2 37 32.8" fill="none" stroke="#150d0a" stroke-width="6" stroke-linecap="round"/><path d="M11 15.5 Q24 14 37 15.8M11 24 Q24 22.8 37 24.4M11 32.5 Q24 31.2 37 32.8" fill="none" stroke="#ffe7a6" stroke-width="3" stroke-linecap="round"/>`),
+  star:w(`<path d="M24 7l4.8 10.3 11.2 1.3-8.3 7.6 2.3 11.1L24 31.7l-10 5.6 2.3-11.1L8 18.6l11.2-1.3z" fill="#f5c34e" ${o}/><path d="M17.5 21l3-.4" ${h}/>`)}})();
+
+/* the painted night scene; static paint only (filters are costly), the moving bits live in LBY_LIVE */
 const LBY_SCENE=(()=>{
-  let sd=7;const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647;
-  const stars=[0,1,2].map(g=>{let s='';for(let i=0;i<16;i++){const x=(rnd()*400).toFixed(1),y=(rnd()*330).toFixed(1),r=(rnd()*1.1+.4).toFixed(2);s+=`<circle cx="${x}" cy="${y}" r="${r}"/>`}return`<g class="ls-st s${g}" fill="#fff">${s}</g>`}).join('');
+  const ink='stroke="#07061a" stroke-width="2.6" stroke-linejoin="round" filter="url(#lbR)"';
   const tomb=(x,y,s,k)=>k?`<path d="M${x-1.2*s} ${y}v${-9*s}h${-3*s}v${-2.4*s}h${3*s}v${-3*s}h${2.4*s}v${3*s}h${3*s}v${2.4*s}h${-3*s}v${9*s}z"/>`:`<path d="M${x-4*s} ${y}v${-8*s}a${4*s} ${4*s} 0 0 1 ${8*s} 0v${8*s}z"/>`;
   const tree=(x,y,s,f)=>`<path transform="translate(${x} ${y}) scale(${f?-s:s} ${s})" d="M-3 0 L-2 -40 L-14 -62 L-12 -64 L-1 -48 L0 -78 L3 -78 L3 -52 L16 -70 L18 -68 L5 -44 L4 -24 L14 -32 L15 -30 L4 -16 L3 0Z"/>`;
-  const wins=[[254,384],[263,384],[289,364],[300,352],[300,366],[333,380],[342,380],[318,328]].map(([x,y],i)=>`<rect class="ls-w w${i%3}" x="${x}" y="${y}" width="4" height="7" rx="2"/>`).join('');
+  const M1='M-10 440 L30 404 L58 418 L96 372 L132 408 L160 388 L192 412 L232 362 L266 398 L300 378 L340 402 L372 382 L410 398 V540 H-10Z';
+  const CAS='M232 476 V374 L240 352 L248 374 V394 H262 V378 L270 360 L278 378 V394 H282 V352 L291 320 L300 300 L309 320 L318 352 V394 H326 V374 L334 356 L342 374 V476Z';
+  const H2='M-10 476 Q60 444 120 466 T240 460 T410 452 V570 H-10Z';
+  const GR='M-10 524 Q100 498 200 512 T410 506 V810 H-10Z';
   return`<svg class="ls-svg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
   <defs>
-    <linearGradient id="lsSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070b24"/><stop offset=".35" stop-color="#161a4a"/><stop offset=".55" stop-color="#2e2766"/><stop offset=".66" stop-color="#4a3270"/><stop offset=".8" stop-color="#1a1636"/><stop offset="1" stop-color="#0a0b1a"/></linearGradient>
-    <radialGradient id="lsMoonG"><stop offset="0" stop-color="#fff4cf" stop-opacity=".55"/><stop offset=".35" stop-color="#f7d98e" stop-opacity=".18"/><stop offset="1" stop-color="#f7d98e" stop-opacity="0"/></radialGradient>
-    <radialGradient id="lsMoon" cx=".4" cy=".38"><stop offset="0" stop-color="#fffbe8"/><stop offset=".7" stop-color="#f6e2a6"/><stop offset="1" stop-color="#e2bf6e"/></radialGradient>
-    <linearGradient id="lsM1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b3a7a"/><stop offset="1" stop-color="#231f4c"/></linearGradient>
-    <linearGradient id="lsM2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f1d48"/><stop offset="1" stop-color="#141333"/></linearGradient>
-    <linearGradient id="lsGr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121633"/><stop offset="1" stop-color="#05060f"/></linearGradient>
-    <radialGradient id="lsHz" cx=".5" cy="0"><stop offset="0" stop-color="#8a5cff" stop-opacity=".35"/><stop offset="1" stop-color="#8a5cff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="lsSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a0e2c"/><stop offset=".3" stop-color="#1a1f55"/><stop offset=".5" stop-color="#352c72"/><stop offset=".62" stop-color="#5a3b7c"/><stop offset=".72" stop-color="#2a2150"/><stop offset="1" stop-color="#0b0b1c"/></linearGradient>
+    <radialGradient id="lsMoon" cx=".4" cy=".36"><stop offset="0" stop-color="#fffbe8"/><stop offset=".65" stop-color="#f6e1a2"/><stop offset="1" stop-color="#d9b062"/></radialGradient>
+    <linearGradient id="lsM1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4592"/><stop offset="1" stop-color="#241f4e"/></linearGradient>
+    <linearGradient id="lsM2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#26225a"/><stop offset="1" stop-color="#15133a"/></linearGradient>
+    <linearGradient id="lsGr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b1f48"/><stop offset=".4" stop-color="#10122c"/><stop offset="1" stop-color="#06070f"/></linearGradient>
+    <radialGradient id="lsHz" cx=".5" cy=".5"><stop offset="0" stop-color="#b48cff" stop-opacity=".42"/><stop offset="1" stop-color="#8a5cff" stop-opacity="0"/></radialGradient>
   </defs>
-  <rect width="400" height="800" fill="url(#lsSky)"/>
-  ${stars}
-  <circle class="ls-mg" cx="306" cy="150" r="120" fill="url(#lsMoonG)"/>
-  <circle cx="306" cy="150" r="40" fill="url(#lsMoon)"/>
-  <g fill="#d9b86a" opacity=".35"><circle cx="292" cy="140" r="7"/><circle cx="318" cy="166" r="5"/><circle cx="320" cy="136" r="3.5"/><circle cx="298" cy="168" r="3"/></g>
-  <g class="ls-cl c1" fill="#8f86d6" opacity=".16"><ellipse cx="90" cy="190" rx="90" ry="14"/><ellipse cx="140" cy="180" rx="60" ry="12"/></g>
-  <g class="ls-cl c2" fill="#b0a6ff" opacity=".12"><ellipse cx="300" cy="235" rx="110" ry="12"/><ellipse cx="250" cy="226" rx="50" ry="9"/></g>
-  <ellipse cx="200" cy="470" rx="300" ry="90" fill="url(#lsHz)"/>
-  <path d="M0 430 L30 400 L60 415 L95 370 L130 405 L160 385 L190 410 L230 360 L265 395 L300 375 L340 400 L370 380 L400 395 V520 H0Z" fill="url(#lsM1)"/>
-  <g fill="#120f2e">
-    <path d="M232 470 V372 L240 352 L248 372 V392 H262 V376 L270 360 L278 376 V392 H282 V350 L291 318 L300 300 L309 318 L318 350 V392 H326 V372 L334 356 L342 372 V470Z"/>
-    <path d="M296 300 L300 284 L304 300Z"/><rect x="299" y="276" width="1.6" height="10"/><path d="M300.8 276 L310 279 L300.8 282Z" fill="#c94a4a"/>
+  <rect x="-10" y="-10" width="420" height="820" fill="url(#lsSky)" filter="url(#lbS)"/>
+  <g filter="url(#lbB)" opacity=".55">
+    <path d="M-20 120 Q80 96 170 118 T380 108" stroke="#2e3a86" stroke-width="26" fill="none" stroke-linecap="round"/>
+    <path d="M40 300 Q150 280 260 300 T430 290" stroke="#5a4796" stroke-width="20" fill="none" stroke-linecap="round" opacity=".7"/>
+    <path d="M-30 210 Q60 196 140 214" stroke="#3c3f92" stroke-width="16" fill="none" stroke-linecap="round" opacity=".8"/>
   </g>
-  <g fill="#ffcf6a">${wins}</g>
-  <path d="M0 470 Q60 440 120 462 T240 458 T400 450 V560 H0Z" fill="url(#lsM2)"/>
-  <g fill="#0c0b22">${tree(40,470,1.05)}${tree(372,466,.9,1)}${tree(120,468,.6)}</g>
-  <path d="M0 520 Q100 496 200 510 T400 505 V800 H0Z" fill="url(#lsGr)"/>
-  <g fill="#0a0a1c">${tomb(30,528,1.4,0)}${tomb(58,532,1.1,1)}${tomb(84,526,.9,0)}${tomb(330,526,1.2,1)}${tomb(356,530,1.5,0)}${tomb(382,524,1,0)}${tomb(305,530,.8,0)}</g>
-  <path d="M0 560 Q200 540 400 560" stroke="#6f5bd6" stroke-opacity=".12" stroke-width="10" fill="none"/>
+    <g filter="url(#lbP)"><circle cx="300" cy="172" r="31" fill="url(#lsMoon)"/></g>
+  <g fill="#c99d4f" opacity=".38" filter="url(#lbR)"><circle cx="289" cy="163" r="6"/><circle cx="311" cy="185" r="4.4"/><circle cx="312" cy="160" r="3"/><circle cx="293" cy="186" r="2.6"/></g>
+  <circle cx="300" cy="172" r="31" fill="none" stroke="#5a3d1a" stroke-opacity=".5" stroke-width="1.6" filter="url(#lbR)"/>
+  <g filter="url(#lbB)">
+    <path d="M18 196 Q60 176 110 190 Q150 174 196 192" stroke="#8f86d6" stroke-opacity=".22" stroke-width="16" fill="none" stroke-linecap="round"/>
+    <path d="M226 330 Q280 314 340 328 Q370 320 410 330" stroke="#c0b4ff" stroke-opacity=".2" stroke-width="12" fill="none" stroke-linecap="round"/>
+  </g>
+  <ellipse cx="200" cy="452" rx="320" ry="96" fill="url(#lsHz)"/>
+  <path d="${M1}" fill="url(#lsM1)" filter="url(#lbP)"/>
+  <path d="M58 418 L96 372 L112 388 M232 362 L266 398 M300 378 L340 402 L372 382" stroke="#a99cf0" stroke-opacity=".45" stroke-width="2.2" fill="none" stroke-linecap="round" filter="url(#lbR)"/>
+  <path d="${M1}" fill="none" ${ink}/>
+  <g transform="translate(34 0)"><path d="${CAS}" fill="#17133a" filter="url(#lbP)"/>
+  <path d="M309 320 L318 352 V394 M278 378 V394 M342 374 V470" stroke="#8f7fe0" stroke-opacity=".5" stroke-width="1.8" fill="none" filter="url(#lbR)"/>
+  <path d="${CAS}" fill="none" ${ink}/>
+  <path d="M296 300 L300 284 L304 300Z" fill="#17133a" ${ink}/><path d="M300.8 278 V288" stroke="#07061a" stroke-width="1.6"/><path d="M300.8 278 L311 281 L300.8 284.5Z" fill="#c94a4a" stroke="#07061a" stroke-width="1.2"/></g>
+  <path d="${H2}" fill="url(#lsM2)" filter="url(#lbP)"/><path d="${H2}" fill="none" ${ink}/>
+  <path d="M10 466 Q60 446 112 462" stroke="#7b6fd0" stroke-opacity=".35" stroke-width="2" fill="none" filter="url(#lbR)"/>
+  <g fill="#0d0b24" ${ink}>${tree(40,476,1.05)}${tree(372,470,.9,1)}${tree(124,472,.6)}</g>
+  <path d="${GR}" fill="url(#lsGr)" filter="url(#lbP)"/><path d="${GR}" fill="none" ${ink}/>
+  <path d="M-10 524 Q100 498 200 512" stroke="#8a7ce0" stroke-opacity=".28" stroke-width="2" fill="none" filter="url(#lbR)"/>
+  <g fill="#0b0a1e" ${ink}>${tomb(30,532,1.4,0)}${tomb(58,536,1.1,1)}${tomb(84,530,.9,0)}${tomb(330,530,1.2,1)}${tomb(356,534,1.5,0)}${tomb(382,528,1,0)}${tomb(305,534,.8,0)}</g>
+  <g filter="url(#lbB)" opacity=".5"><path d="M-10 610 Q120 590 230 606 T420 600" stroke="#2c2f6a" stroke-width="22" fill="none"/><path d="M-10 700 Q140 684 260 698 T420 692" stroke="#1d1f4c" stroke-width="26" fill="none"/></g>
   </svg>`})();
 
-const LBY_RUNES=`<svg viewBox="-100 -100 200 200" aria-hidden="true"><defs><radialGradient id="lsRg"><stop offset="0" stop-color="#9fd0ff" stop-opacity=".55"/><stop offset=".6" stop-color="#5a6cff" stop-opacity=".18"/><stop offset="1" stop-color="#5a6cff" stop-opacity="0"/></radialGradient></defs>
-  <circle r="98" fill="url(#lsRg)"/><circle r="86" fill="none" stroke="#bfe1ff" stroke-opacity=".7" stroke-width="2"/><circle r="78" fill="none" stroke="#bfe1ff" stroke-opacity=".45" stroke-width="1" stroke-dasharray="6 5"/>
-  <g class="ls-rr">${[...Array(12).keys()].map(i=>`<g transform="rotate(${i*30})"><path d="M0 -82 l3 6 l-3 6 l-3 -6z" fill="#e6f3ff" fill-opacity=".85"/></g>`).join('')}</g>
-  <circle r="58" fill="none" stroke="#ffe7a3" stroke-opacity=".55" stroke-width="1.5"/><path d="M0 -58 L50 29 L-50 29Z M0 58 L-50 -29 L50 -29Z" fill="none" stroke="#ffe7a3" stroke-opacity=".35" stroke-width="1.2"/></svg>`;
+/* the moving bits on top of the paint, no filters: twinkling stars, lit windows, moon glow */
+const LBY_LIVE=(()=>{
+  let sd=7;const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647;
+  const stars=[0,1,2].map(g=>{let s='';for(let i=0;i<14;i++){const x=(rnd()*400).toFixed(1),y=(rnd()*340).toFixed(1),r=(rnd()*1.1+.5).toFixed(2);
+    s+=rnd()<.25?`<path d="M${x} ${y-r*2.6}L${+x+r*.6} ${y}L${x} ${+y+r*2.6}L${x-r*.6} ${y}Z M${x-r*2.6} ${y}L${x} ${y-r*.6}L${+x+r*2.6} ${y}L${x} ${+y+r*.6}Z"/>`:`<circle cx="${x}" cy="${y}" r="${r}"/>`}
+    return`<g class="ls-st s${g}" fill="#fff6dc">${s}</g>`}).join('');
+  const wins=[[254,386],[263,386],[289,366],[300,354],[300,368],[333,382],[342,382],[318,330]].map(([x,y],i)=>`<rect class="ls-w w${i%3}" x="${x}" y="${y}" width="4" height="7" rx="2"/>`).join('');
+  return`<svg class="ls-svg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs><radialGradient id="lsMoonG"><stop offset="0" stop-color="#fff4cf" stop-opacity=".35"/><stop offset=".4" stop-color="#f7d98e" stop-opacity=".12"/><stop offset="1" stop-color="#f7d98e" stop-opacity="0"/></radialGradient></defs>
+  ${stars}<circle class="ls-mg" cx="300" cy="172" r="100" fill="url(#lsMoonG)"/><g fill="#ffcf6a" transform="translate(34 0)">${wins}</g></svg>`})();
+
+const LBY_RUNES=`<svg viewBox="-100 -100 200 200" aria-hidden="true"><defs><radialGradient id="lsRg"><stop offset="0" stop-color="#9fd0ff" stop-opacity=".45"/><stop offset=".6" stop-color="#5a6cff" stop-opacity=".14"/><stop offset="1" stop-color="#5a6cff" stop-opacity="0"/></radialGradient></defs>
+  <circle r="98" fill="url(#lsRg)"/><g filter="url(#lbR)"><circle r="86" fill="none" stroke="#dcecff" stroke-opacity=".65" stroke-width="3"/><circle r="78" fill="none" stroke="#bfe1ff" stroke-opacity=".4" stroke-width="1.6" stroke-dasharray="7 6"/>
+  ${[...Array(12).keys()].map(i=>`<path transform="rotate(${i*30})" d="M0 -84 l3.4 6 l-3.4 6 l-3.4 -6z" fill="#eef6ff" fill-opacity=".85"/>`).join('')}
+  <circle r="58" fill="none" stroke="#ffe7a3" stroke-opacity=".55" stroke-width="2.2"/><path d="M0 -58 L50 29 L-50 29Z M0 58 L-50 -29 L50 -29Z" fill="none" stroke="#ffe7a3" stroke-opacity=".35" stroke-width="1.6"/></g></svg>`;
 
 function lbyTeam(){const own=i=>PETS[i]&&mp(PETS[i].n).un;let l=(META.lastQ||[]).filter(own);
   if(l.length<3)l=l.concat(PETS.map((p,i)=>i).filter(i=>own(i)&&!l.includes(i)));return l.slice(0,3)}
@@ -53,33 +133,34 @@ const lbyFF=[...Array(14).keys()].map(i=>`<i style="left:${(i*37+11)%100}%;top:$
 renderMenu=function(){
   const lg=LEAGUES[lgOf(rk().pts)],up=PETS.filter(p=>canQUp(p.n)).length,qr=questReady(),ar=achReady();
   const dot=n=>n?`<span class="lby-dot">${n}</span>`:'';
-  const rb=(act,ic,t,n)=>`<button class="lby-rb" data-act="${act}"><span class="lby-rbi">${ic}${dot(n)}</span><span class="lby-rbt">${t}</span></button>`;
+  const rb=(act,ic,t,n)=>`<button class="lby-rb" data-act="${act}"><span class="lby-rbi">${LB_MD}${LB_IC[ic]}${dot(n)}</span><span class="lby-rbt">${t}</span></button>`;
   const t=lbyTeam(),g=typeof goalNext==='function'?goalNext():null,R=META.run;
-  setApp(`<div class="lby">
-  <div class="lby-bg">${LBY_SCENE}<div class="lby-fog f1"></div><div class="lby-fog f2"></div><div class="lby-ff">${lbyFF}</div></div>
+  const gic=g?(g.a==='m-run'?'compass':g.a==='m-lib'?'star':'scroll'):'';
+  setApp(`<div class="lby">${LB_DEFS}
+  <div class="lby-bg">${LBY_SCENE}${LBY_LIVE}<div class="lby-fog f1"></div><div class="lby-fog f2"></div><div class="lby-ff">${lbyFF}</div><div class="lby-grain"></div></div>
   <div class="lby-in">
     <div class="lby-hud">
-      <button class="lby-me" data-act="m-rank"><span class="lby-av"><span>🐾</span></span><span class="lby-mt"><b>Стая</b><span>${lg.ic} ${lg.n} · ${plN(rk().pts,'очко','очка','очков',1)}</span></span></button>
-      <span class="lby-cur"><span class="lby-gem">💎</span><b>${META.stones}</b></span>
-      <button class="lby-gear${ui.mm?' on':''}" data-act="mm-menu" aria-label="Меню">☰</button>
+      <button class="lby-me" data-act="m-rank"><span class="lby-av">${LB_MD}${LB_IC.paw}</span><span class="lby-mt">${lbPlate('Wood')}<b>${lg.ic} ${lg.n}</b><span>${plN(rk().pts,'очко','очка','очков',1)}</span></span></button>
+      <span class="lby-cur">${lbPlate('Wood')}${LB_IC.gem}<b>${META.stones}</b></span>
+      <button class="lby-gear${ui.mm?' on':''}" data-act="mm-menu" aria-label="Меню">${lbPlate('Slate')}${LB_IC.menu}</button>
     </div>
     <div class="lby-logo"><div class="lby-lt">Бой стаи</div><div class="lby-ver">v${VER} · сборка ${BUILD}</div></div>
     <div class="lby-stage">
-      <div class="lby-side">${rb('m-rank','🏆','Лига',0)}${rb('m-lair','👑','Логова',0)}${rb('m-puz','🧩','Задачи',0)}</div>
+      <div class="lby-side">${rb('m-rank','trophy','Лига',0)}${rb('m-lair','crown','Логова',0)}${rb('m-puz','puzzle','Задачи',0)}</div>
       <button class="lby-arena" data-act="m-lib" aria-label="Библиотека"><span class="lby-beam"></span><span class="lby-ring">${LBY_RUNES}</span>
-        ${t.map((i,k)=>`<span class="lby-pet q${k}"><span class="lby-sh"></span>${petIc(PETS[i],1)}</span>`).join('')}</button>
-      <div class="lby-side">${rb('m-quests','📜','Задания',qr)}${rb('m-ach','🏅','Награды',ar)}${rb('m-codex','📖','Кодекс',0)}</div>
+        ${t.map((i,k)=>`<span class="lby-pet q${k}"><span class="lby-bob"><span class="lby-sh"></span>${petIc(PETS[i],1)}</span></span>`).join('')}</button>
+      <div class="lby-side">${rb('m-quests','scroll','Задания',qr)}${rb('m-ach','medal','Награды',ar)}${rb('m-codex','book','Кодекс',0)}</div>
     </div>
-    ${g?`<button class="lby-goal" data-act="${g.a}"><span class="lby-gi">${g.ic}</span><span>${g.t}</span></button>`:''}
+    ${g?`<button class="lby-goal" data-act="${g.a}">${lbPlate('Parch')}<span class="lby-gi">${LB_IC[gic]}</span><span class="lby-gt">${g.t}</span></button>`:''}
     <div class="lby-play">
-      <button class="lby-sb" data-act="m-quick"><span>⚔️</span><b>Быстрый<br>бой</b></button>
-      <button class="lby-go" data-act="m-run"><span class="lby-shine"></span><span class="lby-goi">🧭</span><span class="lby-got"><b>${R?'Продолжить':'Забег'}</b><small>${R?`акт ${R.act+1} · ❤ ${R.lives}`:'бои, находки, боссы'}</small></span></button>
-      <button class="lby-sb" data-act="m-quick4"><span class="lby-4">4</span><b>Бой<br>четвёрок</b></button>
+      <button class="lby-sb" data-act="m-quick">${lbPlate('Slate')}${LB_IC.swords}<b>Быстрый бой</b></button>
+      <button class="lby-go" data-act="m-run">${lbPlate('Gold')}<span class="lby-shine"></span><span class="lby-goi">${LB_IC.compass}</span><span class="lby-got"><b${R?' class="lby-cont"':''}>${R?'Продолжить':'Забег'}</b><small>${R?`акт ${R.act+1} · ❤ ${R.lives}`:'бои, находки, боссы'}</small></span></button>
+      <button class="lby-sb" data-act="m-quick4">${lbPlate('Slate')}<span class="lby-4">4</span><b>Бой четвёрок</b></button>
     </div>
-    <div class="lby-nav">
-      <button data-act="m-lib"><span class="lby-ni">📚${dot(up)}</span>Стая</button>
-      <button class="on" data-act="mm-home"><span class="lby-ni">⚔️</span>Бой</button>
-      <button data-act="m-shop"><span class="lby-ni">🛒</span>Лавка</button>
+    <div class="lby-nav">${lbPlate('Wood')}
+      <button data-act="m-lib"><span class="lby-ni">${LB_IC.paw}${dot(up)}</span><span class="lby-nt">Стая</span></button>
+      <button class="on" data-act="mm-home">${lbPlate('Slate')}<span class="lby-onr"></span><span class="lby-ni">${LB_IC.swords}</span><span class="lby-nt">Бой</span></button>
+      <button data-act="m-shop"><span class="lby-ni">${LB_IC.bag}</span><span class="lby-nt">Лавка</span></button>
     </div>
   </div>
   ${ui.mm?`<div class="lmenu-over" data-act="mm-x"><div class="lmenu-pop lb-pop"><button class="pill lmi" data-act="fs">⛶<span class="lmi-l">Весь экран</span></button><button class="pill lmi" data-act="lay-open">🎛<span class="lmi-l">Вид экрана боя</span></button><button class="pill lmi" data-act="m-cheat">🛠<span class="lmi-l">Читы</span></button><span class="m lb-pv">v${VER} · сборка ${BUILD}</span></div></div>`:''}
@@ -91,15 +172,20 @@ if(typeof modeClick==='function'){const mc1=modeClick;modeClick=function(act){
 // the lobby owns the whole screen: no page scroll behind it
 if(typeof setApp==='function'){const sa1=setApp;setApp=function(h){const r=sa1(h);if(typeof document!=='undefined'&&document.body)document.body.classList.toggle('lby-on',typeof G!=='undefined'&&!!G&&G.phase==='menu');return r}}
 
+// paper grain for the whole scene (static, one tile)
+const LB_GRAIN="url(\"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="220" height="220" filter="url(#g)" opacity=".9"/></svg>')+"\")";
+
 if(typeof document!=='undefined'&&document.body){const st=document.createElement('style');st.textContent=`
 body.lby-on{overflow:hidden;height:100dvh}
-.lby{position:fixed;inset:0;z-index:1;overflow:hidden;color:#fff}
+.lby{position:fixed;inset:0;z-index:1;overflow:hidden;color:#fff;--lbf:"Philosopher","Rubik",Georgia,serif;--lbw:700}
+.lb-defs{position:absolute;width:0;height:0;overflow:hidden}
 .lby-bg{position:absolute;inset:0;background:#0a0b1a}
 .ls-svg{position:absolute;inset:0;width:100%;height:100%}
+.lby-grain{position:absolute;inset:0;background-image:${LB_GRAIN};mix-blend-mode:overlay;opacity:.14;pointer-events:none}
+.lby-bg:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 80% at 50% 45%,transparent 55%,#05040ccc 100%)}
 .ls-st{animation:lsTw 4s ease-in-out infinite}.ls-st.s1{animation-delay:-1.3s;animation-duration:5s}.ls-st.s2{animation-delay:-2.6s;animation-duration:3.4s}
 @keyframes lsTw{0%,100%{opacity:.9}50%{opacity:.25}}
-.ls-mg{animation:lsMg 6s ease-in-out infinite;transform-origin:306px 150px}@keyframes lsMg{50%{opacity:.7;transform:scale(1.06)}}
-.ls-cl{animation:lsCl 60s linear infinite}.ls-cl.c2{animation-duration:85s;animation-direction:reverse}@keyframes lsCl{0%{transform:translateX(-60px)}50%{transform:translateX(60px)}100%{transform:translateX(-60px)}}
+.ls-mg{animation:lsMg 6s ease-in-out infinite;transform-origin:300px 172px}@keyframes lsMg{50%{opacity:.6;transform:scale(1.06)}}
 .ls-w{animation:lsW 3s steps(1) infinite}.ls-w.w1{animation-delay:-1s;animation-duration:4.4s}.ls-w.w2{animation-delay:-2.2s;animation-duration:2.6s}@keyframes lsW{0%,100%{opacity:1}47%{opacity:.55}50%{opacity:1}83%{opacity:.75}}
 .lby-fog{position:absolute;left:-50%;width:200%;height:26%;pointer-events:none;background:radial-gradient(40% 50% at 25% 50%,#a99cff22,transparent 70%),radial-gradient(35% 45% at 70% 55%,#a99cff1c,transparent 70%);animation:lsFog 40s linear infinite}
 .lby-fog.f1{top:52%}.lby-fog.f2{top:70%;animation-duration:55s;animation-direction:reverse;opacity:.8}
@@ -107,68 +193,82 @@ body.lby-on{overflow:hidden;height:100dvh}
 .lby-ff i{position:absolute;width:4px;height:4px;border-radius:50%;background:#fff3a0;box-shadow:0 0 6px 2px #ffe06a99;animation:lsFF 8s ease-in-out infinite;opacity:0}
 @keyframes lsFF{0%{opacity:0;transform:translate(0,0)}20%{opacity:1}50%{transform:translate(18px,-26px)}80%{opacity:.8}100%{opacity:0;transform:translate(-10px,-48px)}}
 .lby-in{position:relative;z-index:1;height:100%;box-sizing:border-box;max-width:460px;margin:0 auto;display:flex;flex-direction:column;padding:max(10px,env(safe-area-inset-top)) 12px max(8px,env(safe-area-inset-bottom))}
+.lby :where(button){position:relative;font:inherit;background:none;border:0;padding:0;color:inherit;-webkit-tap-highlight-color:transparent}
+.lb-pl{position:absolute;inset:0;width:100%;height:100%;z-index:0;overflow:visible;pointer-events:none}
+.lb-pl path{vector-effect:non-scaling-stroke}
+.lb-md{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.lb-ic{position:relative;z-index:1;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 2px 0 #0007)}
 /* top bar */
 .lby-hud{display:flex;align-items:center;gap:8px}
-.lby-me{display:flex;align-items:center;gap:8px;flex:1;min-width:0;text-align:left;color:#fff}
-.lby-av{width:46px;height:46px;flex:none;border-radius:50%;padding:3px;background:conic-gradient(from 200deg,#ffe7a3,#b4661c,#ffe7a3,#8a4a12,#ffe7a3);box-shadow:0 3px 8px #0009}
-.lby-av>span{display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;font-size:22px;background:radial-gradient(circle at 35% 30%,#4a5fa0,#151b3c)}
-.lby-mt{display:flex;flex-direction:column;min-width:0;padding:3px 12px 3px 10px;margin-left:-14px;border-radius:0 12px 12px 0;background:linear-gradient(90deg,#0b0f24cc,#0b0f2499);border:1px solid #ffffff1a;border-left:0}
-.lby-mt b{font-family:var(--display);font-size:13px;letter-spacing:.02em;padding-left:6px}.lby-mt span{font-size:10.5px;color:#c9c6ef;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:6px}
-.lby-cur{display:flex;align-items:center;gap:5px;padding:4px 12px 4px 4px;border-radius:999px;background:linear-gradient(#0b0f24e6,#141a3ae6);border:1.5px solid #6fb2ff66;box-shadow:inset 0 1px 0 #ffffff1a}
-.lby-gem{display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle,#2a5aa8,#0f2148);font-size:13px}.lby-cur b{font-size:14px;color:#d6ecff}
-.lby-gear{width:40px;height:40px;border-radius:12px;font-size:19px;color:#ffe7a3;background:linear-gradient(#3a3474,#1c1940);border:1.5px solid #ffe7a355;box-shadow:0 3px 0 #0b0920}
-/* logo */
-.lby-logo{text-align:center;margin-top:10px}
-.lby-lt{display:inline-block;font-family:var(--display);font-size:clamp(34px,11vw,46px);font-weight:900;line-height:1.05;letter-spacing:.02em;text-transform:uppercase;
-  background:linear-gradient(#fffbe6 10%,#ffd66b 45%,#e08a23 70%,#ffcf5a 90%);-webkit-background-clip:text;background-clip:text;color:transparent;
-  filter:drop-shadow(1px 0 0 #3a1a05) drop-shadow(-1px 0 0 #3a1a05) drop-shadow(0 1px 0 #3a1a05) drop-shadow(0 -1px 0 #3a1a05) drop-shadow(0 4px 0 #5a2c08) drop-shadow(0 0 14px #ffb84a66)}
-.lby-ver{font-size:9.5px;color:#c9c6efaa;margin-top:2px}
+.lby-me{display:flex;align-items:center;flex:1;min-width:0;text-align:left}
+.lby-av{position:relative;z-index:2;display:block;width:48px;height:48px;flex:none;filter:drop-shadow(0 3px 4px #000a)}
+.lby-av .lb-ic{position:absolute;left:23%;top:23%;width:54%;height:54%}
+.lby-mt{position:relative;display:flex;flex-direction:column;min-width:0;padding:5px 12px 6px 20px;margin-left:-12px}
+.lby-mt b,.lby-mt span{position:relative;z-index:1}
+.lby-mt b{font-family:var(--lbf);font-weight:700;font-size:16px;line-height:1.05;color:#ffe9b0;text-shadow:0 1px 0 #120c1c,0 2px 2px #000}
+.lby-mt>span:last-child{font-size:12px;color:#ddd8ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 0 #000}
+.lby-cur{position:relative;display:flex;align-items:center;gap:4px;padding:5px 12px 5px 6px;flex:none}
+.lby-cur .lb-ic{width:24px;height:24px}.lby-cur b{position:relative;z-index:1;font-size:15px;color:#e6f3ff;text-shadow:0 1px 0 #000}
+.lby-gear{width:44px;height:42px;flex:none;display:flex;align-items:center;justify-content:center}
+.lby-gear .lb-ic{width:30px;height:30px}
+/* title: painted gold letters on a dark brush stroke, away from the moon */
+.lby-logo{position:relative;text-align:center;margin-top:8px;align-self:flex-start;margin-left:4px}
+.lby-logo:before{content:"";position:absolute;left:-14px;right:-18px;top:16%;bottom:12%;z-index:-1;border-radius:46% 54% 50% 50%/60% 50% 50% 40%;background:radial-gradient(closest-side,#07061acc,#07061a88 70%,transparent);filter:url(#lbR) blur(2px)}
+.lby-lt{font-family:var(--lbf);font-weight:700;font-size:clamp(36px,11.5vw,50px);line-height:1;letter-spacing:.01em;filter:url(#lbR) drop-shadow(0 3px 0 #2a1405) drop-shadow(0 4px 6px #000a);
+  background:linear-gradient(#fff6d6 8%,#ffd773 42%,#e39433 70%,#b8641c 92%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:1.6px #2a1405;paint-order:stroke fill}
+.lby-ver{font-size:11px;color:#d9d4ffcc;margin-top:1px;text-align:left;padding-left:3px;text-shadow:0 1px 2px #000}
 /* stage */
-.lby-stage{flex:1;min-height:0;display:flex;align-items:stretch;gap:4px;margin-top:4px}
-.lby-side{display:flex;flex-direction:column;justify-content:center;gap:12px;width:64px;flex:none}
-.lby-rb{display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff}
-.lby-rbi{position:relative;display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;font-size:26px;
-  background:radial-gradient(circle at 35% 28%,#5866b8,#232a63 60%,#141838);box-shadow:0 0 0 3px #0c0f26,0 0 0 5px #c79a45,0 5px 10px #000a,inset 0 2px 0 #ffffff33}
+.lby-stage{flex:1;min-height:0;display:flex;align-items:stretch;gap:6px;margin-top:2px}
+.lby-side{display:flex;flex-direction:column;justify-content:center;gap:10px;width:64px;flex:none}
+.lby-rb{display:flex;flex-direction:column;align-items:center;gap:2px}
+.lby-rbi{position:relative;display:block;width:58px;height:58px;filter:drop-shadow(0 4px 4px #000a)}
+.lby-rbi .lb-ic{position:absolute;left:20%;top:20%;width:60%;height:60%}
 .lby-rb:active .lby-rbi{transform:scale(.93)}
-.lby-rbt{font-size:11px;font-weight:700;text-shadow:0 1px 2px #000,0 0 6px #000;margin-top:3px}
-.lby-dot{position:absolute;right:-4px;top:-4px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#ff4d5e;border:2px solid #0c0f26;color:#fff;font-size:11px;font-weight:800;line-height:15px;text-align:center;animation:lsDot 1.6s ease-in-out infinite}
+.lby-rbt{font-size:12.5px;font-weight:700;color:#fff3d6;text-shadow:0 1px 0 #120c1c,0 -1px 0 #120c1c,1px 0 0 #120c1c,-1px 0 0 #120c1c,0 2px 4px #000}
+.lby-dot{position:absolute;z-index:3;right:-4px;top:-3px;min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:10px;background:#e8433f;border:2px solid #150d0a;color:#fff;font-size:11.5px;font-weight:800;line-height:16px;text-align:center;animation:lsDot 1.6s ease-in-out infinite}
 @keyframes lsDot{50%{transform:scale(1.15)}}
-.lby-arena{position:relative;flex:1;min-width:0;display:block}
-.lby-ring{position:absolute;left:50%;bottom:2%;width:min(108%,290px);aspect-ratio:1;transform:translateX(-50%) perspective(500px) rotateX(70deg);transform-origin:50% 60%}
+.lby-arena{position:relative;flex:1;min-width:0;display:block;container-type:size}
+.lby-ring{position:absolute;left:50%;bottom:0;width:min(104cqw,74cqh);aspect-ratio:1;transform:translateX(-50%) perspective(500px) rotateX(70deg);transform-origin:50% 70%;pointer-events:none}
 .lby-ring svg{width:100%;height:100%;animation:lsRot 30s linear infinite}
 @keyframes lsRot{to{transform:rotate(360deg)}}
-.lby-beam{position:absolute;left:50%;bottom:16%;width:70%;height:70%;transform:translateX(-50%);background:radial-gradient(50% 60% at 50% 100%,#8fb8ff40,transparent 70%);animation:lsMg 5s ease-in-out infinite}
-.lby-pet{position:absolute;bottom:14%;display:flex;align-items:flex-end;justify-content:center;font-size:56px;animation:lsBob 3.4s ease-in-out infinite}
-.lby-pet img{width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 0 1px #000) drop-shadow(0 8px 6px #0009)}
-.lby-pet.q0{left:50%;width:min(64%,210px);height:min(62%,220px);margin-left:calc(min(64%,210px)/-2);bottom:8%;z-index:2}
-.lby-pet.q1{left:2%;width:min(46%,150px);height:min(46%,160px);bottom:24%;animation-delay:-1.2s;z-index:1}
-.lby-pet.q2{right:2%;width:min(46%,150px);height:min(46%,160px);bottom:24%;animation-delay:-2.3s;z-index:1}
-.lby-sh{position:absolute;left:15%;right:15%;bottom:-4px;height:12px;border-radius:50%;background:radial-gradient(closest-side,#000a,transparent)}
-@keyframes lsBob{50%{transform:translateY(-6px)}}
-/* goal + play */
-.lby-goal{display:flex;align-items:center;gap:8px;margin:6px auto 0;max-width:100%;padding:6px 12px 6px 6px;border-radius:999px;text-align:left;color:#f4ecd2;font-size:11.5px;line-height:1.2;
-  background:linear-gradient(90deg,#2a1f12ee,#3a2a16ee);border:1px solid #c79a4588;box-shadow:0 3px 8px #0008}
-.lby-gi{display:flex;align-items:center;justify-content:center;width:26px;height:26px;flex:none;border-radius:50%;background:#c79a45;font-size:15px}
+.lby-beam{position:absolute;left:50%;bottom:10%;width:80%;height:70%;transform:translateX(-50%);background:radial-gradient(50% 60% at 50% 100%,#8fb8ff38,transparent 70%);animation:lsMg 5s ease-in-out infinite}
+.lby-pet{position:absolute;display:block}
+.lby-bob{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;animation:lsBob 3.4s ease-in-out infinite;font-size:48px}
+.lby-pet img{position:relative;z-index:1;width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 0 1px #000) drop-shadow(0 8px 6px #0009)}
+.lby-pet.q0{left:50%;bottom:3cqh;width:min(52cqw,46cqh);height:min(52cqw,46cqh);transform:translateX(-50%);z-index:3}
+.lby-pet.q1,.lby-pet.q2{bottom:calc(3cqh + min(52cqw,46cqh)*.8);width:min(36cqw,31cqh);height:min(36cqw,31cqh);z-index:2}
+.lby-pet.q1{left:1cqw}.lby-pet.q2{right:1cqw}
+.lby-pet.q1 .lby-bob{animation-delay:-1.2s}.lby-pet.q2 .lby-bob{animation-delay:-2.3s}
+.lby-sh{position:absolute;left:18%;right:18%;bottom:-4px;height:12px;border-radius:50%;background:radial-gradient(closest-side,#000b,transparent)}
+@keyframes lsBob{50%{transform:translateY(-5px)}}
+/* goal: a parchment strip */
+.lby-goal{display:flex;align-items:center;gap:10px;margin:6px 0 0;padding:6px 14px 7px 8px;text-align:left;color:#3a230c;font-size:13px;font-weight:600;line-height:1.2;filter:drop-shadow(0 3px 4px #0009)}
+.lby-gi{position:relative;z-index:1;width:28px;height:28px;flex:none}.lby-gt{position:relative;z-index:1}
+/* play row */
 .lby-play{display:flex;align-items:stretch;gap:8px;margin-top:8px}
-.lby-sb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:78px;flex:none;padding:6px 2px;border-radius:16px;color:#fff;
-  background:linear-gradient(#4b5bc4,#2b3484 60%,#20286a);border:2px solid #9fb0ff88;box-shadow:0 4px 0 #141a48,0 6px 12px #0009,inset 0 2px 0 #ffffff33}
-.lby-sb span{font-size:22px;line-height:1}.lby-sb b{font-size:10.5px;line-height:1.1;text-align:center}
-.lby-4{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:#ffe7a3;color:#2a1a05;font-family:var(--display);font-weight:900;font-size:17px!important}
-.lby-sb:active,.lby-go:active{transform:translateY(3px);box-shadow:0 1px 0 #141a48,0 3px 6px #0009}
-.lby-go{position:relative;flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 10px;border-radius:18px;overflow:hidden;color:#3a1a05;
-  background:linear-gradient(#fff1b0,#ffcf4a 40%,#e9971f 75%,#c96d14);border:2.5px solid #fff6cf;box-shadow:0 5px 0 #7a3c08,0 8px 18px #000a,0 0 24px #ffb84a55,inset 0 -3px 0 #a8550e55}
-.lby-goi{font-size:32px;filter:drop-shadow(0 2px 0 #fff8)}
-.lby-got{display:flex;flex-direction:column;align-items:flex-start;min-width:0}.lby-got b{font-family:var(--display);font-size:clamp(19px,5.6vw,24px);font-weight:900;text-transform:uppercase;line-height:1;text-shadow:0 1px 0 #fff8}
-.lby-got small{font-size:11px;font-weight:600;opacity:.8;white-space:nowrap}
-.lby-shine{position:absolute;top:0;bottom:0;left:-40%;width:30%;background:linear-gradient(100deg,transparent,#ffffffa0,transparent);transform:skewX(-20deg);animation:lsSh 3.2s ease-in-out infinite}
+.lby-sb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:74px;flex:none;padding:7px 3px 8px;color:#fff;filter:drop-shadow(0 4px 3px #000b)}
+.lby-sb .lb-ic{width:30px;height:30px}.lby-sb b{position:relative;z-index:1;font-size:12px;line-height:1.1;text-align:center;text-shadow:0 1px 0 #0d1030,0 -1px 0 #0d1030,1px 0 0 #0d1030,-1px 0 0 #0d1030}
+.lby-4{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;width:28px;height:28px;margin:1px 0;border-radius:8px 6px 9px 7px;background:#f4e6bd;border:2px solid #150d0a;color:#3a1a05;font-family:var(--lbf);font-weight:700;font-size:19px;line-height:1}
+.lby-sb:active,.lby-go:active{transform:translateY(3px)}
+.lby-go{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px 11px;overflow:hidden;color:#3a1a05;filter:drop-shadow(0 5px 3px #000b) drop-shadow(0 0 14px #ffb84a40)}
+.lby-goi{position:relative;z-index:1;width:36px;height:36px;flex:none}
+.lby-got{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+.lby-got b{font-family:var(--lbf);font-weight:700;font-size:clamp(22px,6.6vw,28px);line-height:1;color:#3a1a05;text-shadow:0 1px 0 #fff3c6}
+.lby-got b.lby-cont{font-size:clamp(18px,5.2vw,25px)}
+.lby-got small{font-size:13px;font-weight:700;color:#3a2208;line-height:1.15;white-space:nowrap;text-shadow:0 0 1px #fff0c899,0 1px 0 #fff0c899}
+.lby-shine{position:absolute;z-index:1;top:0;bottom:0;left:-40%;width:24%;background:linear-gradient(100deg,transparent,#ffffff70,transparent);transform:skewX(-20deg);animation:lsSh 3.6s ease-in-out infinite;pointer-events:none}
 @keyframes lsSh{0%,60%{left:-40%}100%{left:130%}}
-/* bottom bar */
-.lby-nav{display:grid;grid-template-columns:1fr 1.2fr 1fr;align-items:end;gap:6px;margin-top:10px;padding:6px 8px;border-radius:20px;background:linear-gradient(#1b1f44f2,#0c0f26f2);border:1.5px solid #c79a4566;box-shadow:0 -2px 14px #0009,inset 0 1px 0 #ffffff14}
-.lby-nav button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 2px;border-radius:14px;color:#c9c6ef;font-size:11.5px;font-weight:700}
-.lby-nav button.on{color:#fff;margin-top:-20px;padding:8px 2px 5px;background:linear-gradient(#6a5cff,#3a2fa8);border:2px solid #c7bfff;box-shadow:0 4px 0 #1c1660,0 0 16px #6a5cff88}
-.lby-ni{position:relative;font-size:24px;line-height:1.1}.lby-nav .on .lby-ni{font-size:28px}.lby-ni .lby-dot{right:-12px;top:-4px}
+/* bottom bar: a dark painted plank, the current tab on a violet plate, nothing climbs out of the bar */
+.lby-nav{position:relative;display:grid;grid-template-columns:1fr 1fr 1fr;align-items:stretch;gap:6px;margin-top:9px;padding:5px 6px;filter:drop-shadow(0 -2px 8px #0008)}
+.lby-nav>button{display:flex;flex-direction:column;align-items:center;gap:0;padding:4px 2px 5px;color:#d9d4ff;font-size:12.5px;font-weight:700;text-shadow:0 1px 0 #000}
+.lby-nav>button.on{color:#ffe7a6}
+.lby-onr{position:absolute!important;inset:3px;border:2px solid #e8c77a;border-radius:6px 4px 7px 5px;opacity:.85;pointer-events:none}
+.lby-nav>button>*:not(.lb-pl){position:relative;z-index:1}
+.lby-ni{position:relative;display:block;width:30px;height:30px}.lby-ni .lby-dot{right:-14px;top:-4px}
 .lb-pop .lb-pv{font-size:10px;text-align:center;padding:4px 0 0}
-@media (max-height:640px){.lby-logo{margin-top:4px}.lby-lt{font-size:30px}.lby-rbi{width:48px;height:48px;font-size:22px}.lby-side{gap:8px}.lby-goal{display:none}}
+@media (max-height:700px){.lby-logo{margin-top:4px}.lby-lt{font-size:34px}.lby-rbi{width:50px;height:50px}.lby-side{gap:6px}.lby-rbt{font-size:12px}
+  .lby-goal{padding:4px 12px 5px 6px;font-size:13px}.lby-gi{width:24px;height:24px}.lby-play{margin-top:6px}.lby-nav{margin-top:6px}.lby-ni{width:26px;height:26px}.lby-goi{width:34px;height:34px}}
+@media (max-width:370px){.lby-side{width:58px}.lby-sb{width:70px}.lby-go{gap:5px;padding-left:6px;padding-right:6px}.lby-goi{width:32px;height:32px}.lby-got small{font-size:12px}}
 @media (prefers-reduced-motion:reduce){.lby *,.lby{animation:none!important}}
 `;document.body.appendChild(st)}
 // the first screen is drawn before this file loads: draw the lobby right away
