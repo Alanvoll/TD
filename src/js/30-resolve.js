@@ -222,7 +222,7 @@ async function resolve(){
     for(const a of poor.splice(0)){a.el=stepEl(S);S.pool[a.el]+=a.n}
     // 0.34: cards not played this turn go to the discard and give their elements
     if(HV()&&S.hand.length){const got=z0();let r=0;
-      for(const c of S.hand){const b=burnVal(S,c);if(b.el==='r')r+=b.n;else{S.pool[b.el]+=b.n;got[b.el]+=b.n}if(c.t==='step'&&S.stepDebt>0)S.stepDebt--;else S.discard.push(c)}
+      for(const c of S.hand){const b=burnVal(S,c);if(b.el==='r'&&!b.g)r+=b.n;else{addGain(S.pool,b);addGain(got,b)}if(c.t==='step'&&S.stepDebt>0)S.stepDebt--;else S.discard.push(c)}
       for(let i=0;i<r;i++){const e=stepEl(S);S.pool[e]++;got[e]++}
       G.log.push(`${S.bot?'<span class="op">Соперник:</span>':'<span class="me">Ты:</span>'} в сброс ${S.hand.length} ${S.hand.length===1?'карта':S.hand.length<5?'карты':'карт'}, стихии: ${ELS.filter(k=>got[k]).map(k=>'+'+got[k]+' '+ELN[k].toLowerCase()).join(', ')}.`);S.hand=[]}
   }

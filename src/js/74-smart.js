@@ -43,9 +43,9 @@ function smartFill(S,O,first,keepN,thr){
     if(!best||best.sc<thr)break;push(best.card,best.opt,best.paid)}
   // ▼: burn the rest, but keep the keepN most valuable cards we will be able to pay for next turn
   const free=S.hand.filter(c=>!S.plan.some(e=>e.card===c));
-  const nx={...avail(S)};for(const c of free){const b=burnVal(S,c);if(b.el!=='r')nx[b.el]+=b.n}
+  const nx={...avail(S)};for(const c of free){addGain(nx,burnVal(S,c))}
   const keep=[];if(keepN){const cand=free.filter(c=>c.t!=='step').map(c=>({c,v:cardValue(S,O,c)+(T[c.t].grow&&(c.ch||0)<4?1.5:0)})).sort((a,b)=>b.v-a.v);
-    for(const {c} of cand){if(keep.length>=keepN)break;const b=burnVal(S,c),n2={...nx};if(b.el!=='r')n2[b.el]-=b.n;for(const o of keep){const bo=burnVal(S,o);if(bo.el!=='r')n2[bo.el]-=bo.n}
+    for(const {c} of cand){if(keep.length>=keepN)break;const n2={...nx};addGain(n2,burnVal(S,c),null,-1);for(const o of keep)addGain(n2,burnVal(S,o),null,-1)
       if(pay(n2,costOf(S,c)))keep.push(c)}}
   for(const c of free)if(!keep.includes(c))S.plan.push({kind:'burn',card:c,...burnVal(S,c)});
 }

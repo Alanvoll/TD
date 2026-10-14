@@ -192,6 +192,7 @@ function oppSheet(){
   <div class="acts"><button class="btn main" data-act="op-x">Готово</button></div></div></div>`;
 }
 function renderPick(){
+  if(!teamElsOk(TEAM))TEAM=capPick(TEAM,TEAM.length,x=>x,1);
   ui.flt=ui.flt||{el:[],fam:[],role:[],sort:'def'};const F=ui.flt;
   const pool=metaMode()&&!sandbox()?petPool().filter(i=>META.pets[PETS[i].n].un):petPool();
   let list=pool.filter(i=>(!F.el.length||petEls(PETS[i]).some(e=>F.el.includes(e)))&&(!F.fam.length||F.fam.includes(PETS[i].fam))&&(!F.role.length||F.role.includes(PETS[i].cls)));
@@ -201,10 +202,10 @@ function renderPick(){
   const nf=F.el.length+F.fam.length+F.role.length,rg=TN===5&&TEAM.length===5?rateGrade():null;
   let h=`<div class="top"><button class="pill sm" data-act="m-menu">‹ Меню</button><div class="title">${ttl}</div><span class="modes"></span></div>
   <div class="tbar"><div class="tm">${[...Array(TN).keys()].map(k=>{const i=TEAM[k];return i==null?`<span class="ts empty"></span>`:`<button class="ts" data-view="${i}" style="border-color:${rarC(PETS[i])}"><span class="em">${petIc(PETS[i],1)}</span>${FAM[PETS[i].fam]?`<span class="fmb">${FAM[PETS[i].fam].ic}</span><span class="clb">${CLS[PETS[i].cls].ic}</span>`:''}<span class="tx" data-qt="${i}">✕</span></button>`}).join('')}</div>
-  <div class="tside"><button class="pill sm" data-act="deck" ${TEAM.length?'':'disabled'}>🃏 Колода</button><button class="pill sm" data-act="fxs">💫 Эффекты</button>${rg?`<button class="pill sm" data-act="deck" style="color:${rg.c}">${rg.n}</button>`:`<span class="m" style="font-size:12px">${TEAM.length}/${TN}</span>`}</div></div>
+  <div class="tside"><button class="pill sm" data-act="deck" ${TEAM.length?'':'disabled'}>🃏 Колода</button><button class="pill sm" data-act="fxs">💫 Эффекты</button>${rg?`<button class="pill sm" data-act="deck" style="color:${rg.c}">${rg.n}</button>`:`<span class="m" style="font-size:12px">${TEAM.length}/${TN}</span>`}${TEAM.length?`<span class="m tels" title="${CAP_MSG}" style="font-size:12px;display:inline-flex;align-items:center;gap:2px;${teamEls(TEAM).size>=EL_TEAM_MAX?'color:var(--gold)':''}">Стихии ${ELS.filter(e=>teamEls(TEAM).has(e)).map(e=>EI(e)).join('')} ${teamEls(TEAM).size}/${EL_TEAM_MAX}</span>`:''}</div></div>
   
   <div class="flt fl1"><button class="pill sm ${nf||F.sort!=='def'?'on':''}" data-act="fopen">⚙ Фильтры${nf?' · '+nf:''}</button>${nf?pill('fclr',false,'✕ Сбросить'):''}<span class="m" style="font-size:11px;margin-left:auto">${list.length===pool.length?'Все '+pool.length:list.length+' из '+pool.length}${F.sort!=='def'?' · по '+SORTN[F.sort]:''}</span></div>
-  <div class="pk">${list.length?list.map(i=>{const q=PETS[i],on=TEAM.includes(i),full=TEAM.length>=TN&&!on;return`<div class="pt ${on?'on':''}" data-view="${i}" data-r="${q.rar}" style="--qc:${rarC(q)}">${FAM[q.fam]?`<span class="fmb" title="${FAM[q.fam].n}">${FAM[q.fam].ic}</span><span class="clb" title="${CLS[q.cls].n}">${CLS[q.cls].ic}</span>`:''}<button class="qt ${on?'on':''}" data-qt="${i}" ${full?'disabled':''}>${on?'✓':'+'}</button><span class="pt-av">${qArt(q,metaMode()&&!sandbox()?mp(q.n).q:0,1)}${metaMode()&&!sandbox()?`<span class="lvb" style="background:${qC(mp(q.n).q)}">${mp(q.n).lv}</span>`:''}</span><span class="pnm" style="font-size:${q.n.length>12?10.5:q.n.length>9?11.5:12.5}px">${q.n}</span><span class="pels">${petEls(q).map(e=>EI(e,1)).join('')}</span></div>`}).join(''):'<div class="m">Никого не нашлось, сбрось фильтр.</div>'}</div>
+  <div class="pk">${list.length?list.map(i=>{const q=PETS[i],on=TEAM.includes(i),full=TEAM.length>=TN&&!on,capd=!on&&!full&&!teamElsOk([...TEAM,i]);return`<div class="pt ${on?'on':''}${capd?' capd':''}" data-view="${i}" data-r="${q.rar}" style="--qc:${rarC(q)}">${FAM[q.fam]?`<span class="fmb" title="${FAM[q.fam].n}">${FAM[q.fam].ic}</span><span class="clb" title="${CLS[q.cls].n}">${CLS[q.cls].ic}</span>`:''}<button class="qt ${on?'on':''}" data-qt="${i}" ${full?'disabled':''}>${on?'✓':capd?'🔒':'+'}</button><span class="pt-av">${qArt(q,metaMode()&&!sandbox()?mp(q.n).q:0,1)}${metaMode()&&!sandbox()?`<span class="lvb" style="background:${qC(mp(q.n).q)}">${mp(q.n).lv}</span>`:''}</span><span class="pnm" style="font-size:${q.n.length>12?10.5:q.n.length>9?11.5:12.5}px">${q.n}</span><span class="pels">${(()=>{const te=capd?teamEls(TEAM):null;return petEls(q).map(e=>te&&!te.has(e)?`<span class="elx">${EI(e,1)}</span>`:EI(e,1)).join('')})()}</span></div>`}).join(''):'<div class="m">Никого не нашлось, сбрось фильтр.</div>'}</div>
   <div class="m" style="font-size:11px;text-align:center;margin-top:6px">Тап по пету: что он умеет. «+»: сразу в стаю.</div>
   <div class="acts stk">${CTX?'':`<button class="btn" data-act="opp">${VS==='boss'?'🗿 Босс':'Соперник: '+{auto:'авто',easy:'лёгкий',medium:'средний',hard:'сложный',master:'мастер',smart:'стратег'}[AI]}</button>`}<button class="btn main" data-act="to-place" ${TEAM.length<TN?'disabled':''}>${TEAM.length<TN?'Ещё '+(TN-TEAM.length):'Расставить'}</button></div>`;
   if(ui.pv!=null&&ui.psheet)h+=petSheet(ui.pv);
@@ -230,10 +231,10 @@ function renderPlace(){
 function resetPlace(){PLACE=START.slice(0,TN).map(x=>[...x])}
 function phaseClick(e){
   const a=e.target.closest('[data-qt],[data-act],[data-view],[data-pick],[data-pcell]');if(!a)return;
-  const tog=v=>{if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN)TEAM.push(v)};
+  const tog=v=>{if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN){if(teamElsOk([...TEAM,v]))TEAM.push(v);else toast(CAP_MSG)}};
   if(a.dataset.qt!=null){if(!a.disabled)tog(+a.dataset.qt);return render()}
   if(a.dataset.view!=null){ui.pv=+a.dataset.view;ui.psheet=true;return render()}
-  if(a.dataset.pick!=null){const v=+a.dataset.pick;ui.pv=v;if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN)TEAM.push(v);return render()}
+  if(a.dataset.pick!=null){const v=+a.dataset.pick;ui.pv=v;if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN){if(teamElsOk([...TEAM,v]))TEAM.push(v);else toast(CAP_MSG)};return render()}
   if(a.dataset.pcell){const[r,c]=a.dataset.pcell.split(',').map(Number),i=PLACE.findIndex(x=>x[0]===r&&x[1]===c);
     if(ui.ps==null){if(i>=0)ui.ps=i}else{if(i>=0&&i!==ui.ps)PLACE[i]=PLACE[ui.ps];if(i!==ui.ps)PLACE[ui.ps]=[r,c];ui.ps=null}
     return render()}
@@ -254,7 +255,7 @@ function phaseClick(e){
   else if(/^f[efrs]-/.test(act)){const k={e:'el',f:'fam',r:'role',s:'sort'}[act[1]],v=act.slice(3),bx=document.querySelector('.fbox'),st=bx?bx.scrollTop:0;
     if(k==='sort')ui.flt.sort=v;else{const l=ui.flt[k];ui.flt[k]=l.includes(v)?l.filter(x=>x!==v):[...l,v]}
     render();const nb=document.querySelector('.fbox');if(nb)nb.scrollTop=st}
-  else if(act==='pick-toggle'){const v=ui.pv??TEAM[0];if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN)TEAM.push(v);render()}
+  else if(act==='pick-toggle'){const v=ui.pv??TEAM[0];if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN){if(teamElsOk([...TEAM,v]))TEAM.push(v);else toast(CAP_MSG)};render()}
   else if(act==='to-place'&&TEAM.length===TN){G.phase='place';if(!PLACE)resetPlace();ui.ps=null;render()}
   else if(act==='to-pick'){G.phase='pick';render()}
   else if(act==='place-smart'){const sp=smartPlace(TEAM.map(i=>PETS[i]),TEAM.length);PLACE=sp.concat(START.filter(x=>!sp.some(y=>y[0]===x[0]&&y[1]===x[1]))).slice(0,TN);ui.ps=null;render()}

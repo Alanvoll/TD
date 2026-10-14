@@ -174,7 +174,7 @@ function smartPlace(defs,n){
   return best}
 function newGame(){
   ui.bst=false;for(const k in lastPos)delete lastPos[k];
-  const bt=shuffle(petPool()).slice(0,TN),cells=shuffle([...Array(ROWS*COLS).keys()]).slice(0,TN).map(k=>[Math.floor(k/COLS),k%COLS]);
+  const bt=capPick(shuffle(petPool()),TN),cells=shuffle([...Array(ROWS*COLS).keys()]).slice(0,TN).map(k=>[Math.floor(k/COLS),k%COLS]);
   const nx=NEXT;NEXT=null;let eTeam=bt,eAI=AI,boss=VS==='boss'&&!CTX||!!(CTX&&CTX.kind==='lair');
   if(nx){eTeam=nx.enemy||nx.enemyIdx||bt;eAI=nx.ai||AI;if(eTeam.length!==TN)cells.length=eTeam.length;while(cells.length<eTeam.length){const k=Math.floor(Math.random()*ROWS*COLS),rc=[Math.floor(k/COLS),k%COLS];if(!cells.some(x=>x[0]===rc[0]&&x[1]===rc[1]))cells.push(rc)}}
   if(eAI==='hard'||eAI==='smart'||eAI==='master'||HK.smartAll||eAI==='auto'&&autoLv()>=5){const dd=eTeam.map(x=>typeof x==='object'?x:PETS[x]);const sp=smartPlace(dd,eTeam.length);cells.length=0;cells.push(...sp)}
@@ -205,8 +205,8 @@ function draw(S,n){
   for(let i=0;i<n&&S.deck.length;i++){
     const c=S.deck.pop();
     if(S.hand.length<handSize(S)){S.hand.push(c);continue}
-    const b=burnVal(S,c),bel=b.el==='r'?stepEl(S):b.el;S.pool[bel]+=b.n;S.discard.push(c);
-    G.log.push(`${S.bot?'<span class="op">Соперник:</span>':'<span class="me">Ты:</span>'} рука полна, «${T[c.t].n}» сгорает за +${b.n} ${ELN[bel].toLowerCase()}.`);
+    const b=burnVal(S,c),bel=b.el==='r'?stepEl(S):b.el;addGain(S.pool,b.g?b:{el:bel,n:b.n});S.discard.push(c);
+    G.log.push(`${S.bot?'<span class="op">Соперник:</span>':'<span class="me">Ты:</span>'} рука полна, «${T[c.t].n}» сгорает за ${b.g?ELS.filter(k=>b.g[k]).map(k=>'+'+b.g[k]+' '+ELN[k].toLowerCase()).join(', '):'+'+b.n+' '+ELN[bel].toLowerCase()}.`);
   }
 }
 
@@ -252,20 +252,25 @@ function pay(av,cost){
 }
 const AUB={hog:"🛡",fox:"⚔️",frog:"💚",bat:"💨",owl:"🔮",boss:"✶",shard:"🪨"},AUS={hog:"щит соседям",fox:"+2 урона соседям",frog:"лечит соседей",bat:"соседи раньше",owl:"соседям ▼ +1",boss:"уязвимое место",shard:"щит голему"};
 const AURA={hog:"в начале хода соседи получают щит 2, если щита меньше",fox:"удары соседей по одной цели наносят +2 урона",frog:"в конце хода соседи лечатся на 2",bat:"инициатива карт соседей −20",owl:"карты соседей, ушедшие в сброс несыгранными, дают на 1 стихию больше",boss:"клетка со знаком ✶ это уязвимое место: удар по ней наносит двойной урон. Каждый ход место меняется. Лёд и толчок на голема не действуют",shard:"пока Осколок жив, голем в начале хода получает щит 1",tok:"призванное существо, ничего не усиливает"};
-const petEls=q=>q.els;const cardEls=cards=>ELS.filter(e=>cards.some(k=>T[k]&&T[k].el===e));
+const petEls=q=>q.els;let cardEls=cards=>ELS.filter(e=>cards.some(k=>T[k]&&T[k].el===e));
 const FAM={};
 const nbrs=(S,p)=>alive(S).filter(q=>q!==p&&Math.abs(q.r-p.r)+Math.abs(q.c-p.c)===1);
 const hasAura=(S,p,k)=>!!p&&nbrs(S,p).some(q=>q.au===k);
 // what the side's pool will be after this turn's plan (costs paid, ▼ and card gains added), optionally without one card's entry
 function projPool(S,skip){const p=avail(S),need=needEls(S);
   // 0.34: a played ▼ gives nothing; every card left in hand goes to the discard and gives its elements
-  if(HV()){let r=0;for(const c of S.hand){if(c===skip||S.plan.some(e=>e.card===c))continue;if(c.t==='step'){r++;continue}const b=burnVal(S,c);p[b.el]+=b.n}for(let i=0;i<r;i++)p[leastOf(p,need)]++}
+  if(HV()){let r=0;for(const c of S.hand){if(c===skip||S.plan.some(e=>e.card===c))continue;if(c.t==='step'){r++;continue}addGain(p,burnVal(S,c))}for(let i=0;i<r;i++)p[leastOf(p,need)]++}
   for(const e of S.plan){if(e.card===skip)continue;
   if(e.kind==='burn'&&!HV())p[e.el==='r'?leastOf(p,need):e.el]+=e.n;else if(e.card&&T[e.card.t].gen)for(const k in T[e.card.t].gen)p[k]+=T[e.card.t].gen[k]}return p}
 // Шаг ▼ gives the poorest element, picked when you plan it and shown on the card; Приток goes to the poorest element after the turn
 const stepPick=(S,card)=>leastOf(projPool(S,card),needEls(S));
 const incNext=S=>leastOf(projPool(S),needEls(S));
-const burnVal=(S,card)=>{if(card.t==='step')return{el:G&&S.pool?stepPick(S,card):'r',n:1+(G&&G.run&&S===G.P&&hasT('lightstep')?1:0)};const p=card.pet?pet(S,card.pet):null;return{el:T[card.t].dg||T[card.t].el||'a',n:T[card.t].burn+(hasAura(S,p,'owl')?1:0)+(p&&p.fam==='elem'?1:0)}};
+const burnVal=(S,card)=>{if(card.t==='step')return{el:G&&S.pool?stepPick(S,card):'r',n:1+(G&&G.run&&S===G.P&&hasT('lightstep')?1:0)};const p=card.pet?pet(S,card.pet):null,t=T[card.t],bon=(hasAura(S,p,'owl')?1:0)+(p&&p.fam==='elem'?1:0);
+  // 0.40 Anton: a card may give several elements to the discard (t.gain = {element:count}); the bonus goes to its first element
+  if(t.gain){const g={},ks=ELS.filter(k=>t.gain[k]);for(const k of ks)g[k]=t.gain[k];if(bon&&ks.length)g[ks[0]]+=bon;return{el:ks[0]||'a',n:ks.reduce((x,k)=>x+g[k],0),g}}
+  return{el:t.dg||t.el||'a',n:t.burn+bon}};
+// adds (sign 1) or removes (sign -1) a card's discard gain to a pool; 'r' (Шаг) goes where r(pool) says
+const addGain=(pool,b,r,sign=1)=>{if(b.g){for(const k in b.g)pool[k]+=sign*b.g[k];return}const e=b.el==='r'?(r?r(pool):null):b.el;if(e)pool[e]+=sign*b.n};
 const maxPlay=S=>S.maxPlay||MAXPLAY;
 const cardsPlanned=S=>S.plan.filter(e=>e.kind==='card').length;
 const costOf=(S,card)=>T[card.t].cost;

@@ -9,7 +9,7 @@ const LEAGUES=[
   {n:'Легенда',ic:'👑',at:1300,lv:23,q:4,ai:'smart',st:200}];
 const rk=()=>{META.rank=META.rank||{pts:0,best:0,top:0,streak:0,w:0,l:0,h:[]};return META.rank};
 const lgOf=pts=>{let i=0;for(let k=0;k<LEAGUES.length;k++)if(pts>=LEAGUES[k].at)i=k;return i};
-function rankEnemy(){const L=LEAGUES[lgOf(rk().pts)],ids=shuffle([...PETS.keys()]).slice(0,5);
+function rankEnemy(){const L=LEAGUES[lgOf(rk().pts)],ids=capPick(shuffle([...PETS.keys()]),5);
   return ids.map(i=>{const lv=Math.max(1,Math.min(25,L.lv+Math.floor(Math.random()*3)-1));return metaDef(i,lv,L.q,[0,1,2].map(s=>lv>=5+5*s&&Math.random()<.5?1:0))})}
 function rankStart(){CTX={kind:'rank'};const L=LEAGUES[lgOf(rk().pts)];NEXT={enemy:rankEnemy(),ai:L.ai};G={phase:'pick'};resetPlace();
   TEAM=TEAM.filter(i=>mp(PETS[i].n).un||sandbox());ui.pv=null;ui.psheet=false;render()}

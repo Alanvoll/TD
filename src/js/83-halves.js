@@ -14,7 +14,7 @@ const isDnSel=()=>!!ui.sel&&ui.selDn===ui.sel;
 const selT=card=>card&&isDnSel()&&card.uid===ui.sel?dnT(card.t):card?T[card.t]:null;
 function planPush(S,card,o,dn){if(dn)S.plan.push({kind:'burn',card,...burnVal(S,card),...o});else S.plan.push({kind:'card',card,paid:payCard(S,card),...o})}
 // discard elements: hollow icons on a dark band, never mixed with the solid cost icons
-function gainHtml(S,card){const b=burnVal(S,card);let h='';for(let i=0;i<b.n;i++)h+=`<i class="ei gn ei-${b.el}" title="${ELN[b.el]||''}"></i>`;return h}
+function gainHtml(S,card){const b=burnVal(S,card),g=b.g||{[b.el]:b.n};let h='';for(const k in g)for(let i=0;i<g[k];i++)h+=`<i class="ei gn ei-${k}" title="${ELN[k]||''}"></i>`;return h}
 function dnCostHtml(d){return d&&d.cost?costHtml(d):''}
 
 /* mini card: ▲ part on top, ▼ part below the line, discard band at the bottom */

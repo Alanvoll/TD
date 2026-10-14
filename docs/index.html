@@ -740,16 +740,25 @@ body.dragging .hsheet,body.dragging .hs-back{opacity:0;pointer-events:none}
 /* 0.40 Anton 2026-10-14: стихии на карте могут быть разными, поэтому у карт способностей нет цвета стихии: один нейтральный вид, стихии видны только по значкам */
 [style*="--pc"]{--pc:#B4C1D4!important}
 .card.hv{border-color:#ffffff30!important}
-.zc .zcost .rr{border-radius:50%;box-shadow:0 0 0 1px #ffffff66}
 .zc.hv .z1,.zc.hv .zb{justify-content:flex-start!important}
-.hand.mini.lfan .zc .zcost .rr+.rr{margin-left:-5px!important}
 .hand .card.hv.plu,.hand .card.hv.pld{border-color:#ffffffA0!important}
+.pt.capd>*:not(.pels):not(.qt){opacity:.42}.pt.capd .pels>.ei{opacity:.42}.pt.capd .qt{background:#3A2A30}
+.pt .elx{display:inline-flex;border-radius:50%;box-shadow:0 0 0 2px #E25555;background:#E2555533}
+.tels{font-size:13px!important;white-space:nowrap}.tels .ei{width:16px;height:16px}
+/* веер: цена столбиком по левому краю (под значком существа для ▲, над ▼ для ▼), чтобы её было видно из-под соседней карты при любом числе стихий */
+.hand.mini.lfan .zc.hv .zcost{position:absolute;left:2px;flex-direction:column;gap:1px;z-index:2}
+.hand.mini.lfan .zc.hv .zcost .rr{filter:drop-shadow(0 1px 1.5px #000) drop-shadow(0 0 1px #000)}
+.hand.mini.lfan .zc.hv>.z2,.hand.mini.lfan .zc.hv>.zu,.hand.mini.lfan .zc.hv>.zv,.hand.mini.lfan .zc.hv>.zd{padding-left:calc(var(--zcw,15px) + 4px)!important}
+.hand.mini.lfan .zc.hv .z1 .zcost{top:27px}
+.hand.mini.lfan .zc.hv .zb .zcost{bottom:calc(var(--zrow7,18px) + 6px)}
+.hand.mini.lfan .zc.hv .zcost:empty{display:none}
+body[data-bfit][data-hcl=m] .hand.mini.lfan .zc.hv .zcost .rr{width:11px!important;height:11px!important}body[data-bfit][data-hcl=m] .hand.mini.lfan .zc.hv .z1 .zcost{top:15px}body[data-bfit][data-hcl=m] .hand.mini.lfan .zc.hv .zb .zcost{bottom:18px}body[data-bfit][data-hcl=m] .hand.mini.lfan .zc.hv{--zcw:11px}
 </style>
 
 <div id="app"></div>
 
 <script>
-const VER='0.39.11',BUILD=149;
+const VER='0.40.0',BUILD=150;
 /* ART-BEGIN: creatures drawn in code (SVG + CSS idle animation), one file per family */
 const ARTS={};function ART_ADD(o){Object.assign(ARTS,o)}
 ART_ADD({
@@ -1141,7 +1150,7 @@ function smartPlace(defs,n){
   return best}
 function newGame(){
   ui.bst=false;for(const k in lastPos)delete lastPos[k];
-  const bt=shuffle(petPool()).slice(0,TN),cells=shuffle([...Array(ROWS*COLS).keys()]).slice(0,TN).map(k=>[Math.floor(k/COLS),k%COLS]);
+  const bt=capPick(shuffle(petPool()),TN),cells=shuffle([...Array(ROWS*COLS).keys()]).slice(0,TN).map(k=>[Math.floor(k/COLS),k%COLS]);
   const nx=NEXT;NEXT=null;let eTeam=bt,eAI=AI,boss=VS==='boss'&&!CTX||!!(CTX&&CTX.kind==='lair');
   if(nx){eTeam=nx.enemy||nx.enemyIdx||bt;eAI=nx.ai||AI;if(eTeam.length!==TN)cells.length=eTeam.length;while(cells.length<eTeam.length){const k=Math.floor(Math.random()*ROWS*COLS),rc=[Math.floor(k/COLS),k%COLS];if(!cells.some(x=>x[0]===rc[0]&&x[1]===rc[1]))cells.push(rc)}}
   if(eAI==='hard'||eAI==='smart'||eAI==='master'||HK.smartAll||eAI==='auto'&&autoLv()>=5){const dd=eTeam.map(x=>typeof x==='object'?x:PETS[x]);const sp=smartPlace(dd,eTeam.length);cells.length=0;cells.push(...sp)}
@@ -1172,8 +1181,8 @@ function draw(S,n){
   for(let i=0;i<n&&S.deck.length;i++){
     const c=S.deck.pop();
     if(S.hand.length<handSize(S)){S.hand.push(c);continue}
-    const b=burnVal(S,c),bel=b.el==='r'?stepEl(S):b.el;S.pool[bel]+=b.n;S.discard.push(c);
-    G.log.push(`${S.bot?'<span class="op">Соперник:</span>':'<span class="me">Ты:</span>'} рука полна, «${T[c.t].n}» сгорает за +${b.n} ${ELN[bel].toLowerCase()}.`);
+    const b=burnVal(S,c),bel=b.el==='r'?stepEl(S):b.el;addGain(S.pool,b.g?b:{el:bel,n:b.n});S.discard.push(c);
+    G.log.push(`${S.bot?'<span class="op">Соперник:</span>':'<span class="me">Ты:</span>'} рука полна, «${T[c.t].n}» сгорает за ${b.g?ELS.filter(k=>b.g[k]).map(k=>'+'+b.g[k]+' '+ELN[k].toLowerCase()).join(', '):'+'+b.n+' '+ELN[bel].toLowerCase()}.`);
   }
 }
 
@@ -1219,20 +1228,25 @@ function pay(av,cost){
 }
 const AUB={hog:"🛡",fox:"⚔️",frog:"💚",bat:"💨",owl:"🔮",boss:"✶",shard:"🪨"},AUS={hog:"щит соседям",fox:"+2 урона соседям",frog:"лечит соседей",bat:"соседи раньше",owl:"соседям ▼ +1",boss:"уязвимое место",shard:"щит голему"};
 const AURA={hog:"в начале хода соседи получают щит 2, если щита меньше",fox:"удары соседей по одной цели наносят +2 урона",frog:"в конце хода соседи лечатся на 2",bat:"инициатива карт соседей −20",owl:"карты соседей, ушедшие в сброс несыгранными, дают на 1 стихию больше",boss:"клетка со знаком ✶ это уязвимое место: удар по ней наносит двойной урон. Каждый ход место меняется. Лёд и толчок на голема не действуют",shard:"пока Осколок жив, голем в начале хода получает щит 1",tok:"призванное существо, ничего не усиливает"};
-const petEls=q=>q.els;const cardEls=cards=>ELS.filter(e=>cards.some(k=>T[k]&&T[k].el===e));
+const petEls=q=>q.els;let cardEls=cards=>ELS.filter(e=>cards.some(k=>T[k]&&T[k].el===e));
 const FAM={};
 const nbrs=(S,p)=>alive(S).filter(q=>q!==p&&Math.abs(q.r-p.r)+Math.abs(q.c-p.c)===1);
 const hasAura=(S,p,k)=>!!p&&nbrs(S,p).some(q=>q.au===k);
 // what the side's pool will be after this turn's plan (costs paid, ▼ and card gains added), optionally without one card's entry
 function projPool(S,skip){const p=avail(S),need=needEls(S);
   // 0.34: a played ▼ gives nothing; every card left in hand goes to the discard and gives its elements
-  if(HV()){let r=0;for(const c of S.hand){if(c===skip||S.plan.some(e=>e.card===c))continue;if(c.t==='step'){r++;continue}const b=burnVal(S,c);p[b.el]+=b.n}for(let i=0;i<r;i++)p[leastOf(p,need)]++}
+  if(HV()){let r=0;for(const c of S.hand){if(c===skip||S.plan.some(e=>e.card===c))continue;if(c.t==='step'){r++;continue}addGain(p,burnVal(S,c))}for(let i=0;i<r;i++)p[leastOf(p,need)]++}
   for(const e of S.plan){if(e.card===skip)continue;
   if(e.kind==='burn'&&!HV())p[e.el==='r'?leastOf(p,need):e.el]+=e.n;else if(e.card&&T[e.card.t].gen)for(const k in T[e.card.t].gen)p[k]+=T[e.card.t].gen[k]}return p}
 // Шаг ▼ gives the poorest element, picked when you plan it and shown on the card; Приток goes to the poorest element after the turn
 const stepPick=(S,card)=>leastOf(projPool(S,card),needEls(S));
 const incNext=S=>leastOf(projPool(S),needEls(S));
-const burnVal=(S,card)=>{if(card.t==='step')return{el:G&&S.pool?stepPick(S,card):'r',n:1+(G&&G.run&&S===G.P&&hasT('lightstep')?1:0)};const p=card.pet?pet(S,card.pet):null;return{el:T[card.t].dg||T[card.t].el||'a',n:T[card.t].burn+(hasAura(S,p,'owl')?1:0)+(p&&p.fam==='elem'?1:0)}};
+const burnVal=(S,card)=>{if(card.t==='step')return{el:G&&S.pool?stepPick(S,card):'r',n:1+(G&&G.run&&S===G.P&&hasT('lightstep')?1:0)};const p=card.pet?pet(S,card.pet):null,t=T[card.t],bon=(hasAura(S,p,'owl')?1:0)+(p&&p.fam==='elem'?1:0);
+  // 0.40 Anton: a card may give several elements to the discard (t.gain = {element:count}); the bonus goes to its first element
+  if(t.gain){const g={},ks=ELS.filter(k=>t.gain[k]);for(const k of ks)g[k]=t.gain[k];if(bon&&ks.length)g[ks[0]]+=bon;return{el:ks[0]||'a',n:ks.reduce((x,k)=>x+g[k],0),g}}
+  return{el:t.dg||t.el||'a',n:t.burn+bon}};
+// adds (sign 1) or removes (sign -1) a card's discard gain to a pool; 'r' (Шаг) goes where r(pool) says
+const addGain=(pool,b,r,sign=1)=>{if(b.g){for(const k in b.g)pool[k]+=sign*b.g[k];return}const e=b.el==='r'?(r?r(pool):null):b.el;if(e)pool[e]+=sign*b.n};
 const maxPlay=S=>S.maxPlay||MAXPLAY;
 const cardsPlanned=S=>S.plan.filter(e=>e.kind==='card').length;
 const costOf=(S,card)=>T[card.t].cost;
@@ -1412,7 +1426,7 @@ function botPlan(S,O){
     const after=avail(S);keep=[];
     const cand=free.map(c=>({c,v:cardValue(S,O,c)+(T[c.t].grow&&(c.ch||0)<4?1.5:0)})).sort((a,b)=>b.v-a.v);
     for(const {c,v} of cand){if(keep.length>=HK.max||v<HK.thr)break;
-      const nx={...after};for(const o of free)if(o!==c&&!keep.includes(o)){const b=burnVal(S,o);nx[b.el==='r'?leastOf(nx,needEls(S)):b.el]+=b.n}
+      const nx={...after};for(const o of free)if(o!==c&&!keep.includes(o)){addGain(nx,burnVal(S,o),q=>leastOf(q,needEls(S)))}
       const els=needEls(S);if(els.length)nx[els[0]]+=1;
       if(pay(nx,costOf(S,c)))keep.push(c)}
   }else keep=free.slice(0,1);
@@ -1660,7 +1674,7 @@ async function resolve(){
     for(const a of poor.splice(0)){a.el=stepEl(S);S.pool[a.el]+=a.n}
     // 0.34: cards not played this turn go to the discard and give their elements
     if(HV()&&S.hand.length){const got=z0();let r=0;
-      for(const c of S.hand){const b=burnVal(S,c);if(b.el==='r')r+=b.n;else{S.pool[b.el]+=b.n;got[b.el]+=b.n}if(c.t==='step'&&S.stepDebt>0)S.stepDebt--;else S.discard.push(c)}
+      for(const c of S.hand){const b=burnVal(S,c);if(b.el==='r'&&!b.g)r+=b.n;else{addGain(S.pool,b);addGain(got,b)}if(c.t==='step'&&S.stepDebt>0)S.stepDebt--;else S.discard.push(c)}
       for(let i=0;i<r;i++){const e=stepEl(S);S.pool[e]++;got[e]++}
       G.log.push(`${S.bot?'<span class="op">Соперник:</span>':'<span class="me">Ты:</span>'} в сброс ${S.hand.length} ${S.hand.length===1?'карта':S.hand.length<5?'карты':'карт'}, стихии: ${ELS.filter(k=>got[k]).map(k=>'+'+got[k]+' '+ELN[k].toLowerCase()).join(', ')}.`);S.hand=[]}
   }
@@ -1971,6 +1985,7 @@ function oppSheet(){
   <div class="acts"><button class="btn main" data-act="op-x">Готово</button></div></div></div>`;
 }
 function renderPick(){
+  if(!teamElsOk(TEAM))TEAM=capPick(TEAM,TEAM.length,x=>x,1);
   ui.flt=ui.flt||{el:[],fam:[],role:[],sort:'def'};const F=ui.flt;
   const pool=metaMode()&&!sandbox()?petPool().filter(i=>META.pets[PETS[i].n].un):petPool();
   let list=pool.filter(i=>(!F.el.length||petEls(PETS[i]).some(e=>F.el.includes(e)))&&(!F.fam.length||F.fam.includes(PETS[i].fam))&&(!F.role.length||F.role.includes(PETS[i].cls)));
@@ -1980,10 +1995,10 @@ function renderPick(){
   const nf=F.el.length+F.fam.length+F.role.length,rg=TN===5&&TEAM.length===5?rateGrade():null;
   let h=`<div class="top"><button class="pill sm" data-act="m-menu">‹ Меню</button><div class="title">${ttl}</div><span class="modes"></span></div>
   <div class="tbar"><div class="tm">${[...Array(TN).keys()].map(k=>{const i=TEAM[k];return i==null?`<span class="ts empty"></span>`:`<button class="ts" data-view="${i}" style="border-color:${rarC(PETS[i])}"><span class="em">${petIc(PETS[i],1)}</span>${FAM[PETS[i].fam]?`<span class="fmb">${FAM[PETS[i].fam].ic}</span><span class="clb">${CLS[PETS[i].cls].ic}</span>`:''}<span class="tx" data-qt="${i}">✕</span></button>`}).join('')}</div>
-  <div class="tside"><button class="pill sm" data-act="deck" ${TEAM.length?'':'disabled'}>🃏 Колода</button><button class="pill sm" data-act="fxs">💫 Эффекты</button>${rg?`<button class="pill sm" data-act="deck" style="color:${rg.c}">${rg.n}</button>`:`<span class="m" style="font-size:12px">${TEAM.length}/${TN}</span>`}</div></div>
+  <div class="tside"><button class="pill sm" data-act="deck" ${TEAM.length?'':'disabled'}>🃏 Колода</button><button class="pill sm" data-act="fxs">💫 Эффекты</button>${rg?`<button class="pill sm" data-act="deck" style="color:${rg.c}">${rg.n}</button>`:`<span class="m" style="font-size:12px">${TEAM.length}/${TN}</span>`}${TEAM.length?`<span class="m tels" title="${CAP_MSG}" style="font-size:12px;display:inline-flex;align-items:center;gap:2px;${teamEls(TEAM).size>=EL_TEAM_MAX?'color:var(--gold)':''}">Стихии ${ELS.filter(e=>teamEls(TEAM).has(e)).map(e=>EI(e)).join('')} ${teamEls(TEAM).size}/${EL_TEAM_MAX}</span>`:''}</div></div>
   
   <div class="flt fl1"><button class="pill sm ${nf||F.sort!=='def'?'on':''}" data-act="fopen">⚙ Фильтры${nf?' · '+nf:''}</button>${nf?pill('fclr',false,'✕ Сбросить'):''}<span class="m" style="font-size:11px;margin-left:auto">${list.length===pool.length?'Все '+pool.length:list.length+' из '+pool.length}${F.sort!=='def'?' · по '+SORTN[F.sort]:''}</span></div>
-  <div class="pk">${list.length?list.map(i=>{const q=PETS[i],on=TEAM.includes(i),full=TEAM.length>=TN&&!on;return`<div class="pt ${on?'on':''}" data-view="${i}" data-r="${q.rar}" style="--qc:${rarC(q)}">${FAM[q.fam]?`<span class="fmb" title="${FAM[q.fam].n}">${FAM[q.fam].ic}</span><span class="clb" title="${CLS[q.cls].n}">${CLS[q.cls].ic}</span>`:''}<button class="qt ${on?'on':''}" data-qt="${i}" ${full?'disabled':''}>${on?'✓':'+'}</button><span class="pt-av">${qArt(q,metaMode()&&!sandbox()?mp(q.n).q:0,1)}${metaMode()&&!sandbox()?`<span class="lvb" style="background:${qC(mp(q.n).q)}">${mp(q.n).lv}</span>`:''}</span><span class="pnm" style="font-size:${q.n.length>12?10.5:q.n.length>9?11.5:12.5}px">${q.n}</span><span class="pels">${petEls(q).map(e=>EI(e,1)).join('')}</span></div>`}).join(''):'<div class="m">Никого не нашлось, сбрось фильтр.</div>'}</div>
+  <div class="pk">${list.length?list.map(i=>{const q=PETS[i],on=TEAM.includes(i),full=TEAM.length>=TN&&!on,capd=!on&&!full&&!teamElsOk([...TEAM,i]);return`<div class="pt ${on?'on':''}${capd?' capd':''}" data-view="${i}" data-r="${q.rar}" style="--qc:${rarC(q)}">${FAM[q.fam]?`<span class="fmb" title="${FAM[q.fam].n}">${FAM[q.fam].ic}</span><span class="clb" title="${CLS[q.cls].n}">${CLS[q.cls].ic}</span>`:''}<button class="qt ${on?'on':''}" data-qt="${i}" ${full?'disabled':''}>${on?'✓':capd?'🔒':'+'}</button><span class="pt-av">${qArt(q,metaMode()&&!sandbox()?mp(q.n).q:0,1)}${metaMode()&&!sandbox()?`<span class="lvb" style="background:${qC(mp(q.n).q)}">${mp(q.n).lv}</span>`:''}</span><span class="pnm" style="font-size:${q.n.length>12?10.5:q.n.length>9?11.5:12.5}px">${q.n}</span><span class="pels">${(()=>{const te=capd?teamEls(TEAM):null;return petEls(q).map(e=>te&&!te.has(e)?`<span class="elx">${EI(e,1)}</span>`:EI(e,1)).join('')})()}</span></div>`}).join(''):'<div class="m">Никого не нашлось, сбрось фильтр.</div>'}</div>
   <div class="m" style="font-size:11px;text-align:center;margin-top:6px">Тап по пету: что он умеет. «+»: сразу в стаю.</div>
   <div class="acts stk">${CTX?'':`<button class="btn" data-act="opp">${VS==='boss'?'🗿 Босс':'Соперник: '+{auto:'авто',easy:'лёгкий',medium:'средний',hard:'сложный',master:'мастер',smart:'стратег'}[AI]}</button>`}<button class="btn main" data-act="to-place" ${TEAM.length<TN?'disabled':''}>${TEAM.length<TN?'Ещё '+(TN-TEAM.length):'Расставить'}</button></div>`;
   if(ui.pv!=null&&ui.psheet)h+=petSheet(ui.pv);
@@ -2009,10 +2024,10 @@ function renderPlace(){
 function resetPlace(){PLACE=START.slice(0,TN).map(x=>[...x])}
 function phaseClick(e){
   const a=e.target.closest('[data-qt],[data-act],[data-view],[data-pick],[data-pcell]');if(!a)return;
-  const tog=v=>{if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN)TEAM.push(v)};
+  const tog=v=>{if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN){if(teamElsOk([...TEAM,v]))TEAM.push(v);else toast(CAP_MSG)}};
   if(a.dataset.qt!=null){if(!a.disabled)tog(+a.dataset.qt);return render()}
   if(a.dataset.view!=null){ui.pv=+a.dataset.view;ui.psheet=true;return render()}
-  if(a.dataset.pick!=null){const v=+a.dataset.pick;ui.pv=v;if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN)TEAM.push(v);return render()}
+  if(a.dataset.pick!=null){const v=+a.dataset.pick;ui.pv=v;if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN){if(teamElsOk([...TEAM,v]))TEAM.push(v);else toast(CAP_MSG)};return render()}
   if(a.dataset.pcell){const[r,c]=a.dataset.pcell.split(',').map(Number),i=PLACE.findIndex(x=>x[0]===r&&x[1]===c);
     if(ui.ps==null){if(i>=0)ui.ps=i}else{if(i>=0&&i!==ui.ps)PLACE[i]=PLACE[ui.ps];if(i!==ui.ps)PLACE[ui.ps]=[r,c];ui.ps=null}
     return render()}
@@ -2033,7 +2048,7 @@ function phaseClick(e){
   else if(/^f[efrs]-/.test(act)){const k={e:'el',f:'fam',r:'role',s:'sort'}[act[1]],v=act.slice(3),bx=document.querySelector('.fbox'),st=bx?bx.scrollTop:0;
     if(k==='sort')ui.flt.sort=v;else{const l=ui.flt[k];ui.flt[k]=l.includes(v)?l.filter(x=>x!==v):[...l,v]}
     render();const nb=document.querySelector('.fbox');if(nb)nb.scrollTop=st}
-  else if(act==='pick-toggle'){const v=ui.pv??TEAM[0];if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN)TEAM.push(v);render()}
+  else if(act==='pick-toggle'){const v=ui.pv??TEAM[0];if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN){if(teamElsOk([...TEAM,v]))TEAM.push(v);else toast(CAP_MSG)};render()}
   else if(act==='to-place'&&TEAM.length===TN){G.phase='place';if(!PLACE)resetPlace();ui.ps=null;render()}
   else if(act==='to-pick'){G.phase='pick';render()}
   else if(act==='place-smart'){const sp=smartPlace(TEAM.map(i=>PETS[i]),TEAM.length);PLACE=sp.concat(START.filter(x=>!sp.some(y=>y[0]===x[0]&&y[1]===x[1]))).slice(0,TN);ui.ps=null;render()}
@@ -3617,7 +3632,7 @@ function makeEnc(R,r,kind){
   let defs;
   if(P.fact){const F=FACT[P.fact];defs=[];if(elite||r>=5)defs.push({...F.boss});while(defs.length<size)defs.push({...F.units[Math.floor(Math.random()*F.units.length)]});
     defs=defs.map(d=>({...d,hp:Math.round(d.hp*metaMul(lv,q)),pw:(d.pw||0)+lvPw(lv),lv,q}))}
-  else defs=shuffle(P.l.slice()).slice(0,size).map(n=>metaDef(PETS.findIndex(p=>p.n===n),lv,q,[0,1,2].map(()=>Math.random()<.5?1:0)));
+  else defs=capPick(shuffle(P.l.slice()),size,n=>PETS.find(p=>p.n===n)).map(n=>metaDef(PETS.findIndex(p=>p.n===n),lv,q,[0,1,2].map(()=>Math.random()<.5?1:0)));
   defs=defs.map(d=>({...d,hp:Math.round(d.hp*hpAsc(R)),sp:(d.sp||0)+(R.asc>=5?1:0)}));
   let mod=null;if(elite){const ks=Object.keys(ELM);mod=ks[Math.floor(Math.random()*ks.length)];const M=ELM[mod];if(M.f)defs=defs.map((d,i)=>M.f(d,i));if(R.asc>=3)defs=defs.map(d=>({...d,pw:(d.pw||0)+1}))}
   return{defs,pack:pk,mod,fact:P.fact||null,lv,q}}
@@ -3862,7 +3877,7 @@ function runClick(act){
   if(G.phase!=='run')return false;
   if(act==='rs-daily'&&!R){newRun(dailyTeam(),0,true);render();return true}
   if(act.startsWith('rs-')&&!R){if(act==='rs-go'){if(RS.team.length===3){newRun(RS.team.slice(),RS.asc);render()}return true}
-    const i=+act.slice(3);if(RS.team.includes(i))RS.team=RS.team.filter(x=>x!==i);else if(RS.team.length<3)RS.team.push(i);render();return true}
+    const i=+act.slice(3);if(RS.team.includes(i))RS.team=RS.team.filter(x=>x!==i);else if(RS.team.length<3){if(teamElsOk([...RS.team,i]))RS.team.push(i);else toast(CAP_MSG)}render();return true}
   if(act.startsWith('ra-')){RS.asc=+act.slice(3);render();return true}
   if(!R)return false;
   if(act==='rtal'){ui.rtal=true;render();return true}
@@ -4031,9 +4046,9 @@ function smartFill(S,O,first,keepN,thr){
     if(!best||best.sc<thr)break;push(best.card,best.opt,best.paid)}
   // ▼: burn the rest, but keep the keepN most valuable cards we will be able to pay for next turn
   const free=S.hand.filter(c=>!S.plan.some(e=>e.card===c));
-  const nx={...avail(S)};for(const c of free){const b=burnVal(S,c);if(b.el!=='r')nx[b.el]+=b.n}
+  const nx={...avail(S)};for(const c of free){addGain(nx,burnVal(S,c))}
   const keep=[];if(keepN){const cand=free.filter(c=>c.t!=='step').map(c=>({c,v:cardValue(S,O,c)+(T[c.t].grow&&(c.ch||0)<4?1.5:0)})).sort((a,b)=>b.v-a.v);
-    for(const {c} of cand){if(keep.length>=keepN)break;const b=burnVal(S,c),n2={...nx};if(b.el!=='r')n2[b.el]-=b.n;for(const o of keep){const bo=burnVal(S,o);if(bo.el!=='r')n2[bo.el]-=bo.n}
+    for(const {c} of cand){if(keep.length>=keepN)break;const n2={...nx};addGain(n2,burnVal(S,c),null,-1);for(const o of keep)addGain(n2,burnVal(S,o),null,-1)
       if(pay(n2,costOf(S,c)))keep.push(c)}}
   for(const c of free)if(!keep.includes(c))S.plan.push({kind:'burn',card:c,...burnVal(S,c)});
 }
@@ -4248,7 +4263,7 @@ const LEAGUES=[
   {n:'Легенда',ic:'👑',at:1300,lv:23,q:4,ai:'smart',st:200}];
 const rk=()=>{META.rank=META.rank||{pts:0,best:0,top:0,streak:0,w:0,l:0,h:[]};return META.rank};
 const lgOf=pts=>{let i=0;for(let k=0;k<LEAGUES.length;k++)if(pts>=LEAGUES[k].at)i=k;return i};
-function rankEnemy(){const L=LEAGUES[lgOf(rk().pts)],ids=shuffle([...PETS.keys()]).slice(0,5);
+function rankEnemy(){const L=LEAGUES[lgOf(rk().pts)],ids=capPick(shuffle([...PETS.keys()]),5);
   return ids.map(i=>{const lv=Math.max(1,Math.min(25,L.lv+Math.floor(Math.random()*3)-1));return metaDef(i,lv,L.q,[0,1,2].map(s=>lv>=5+5*s&&Math.random()<.5?1:0))})}
 function rankStart(){CTX={kind:'rank'};const L=LEAGUES[lgOf(rk().pts)];NEXT={enemy:rankEnemy(),ai:L.ai};G={phase:'pick'};resetPlace();
   TEAM=TEAM.filter(i=>mp(PETS[i].n).un||sandbox());ui.pv=null;ui.psheet=false;render()}
@@ -5026,7 +5041,7 @@ const isDnSel=()=>!!ui.sel&&ui.selDn===ui.sel;
 const selT=card=>card&&isDnSel()&&card.uid===ui.sel?dnT(card.t):card?T[card.t]:null;
 function planPush(S,card,o,dn){if(dn)S.plan.push({kind:'burn',card,...burnVal(S,card),...o});else S.plan.push({kind:'card',card,paid:payCard(S,card),...o})}
 // discard elements: hollow icons on a dark band, never mixed with the solid cost icons
-function gainHtml(S,card){const b=burnVal(S,card);let h='';for(let i=0;i<b.n;i++)h+=`<i class="ei gn ei-${b.el}" title="${ELN[b.el]||''}"></i>`;return h}
+function gainHtml(S,card){const b=burnVal(S,card),g=b.g||{[b.el]:b.n};let h='';for(const k in g)for(let i=0;i<g[k];i++)h+=`<i class="ei gn ei-${k}" title="${ELN[k]||''}"></i>`;return h}
 function dnCostHtml(d){return d&&d.cost?costHtml(d):''}
 
 /* mini card: ▲ part on top, ▼ part below the line, discard band at the bottom */
@@ -5332,6 +5347,29 @@ function hopDests(S,e){const c=pet(S,e.card.pet);if(!c||!c.alive||c.sz||noMove(c
 {const b0=botSteps;botSteps=function(S,O){b0(S,O);if(!HV()||!S.plan)return;
   for(const e of S.plan){if('sdir2' in e||!agileHop(e))continue;e.sdir2=null;const p=pet(S,e.card.pet),ds=hopDests(S,e);if(!ds.length)continue;const[pr,pc]=hopFrom(S,e);
     let best=null,bs=0;for(const d of ds){const v=(dangerAt(S,O,pr,pc)-dangerAt(S,O,pr+d[0],pc+d[1]))*(p.hp<p.max*.5?1.6:1)-.2+(Math.random()-.5)*(aiNoise(S.ai)||.25)*.3;if(v>bs){bs=v;best=d}}e.sdir2=best}}}
+/* ---------- 0.40 Anton (2026-10-14): mixed elements on cards.
+   ▲ may cost up to three different elements (cost map); ▼ may have its own cost (card field dcost = {element:count}),
+   otherwise it stays 1 of the card's element; the discard may give several elements (card field gain, see burnVal).
+   A card and a creature use at most 3 different elements (checked on load, see elCheck).
+   A team uses at most 4 different elements: picking is blocked past 4, random enemies are built within 4. ---------- */
+const EL_CARD_MAX=3,EL_TEAM_MAX=4;
+{const d1=dnKey;dnKey=function(k){const had=k in DNK,dk=d1(k);if(dk&&!had&&T[k]&&T[k].dcost&&!T[dk].only)T[dk].cost={...T[k].dcost};return dk}}
+// every element a card touches: ▲ cost, ▼ cost, discard gain (and its own element)
+function cardElSet(k){const t=T[k],s=new Set();if(!t)return s;if(t.el&&ELS.includes(t.el))s.add(t.el);
+  for(const e in t.cost||{})if(ELS.includes(e)&&t.cost[e])s.add(e);const d=dnT(k);if(d)for(const e in d.cost||{})if(ELS.includes(e)&&d.cost[e])s.add(e);
+  for(const e in t.gain||{})if(ELS.includes(e)&&t.gain[e])s.add(e);if(t.dg&&ELS.includes(t.dg))s.add(t.dg);return s}
+cardEls=cards=>ELS.filter(e=>cards.some(k=>cardElSet(k).has(e)));
+for(const p of PETS)p.els=cardEls(p.cards||[]);
+// data check: cards or creatures over 3 elements are listed in the console (the balance thread fixes the data)
+const elCheck=()=>{const bad=[];for(const p of PETS){if(p.els.length>EL_CARD_MAX)bad.push(p.n+': '+p.els.length);for(const k of p.cards||[])if(cardElSet(k).size>EL_CARD_MAX)bad.push(p.n+' / '+T[k].n)}return bad};
+{const b=elCheck();if(b.length)console.warn('Больше трёх стихий:',b.join('; '))}
+// team cap
+const teamEls=ids=>{const s=new Set();for(const i of ids){const p=typeof i==='object'?i:PETS[i];for(const e of (p&&p.els)||[])s.add(e)}return s};
+const teamElsOk=ids=>teamEls(ids).size<=EL_TEAM_MAX;
+// picks up to n from list keeping the team within 4 elements; strict: never go over (a saved team may come back shorter)
+function capPick(list,n,of=x=>x,strict){const out=[];for(const x of list){if(out.length>=n)break;if(teamElsOk(out.concat([x]).map(of)))out.push(x)}
+  if(!strict)for(const x of list){if(out.length>=n)break;if(!out.includes(x))out.push(x)}return out}
+const CAP_MSG='В команде не больше '+EL_TEAM_MAX+' разных стихий.';
 /* ---------- 0.36.1 Anton: a button to put the game in full screen and back (⛶ in the menu and battle top bars) ---------- */
 const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
 /* 0.37.1: iPhone Safari has no page fullscreen; the way there is «На экран Домой» (the GitHub copy opens as an app) */

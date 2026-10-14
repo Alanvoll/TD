@@ -722,7 +722,16 @@ body.dragging .hsheet,body.dragging .hs-back{opacity:0;pointer-events:none}
 /* 0.40 Anton 2026-10-14: стихии на карте могут быть разными, поэтому у карт способностей нет цвета стихии: один нейтральный вид, стихии видны только по значкам */
 [style*="--pc"]{--pc:#B4C1D4!important}
 .card.hv{border-color:#ffffff30!important}
-.zc .zcost .rr{border-radius:50%;box-shadow:0 0 0 1px #ffffff66}
 .zc.hv .z1,.zc.hv .zb{justify-content:flex-start!important}
-.hand.mini.lfan .zc .zcost .rr+.rr{margin-left:-5px!important}
 .hand .card.hv.plu,.hand .card.hv.pld{border-color:#ffffffA0!important}
+.pt.capd>*:not(.pels):not(.qt){opacity:.42}.pt.capd .pels>.ei{opacity:.42}.pt.capd .qt{background:#3A2A30}
+.pt .elx{display:inline-flex;border-radius:50%;box-shadow:0 0 0 2px #E25555;background:#E2555533}
+.tels{font-size:13px!important;white-space:nowrap}.tels .ei{width:16px;height:16px}
+/* веер: цена столбиком по левому краю (под значком существа для ▲, над ▼ для ▼), чтобы её было видно из-под соседней карты при любом числе стихий */
+.hand.mini.lfan .zc.hv .zcost{position:absolute;left:2px;flex-direction:column;gap:1px;z-index:2}
+.hand.mini.lfan .zc.hv .zcost .rr{filter:drop-shadow(0 1px 1.5px #000) drop-shadow(0 0 1px #000)}
+.hand.mini.lfan .zc.hv>.z2,.hand.mini.lfan .zc.hv>.zu,.hand.mini.lfan .zc.hv>.zv,.hand.mini.lfan .zc.hv>.zd{padding-left:calc(var(--zcw,15px) + 4px)!important}
+.hand.mini.lfan .zc.hv .z1 .zcost{top:27px}
+.hand.mini.lfan .zc.hv .zb .zcost{bottom:calc(var(--zrow7,18px) + 6px)}
+.hand.mini.lfan .zc.hv .zcost:empty{display:none}
+body[data-bfit][data-hcl=m] .hand.mini.lfan .zc.hv .zcost .rr{width:11px!important;height:11px!important}body[data-bfit][data-hcl=m] .hand.mini.lfan .zc.hv .z1 .zcost{top:15px}body[data-bfit][data-hcl=m] .hand.mini.lfan .zc.hv .zb .zcost{bottom:18px}body[data-bfit][data-hcl=m] .hand.mini.lfan .zc.hv{--zcw:11px}

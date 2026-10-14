@@ -189,7 +189,7 @@ function makeEnc(R,r,kind){
   let defs;
   if(P.fact){const F=FACT[P.fact];defs=[];if(elite||r>=5)defs.push({...F.boss});while(defs.length<size)defs.push({...F.units[Math.floor(Math.random()*F.units.length)]});
     defs=defs.map(d=>({...d,hp:Math.round(d.hp*metaMul(lv,q)),pw:(d.pw||0)+lvPw(lv),lv,q}))}
-  else defs=shuffle(P.l.slice()).slice(0,size).map(n=>metaDef(PETS.findIndex(p=>p.n===n),lv,q,[0,1,2].map(()=>Math.random()<.5?1:0)));
+  else defs=capPick(shuffle(P.l.slice()),size,n=>PETS.find(p=>p.n===n)).map(n=>metaDef(PETS.findIndex(p=>p.n===n),lv,q,[0,1,2].map(()=>Math.random()<.5?1:0)));
   defs=defs.map(d=>({...d,hp:Math.round(d.hp*hpAsc(R)),sp:(d.sp||0)+(R.asc>=5?1:0)}));
   let mod=null;if(elite){const ks=Object.keys(ELM);mod=ks[Math.floor(Math.random()*ks.length)];const M=ELM[mod];if(M.f)defs=defs.map((d,i)=>M.f(d,i));if(R.asc>=3)defs=defs.map(d=>({...d,pw:(d.pw||0)+1}))}
   return{defs,pack:pk,mod,fact:P.fact||null,lv,q}}
@@ -434,7 +434,7 @@ function runClick(act){
   if(G.phase!=='run')return false;
   if(act==='rs-daily'&&!R){newRun(dailyTeam(),0,true);render();return true}
   if(act.startsWith('rs-')&&!R){if(act==='rs-go'){if(RS.team.length===3){newRun(RS.team.slice(),RS.asc);render()}return true}
-    const i=+act.slice(3);if(RS.team.includes(i))RS.team=RS.team.filter(x=>x!==i);else if(RS.team.length<3)RS.team.push(i);render();return true}
+    const i=+act.slice(3);if(RS.team.includes(i))RS.team=RS.team.filter(x=>x!==i);else if(RS.team.length<3){if(teamElsOk([...RS.team,i]))RS.team.push(i);else toast(CAP_MSG)}render();return true}
   if(act.startsWith('ra-')){RS.asc=+act.slice(3);render();return true}
   if(!R)return false;
   if(act==='rtal'){ui.rtal=true;render();return true}

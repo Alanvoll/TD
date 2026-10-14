@@ -123,7 +123,7 @@ function botPlan(S,O){
     const after=avail(S);keep=[];
     const cand=free.map(c=>({c,v:cardValue(S,O,c)+(T[c.t].grow&&(c.ch||0)<4?1.5:0)})).sort((a,b)=>b.v-a.v);
     for(const {c,v} of cand){if(keep.length>=HK.max||v<HK.thr)break;
-      const nx={...after};for(const o of free)if(o!==c&&!keep.includes(o)){const b=burnVal(S,o);nx[b.el==='r'?leastOf(nx,needEls(S)):b.el]+=b.n}
+      const nx={...after};for(const o of free)if(o!==c&&!keep.includes(o)){addGain(nx,burnVal(S,o),q=>leastOf(q,needEls(S)))}
       const els=needEls(S);if(els.length)nx[els[0]]+=1;
       if(pay(nx,costOf(S,c)))keep.push(c)}
   }else keep=free.slice(0,1);
