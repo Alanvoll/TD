@@ -1,0 +1,3 @@
+import {load} from './harness.mjs';
+const c=load(process.env.F||'g4.html',`globalThis.X=(ns)=>ns.map(n=>{const p=PETS.find(q=>q.n===n);if(!p)return n+' ?';return n+' ['+p.fam+'/'+p.cls+' hp'+p.hp+' mv '+JSON.stringify(p.mv)+' au '+p.au+']\\n'+p.cards.concat(p.alt||[]).map(k=>{const t=T[k];return '  '+k+' «'+t.n+'» ⏱'+t.spd+(t.dspd?'/▼'+t.dspd:'')+' '+JSON.stringify(t.cost)+' '+JSON.stringify(Object.fromEntries(Object.entries(t).filter(([a])=>!['n','spd','cost','base','scaled','dg','sub','txt'].includes(a))))+(t.txt?' TXT '+t.txt:'')+' ▼'+(t.sub&&t.sub.short)}).join('\\n')}).join('\\n')`);
+console.log(c.X(process.argv.slice(2)));
