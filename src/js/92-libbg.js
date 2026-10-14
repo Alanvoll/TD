@@ -66,24 +66,21 @@ function libBg(i){const p=PETS[i],els=petEls(p),c1=ELC[els[0]]||'#7a8cff',c2=ELC
   const bg=`linear-gradient(${sky[0]} 0%,color-mix(in srgb,${sky[1]} 42%,${sky[0]}) 45%,color-mix(in srgb,${sky[2]} 70%,${c2}) ${f(hz-6)}%,${D} ${f(hz+8)}%)`;
   return`<span class="lbg" style="background:radial-gradient(60% 40% at 50% ${f(hz-28)}%,color-mix(in srgb,${c1} 28%,transparent),transparent 72%),${bg}"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${back}${front}</svg></span>`}
 
-/* Anton 20:25: card borders look a little hand-drawn: two wobbly ink strokes in the quality colour, a bit different on every card */
-function libInk(i){const p=PETS[i];let sd=(libBgHash(p.n+'#ink')||3);const R=()=>(sd=Math.imul(sd^(sd>>>15),2246822507)>>>0,(sd%100000)/100000),f=n=>n.toFixed(2);
-  const path=(m,j)=>{const W=100,H=137,r=9,pts=[];const J=()=>(R()-.5)*j;
-    const seg=(x1,y1,x2,y2,n)=>{for(let k=0;k<n;k++){const t=k/n;pts.push([x1+(x2-x1)*t+J(),y1+(y2-y1)*t+J()])}};
-    seg(m+r,m,W-m-r,m,4);pts.push([W-m-r*.3+J(),m+r*.3+J()]);seg(W-m,m+r,W-m,H-m-r,5);pts.push([W-m-r*.3+J(),H-m-r*.3+J()]);
-    seg(W-m-r,H-m,m+r,H-m,4);pts.push([m+r*.3+J(),H-m-r*.3+J()]);seg(m,H-m-r,m,m+r,5);pts.push([m+r*.3+J(),m+r*.3+J()]);
-    let d=`M${f(pts[0][0])} ${f(pts[0][1])}`;for(let k=1;k<=pts.length;k++){const a=pts[k-1],b=pts[k%pts.length];d+=` Q${f(a[0])} ${f(a[1])} ${f((a[0]+b[0])/2)} ${f((a[1]+b[1])/2)}`}
-    const o=R()*1.5;return d+` L${f(pts[0][0]+o)} ${f(pts[0][1]-o*.4)}`};
-  const main=path(2.6,1.4),wear=()=>{let d=[];for(let k=0;k<14;k++)d.push(f(R()*1.6+.4),f(R()*30+14));return d.join(' ')},gaps=()=>{let d=[];for(let k=0;k<14;k++)d.push(f(R()*26+10),f(R()*2+.6));return d.join(' ')},
-    scr=()=>{let o='';for(let k=0;k<5;k++){const side=Math.floor(R()*4),t=R()*.8+.1,x=side===0||side===2?6+t*88:side===1?97.4:2.6,y=side===1||side===3?8+t*121:side===2?134.4:2.6,l=R()*3+1.5,v=side===1||side===3;
-      o+=`<path d="M${f(x-(v?.6:l/2))} ${f(y-(v?l/2:.6))} L${f(x+(v?.6:l/2))} ${f(y+(v?l/2:.6))}" stroke="#fff6dc" stroke-width=".8" opacity="${f(R()*.35+.25)}"/>`}return o};
-  return`<svg class="lcd-ink" viewBox="0 0 100 137" preserveAspectRatio="none" aria-hidden="true"><path d="${path(2.6,1.6)}" stroke="#0a0d18" stroke-width="6.5" opacity=".75"/><path d="${main}" stroke="var(--qc)" stroke-width="3.8"/><path d="${main}" stroke="#1a1e2c" stroke-width="2.6" stroke-dasharray="${wear()}" opacity=".8"/><path d="${main}" stroke="#000" stroke-width="1" stroke-dasharray="${wear()}" opacity=".3"/><path d="${path(4.6,2.2)}" stroke="var(--qc)" stroke-width="1" opacity=".5" stroke-dasharray="${gaps()}"/>${scr()}</svg>`}
+/* Anton 21:04: card frames are plain rounded rectangles again; the wear is only a soft light-and-shade on the band
+   (lit from the top-left, a few faint rubbed spots that differ per card), no drawn scratches */
+function libInk(i){const h=libBgHash(PETS[i].n+'#fr');
+  return`<span class="lcd-ink" style="--wa:${12+h%76}%;--wb:${14+(h>>>7)%72}%;--wc:${10+(h>>>14)%80}%"></span><span class="lcd-ink2"></span>`}
 
 if(typeof document!=='undefined'&&document.body){const st=document.createElement('style');st.textContent=`
 .lbg{position:absolute;inset:0;display:block}.lbg svg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .lib .lcd{border-color:transparent!important;border-width:0!important}
 .lib .lcd-ft{padding:14px 8px 8px}.lib .lcd-lv{right:8px;top:7px}.lib .lcd-lk{right:8px;top:6px}.lib .lcd-q{left:9px;top:9px}
-.lcd-ink{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;fill:none;overflow:visible}.lcd-ink path{vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}
+.lcd-ink{position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:13px;padding:4px;
+  background:radial-gradient(14px 4px at var(--wa) 2px,#ffffff38,transparent),radial-gradient(4px 14px at calc(100% - 2px) var(--wb),#00000040,transparent),radial-gradient(14px 4px at var(--wc) calc(100% - 2px),#00000045,transparent),
+    linear-gradient(150deg,color-mix(in srgb,var(--qc) 62%,#fff) 0%,var(--qc) 28%,var(--qc) 62%,color-mix(in srgb,var(--qc) 62%,#000) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.lcd-ink2{position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:13px;border:1.5px solid #070a12;box-shadow:inset 0 0 0 2.5px transparent}
+.lcd-ink2:after{content:"";position:absolute;inset:2.5px;border-radius:10px;border:1px solid #070a12cc;box-shadow:0 1px 0 #ffffff1a inset}
 .lib .lcd.rdy{box-shadow:0 3px 10px #0008!important}
 .lcd.lock .lbg{filter:saturate(.25) brightness(.55)}
 `;document.body.appendChild(st)}
