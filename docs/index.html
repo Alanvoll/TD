@@ -741,7 +741,7 @@ body.dragging .hsheet,body.dragging .hs-back{opacity:0;pointer-events:none}
 <div id="app"></div>
 
 <script>
-const VER='0.39.8',BUILD=146;
+const VER='0.39.9',BUILD=147;
 /* ART-BEGIN: creatures drawn in code (SVG + CSS idle animation), one file per family */
 const ARTS={};function ART_ADD(o){Object.assign(ARTS,o)}
 ART_ADD({
@@ -6208,19 +6208,37 @@ if(typeof cardMini==='function'){const cm0=cardMini;cardMini=function(k,p,lock,o
   try{G={phase:'battle',P:LSL.S,E:LSL.E,turn:1};h=cardHtml({uid:'L'+k,t:k,pet:LSL.S.pets[0].id},true)}catch(e){h=''}finally{G=G0}
   if(!h)return cm0(k,p,lock,on,act);
   h=h.replace(/ data-card="[^"]*"/,'').replace(/ (disu|disd)\b/g,'').replace(/<span class="why">.*?<\/span>/,'').replace('<button','<div').replace(/<\/button>\s*$/,'</div>');
-  return`<button class="lslc ${on?'on':''} ${lock?'lk':''}" ${act&&!lock?`data-act="${act}"`:''}><div class="hand mini lsl-h">${h}</div><span class="lsl-n">${T[k].n}</span>${lock?`<span class="lc-lock">🔒 ${lock}</span>`:on?'<span class="lc-on">✓ в колоде</span>':''}</button>`}}
+  const lk=lock?lock.replace(/^откроется на качестве\s*/,''):'';
+  return`<button class="lslc ${on?'on':''} ${lock?'lk':''}" ${act&&!lock?`data-act="${act}"`:''}><div class="lsl-w"><div class="hand mini lsl-h">${h}</div></div><span class="lsl-n">${T[k].n}</span>${lock?`<span class="lc-lock">🔒 ${lk}</span>`:on?'<span class="lc-on">✓ в колоде</span>':'<span class="lc-on lc-off">&nbsp;</span>'}</button>`}}
 
 if(typeof document!=='undefined'&&document.body){const st=document.createElement('style');st.textContent=`
-.lslc{display:flex;flex-direction:column;align-items:stretch;gap:3px;min-width:0;padding:5px;border-radius:12px;background:var(--panel2);border:2px solid transparent;text-align:center;color:var(--fg)}
+.lslc{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;min-width:0;padding:4px 3px 5px;border-radius:12px;background:var(--panel2);border:2px solid transparent;text-align:center;color:var(--fg)}
 .lslc.on{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 9%,var(--panel2))}.lslc.lk{opacity:.6}
+.lsl-w{zoom:var(--cz,.8)}
 .lsl-h{display:block!important;overflow:visible!important;margin:0!important;padding:0!important;pointer-events:none}
-.lsl-h>.card.mini.zc.hv{width:100%!important;height:150px!important;grid-template-rows:18px 24px 17px 19px 17px 24px 18px!important;gap:1.5px!important;padding:3px 4px!important;transform:none!important}
-.lsl-h .zc.hv .zu,.lsl-h .zc.hv .zv{font-size:12.5px}.lsl-h .zc.hv .zm{font-size:19px}.lsl-h .zc.hv .zt{font-size:14px}
-.lsl-h .zc .zpet .cri{width:22px;height:22px}.lsl-h .zc .zcost .rr{width:15px;height:15px}.lsl-h .zc.hv .zz svg.zg{width:22px;height:auto}
-.lsl-h .zc.hv .zdn{font-size:14px}.lsl-h .zc.hv .ei.gn{width:13px;height:13px}
-.lsl-n{font-size:12.5px;font-weight:700;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lslc .lc-lock,.lslc .lc-on{font-size:11px;line-height:1.2}
-@media (max-height:760px){.lsl-h>.card.mini.zc.hv{height:118px!important;grid-template-rows:14px 19px 13px 15px 13px 19px 14px!important;gap:1px!important}.lsl-h .zc.hv .zm{font-size:16px}.lsl-h .zc.hv .zu,.lsl-h .zc.hv .zv{font-size:11.5px}.lsl-h .zc .zpet .cri{width:18px;height:18px}.lslc{padding:4px;gap:2px}}
+.lsl-h>.card.mini.zc.hv{width:120px!important;min-width:120px!important;height:182px!important;grid-template-rows:22px 29px 20px 23px 20px 29px 22px!important;gap:2px!important;padding:3px 5px!important;transform:none!important;
+  border:1.5px solid color-mix(in srgb,var(--pc) 72%,#0B1018)!important;border-radius:11px!important;box-shadow:0 3px 8px #000a!important;opacity:1!important;filter:none!important}
+.lsl-h .zc.hv>*{opacity:1!important;filter:none!important}
+.lsl-h .zc.hv .zu,.lsl-h .zc.hv .zv{font-size:15px}.lsl-h .zc.hv .zm{font-size:23px}.lsl-h .zc.hv .zt{font-size:17px}
+.lsl-h .zc .zpet .cri{width:27px;height:27px}.lsl-h .zc .zcost .rr{width:18px;height:18px}.lsl-h .zc.hv .zz svg.zg{width:27px;height:auto}
+.lsl-h .zc.hv .zdn{font-size:17px}.lsl-h .zc.hv .ei.gn{width:16px;height:16px}
+.lsl-n{width:100%;font-size:11.5px;font-weight:700;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lslc .lc-lock,.lslc .lc-on{margin-top:auto;font-size:10.5px;line-height:1.15}.lslc .lc-off{color:var(--mut)}
+/* Anton 21:38: one screen, no tabs: hero, the cards of the three cells side by side, quality and growth, traits */
+.lsheet.psheet{gap:6px;padding-top:12px;padding-bottom:12px}
+.lsheet .lbig{width:76px;height:76px}.lsheet .lhero h2{font-size:22px;line-height:1.1}
+.ls-pn{gap:6px}
+.ls-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto auto auto;grid-auto-flow:column;gap:4px 5px}
+.ls-pn .slot,.ls-pn .slr{display:contents}
+.ls-pn .slot>.m{font-size:11px!important;text-align:center;line-height:1.1}
+.ls-gr{display:flex;flex-direction:column;gap:5px}
+.ls-gr .qrow{gap:5px}.ls-gr .qlook{width:38px;height:38px;border-radius:9px;font-size:22px}
+.ls-gr .qup{margin:0;padding:6px 8px;gap:8px;font-size:13px}.ls-gr .qup .m{font-size:11px!important;line-height:1.25}.ls-gr .qup .btn{padding:7px 10px;font-size:13.5px;min-height:0}
+.ls-tr{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.ls-tr .fxr{margin:0;padding:5px 6px;gap:5px;font-size:12px;line-height:1.25}.ls-tr .fxr .m{font-size:11px}.ls-tr .fxr .fxi{font-size:15px;width:18px}
+.ls-note{font-size:10.5px!important;line-height:1.25}
+@media (max-height:720px){.lsheet .lbig{width:58px;height:58px}.lsheet .lhero h2{font-size:18px}.lsheet .lhero .m{font-size:12px!important}.lsheet .stt{font-size:12px}.lsheet .lhero>div:last-child{gap:1px}}
+.lsheet>.acts .btn{padding-top:9px;padding-bottom:9px}
 
 .lbg{position:absolute;inset:0;display:block}.lbg svg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .lib .lcd{border-color:transparent!important;border-width:0!important}
@@ -6236,6 +6254,26 @@ if(typeof document!=='undefined'&&document.body){const st=document.createElement
 `;document.body.appendChild(st)}
 // both pictures depend only on the creature: draw each once
 {const bg0=libBg,ink0=libInk,cb=new Map(),ci=new Map();libBg=i=>{let v=cb.get(i);if(v==null){v=bg0(i);cb.set(i,v)}return v};libInk=i=>{let v=ci.get(i);if(v==null){v=ink0(i);ci.set(i,v)}return v}}
+
+/* Anton 21:38: «зачем там вкладка прокачка? почему особенности отдельно?» — the creature window has no tabs:
+   everything sits on one screen; when it is too tall the cards shrink first, then the whole window */
+if(typeof lsTabs==='function'){lsTabs=function(bx){const kids=[...bx.children],q=sel=>kids.filter(k=>k.matches(sel));
+  const hero=q('.lhero')[0],xp=q('.xpb')[0],stt=q('.stt')[0],qrow=q('.qrow')[0],ups=q('.qup'),fx=q('.fxr'),slots=q('.slot'),acts=q('.acts')[0];
+  if(!hero||!slots.length)return;
+  const lock=!xp?kids.find(k=>k.matches('.m')&&/осколков/.test(k.textContent)):null;
+  const note=kids.filter(k=>k.matches('.m')).pop();
+  const info=hero.lastElementChild;if(info){if(stt)info.appendChild(stt);if(xp)info.appendChild(xp);if(lock)info.appendChild(lock)}
+  const cards=document.createElement('div');cards.className='ls-cards';cards.append(...slots);
+  const gr=document.createElement('div');gr.className='ls-gr';if(qrow)gr.appendChild(qrow);gr.append(...ups);
+  const tr=document.createElement('div');tr.className='ls-tr';tr.append(...fx);
+  const pn=document.createElement('div');pn.className='ls-pn';pn.append(cards,gr,tr);
+  if(note&&note!==lock){note.classList.add('ls-note');note.removeAttribute('style');pn.appendChild(note)}
+  bx.replaceChildren(hero,pn);if(acts)bx.appendChild(acts)}}
+if(typeof lsFit==='function'){lsFit=function(){const bx=document.querySelector('.lsheet'),pn=bx&&bx.querySelector('.ls-pn');if(!pn)return;
+  pn.style.zoom='';const c=bx.querySelector('.lslc'),av=innerHeight-24;
+  let cz=Math.min(1,c?(c.clientWidth-8)/122:.8);bx.style.setProperty('--cz',cz.toFixed(3));
+  while(bx.scrollHeight>av&&cz>.62){cz-=.02;bx.style.setProperty('--cz',cz.toFixed(3))}
+  for(let z=1;bx.scrollHeight>av&&z>.6;){z-=.02;pn.style.zoom=z.toFixed(2)}}}
 // perspective field: the tilted board keeps its flat layout height, so pull it up by the difference to reclaim the freed space
 function fitBoard(){for(const b of document.querySelectorAll('.board')){b.style.marginTop='';const lh=b.offsetHeight,vh=b.getBoundingClientRect().height;b.style.marginTop=(-(lh-vh)+4)+'px'}}
 if(typeof MutationObserver!=='undefined')new MutationObserver(()=>{for(const b of document.querySelectorAll('.board'))if(!b.dataset.fit){b.dataset.fit=1;fitBoard();break}}).observe(document.body,{childList:true,subtree:true});
