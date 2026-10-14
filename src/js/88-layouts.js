@@ -155,10 +155,13 @@ function layFit(on){const B=document.body;
   const bd=app.querySelector('.board'),refit=()=>{if(bd&&typeof fitBoard==='function')fitBoard()};
   // shrink the board (down to minW % of the width) until the screen fits; true when it does
   const squeeze=minW=>{let o=layOver();if(o<=0)return true;if(!bd)return false;const h=bd.getBoundingClientRect().height;if(!(h>0))return false;
-    const w=Math.floor(100*(h-o-2)/h);B.style.setProperty('--bw',Math.max(minW,w)+'%');refit();return w>=minW&&layOver()<=0};
+    // the tilted board's height shrinks a bit slower than its width, so step down until it fits
+    let w=Math.floor(100*(h-o-2)/h);for(let k=0;k<6;k++){if(w<minW)return false;B.style.setProperty('--bw',w+'%');refit();o=layOver();if(o<=0)return true;w-=Math.max(2,Math.ceil(100*o/h))}return false};
   // larger cards first: 150 px, then 126 px, then the usual size; the board gives way down to 78 % before the cards shrink
-  for(const t of ['l','m',''])
-    {if(t)B.dataset.hcl=t;else delete B.dataset.hcl;B.style.removeProperty('--bw');refit();if(squeeze(78))return}
+  // 0.38.6 Anton: the fan overlaps cards, so they can be bigger still: an extra 182 px size, and the board may give way a little more
+  const fan=LAY==='fan'&&layOn(),minW=fan?70:78;
+  for(const t of fan?['xl','l','m','']:['l','m',''])
+    {if(t)B.dataset.hcl=t;else delete B.dataset.hcl;B.style.removeProperty('--bw');refit();if(squeeze(minW))return}
   B.dataset.tight=1;B.style.removeProperty('--bw');refit();squeeze(55)}
 if(typeof addEventListener==='function')addEventListener('resize',()=>{if(typeof G!=='undefined'&&G&&G.phase==='battle')requestAnimationFrame(()=>layFit(true))});
 
@@ -242,7 +245,7 @@ body[data-lay=big] .zc.hv .zz svg.zg{width:26px}
 body[data-lay=big] .zc.hv .ei.gn{width:15px;height:15px}
 /* веер */
 body[data-lay=fan] .hand.mini.lfan{display:flex!important;justify-content:center;overflow:visible!important;padding:30px 0 6px;margin-top:-18px}
-body[data-lay=fan]{--fw:72px}body[data-lay=fan][data-hcl=m]{--fw:80px}body[data-lay=fan][data-hcl=l]{--fw:92px}
+body[data-lay=fan]{--fw:84px}body[data-lay=fan][data-hcl=m]{--fw:94px}body[data-lay=fan][data-hcl=l]{--fw:106px}body[data-lay=fan][data-hcl=xl]{--fw:120px}
 body[data-lay=fan] .hand.mini.lfan>.card{flex:0 0 var(--fw)!important;width:var(--fw);min-width:var(--fw)!important;margin-left:min(4px,var(--ov));transform:translateY(var(--y)) rotate(var(--r));transform-origin:50% 50%;transition:transform .15s;box-shadow:-4px 0 10px #0009!important}
 body[data-lay=fan] .hand.mini.lfan>.card:first-child{margin-left:0}
 body[data-lay=fan] .hand.mini.lfan>.card.lup{outline:2px solid var(--gold);outline-offset:0}
@@ -364,6 +367,17 @@ body[data-lay=thumb] .acts .btn.main{min-height:58px;font-size:18px}
 .lplan .hand.mini.lpl>.card{flex:0 0 calc((100% - 20px)/5.4)!important;opacity:1!important}
 
 /* 0.38.0 no scrolling in battle */
+body[data-bfit][data-hcl=xl] .hand.mini:not(.lpl)>.card.mini.zc.hv{height:182px!important;grid-template-rows:22px 29px 20px 23px 20px 29px 22px!important;gap:2px!important;padding:3px 5px!important}
+body[data-bfit][data-hcl=xl] .hand.mini:not(.lpl) .zc.hv .zu,body[data-bfit][data-hcl=xl] .hand.mini:not(.lpl) .zc.hv .zv{font-size:15px}
+body[data-bfit][data-hcl=xl] .hand.mini:not(.lpl) .zc.hv .zm{font-size:23px}
+body[data-bfit][data-hcl=xl] .hand.mini:not(.lpl) .zc.hv .zt{font-size:17px}
+body[data-bfit][data-hcl=xl] .hand.mini:not(.lpl) .zc .zpet .cri{width:27px;height:27px}
+body[data-bfit][data-hcl=xl] .hand.mini:not(.lpl) .zc .zcost .rr{width:18px;height:18px}
+body[data-bfit][data-hcl=xl] .hand.mini:not(.lpl) .zc.hv .zz svg.zg{width:27px;height:auto}
+body[data-bfit][data-hcl=xl] .hand.mini:not(.lpl) .zc.hv .zdn{font-size:17px}
+body[data-bfit][data-hcl=xl] .hand.mini:not(.lpl) .zc.hv .ei.gn{width:16px;height:16px}
+body[data-bfit][data-hcl=xl] .hand.mini:not(.lpl) .badge{width:26px;height:26px;font-size:14px}
+
 html:has(body[data-bfit]){overflow:hidden;overscroll-behavior:none;height:100%}
 body[data-bfit]{box-sizing:border-box;margin:0;height:100dvh;overflow:hidden;overscroll-behavior:none;padding-block:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-bottom))}
 body[data-bfit] #app{min-height:100%}
