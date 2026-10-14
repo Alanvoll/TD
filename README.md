@@ -1,6 +1,6 @@
 # Бой стаи — веб-прототип
 
-Играть: https://alanvoll.github.io/TD/ (страница GitHub Pages из папки `docs/`).
+Играть: https://alanvoll.github.io/TD/ (страница GitHub Pages, выкладывается из папки `docs/` автоматически при каждом push).
 
 - `src/` — исходники прототипа (`build.py` собирает один HTML-файл из `head.html`, `style.css`, `body.html`, `js/*.js`; `tools/` — проверки и балансные симуляции).
 - `docs/index.html` — собранная игра, её и показывает GitHub Pages.
