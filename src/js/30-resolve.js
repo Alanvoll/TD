@@ -184,7 +184,7 @@ async function execMain(x){
   await fxStep(O,cells.length?cells:[],'hit',()=>{
     for(const[p0,crit]of hitMap(O,cells)){const p=coverOf(O,p0,t);if(p!==p0)names.push('🛡 '+p.n+' закрывает '+p0.n);
       if(t.dmg&&sv(p,'evade')){delete p.st.evade;setFx(O,p,'💨 мимо','info');names.push(p.n+' уклонился');continue}
-      if(caster&&caster.cls==='sage'&&p.alive&&p.slowT!==G.turn){p.slowT=G.turn;G.rs=1;names.push('🔮 '+p.n+' позже на '+SAGE_SLOW*INI_STEP)}
+      if(caster&&caster.cls==='sage'&&HV()&&p.alive&&p.slowT!==G.turn){p.slowT=G.turn;G.rs=1;names.push('🔮 '+p.n+' позже на '+SAGE_SLOW*INI_STEP)}
       if(t.strip){p.shield=0;if(p.st){delete p.st.immune;delete p.st.evade}}
       let base=dmgBase(S,O,caster,t,p,x.ch);const hadMark=base&&sv(p,'mark');base=dmgFinal(O,t,p,base);if(hadMark)delete p.st.mark;
       const d=base?hit(O,p,base*(crit?2:1)):0;if(base){hitL.push(p);x.hitAny=1;if(caster&&caster.leg)caster.legHit=1}if(d&&G.run&&caster&&caster.alive){if(O===G.P&&hasT('collar'))hit(S,caster,SC);if(S===G.P&&hasT('vamp'))caster.hp=Math.min(caster.max,caster.hp+SC)}

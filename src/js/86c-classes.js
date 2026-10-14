@@ -17,9 +17,12 @@ Object.assign(AUB,{cguard:'🛡',cfight:'⚔️',cheal:'💚',cagile:'💨',csag
 Object.assign(AUS,{cguard:'прикрывает свой столбец',cfight:'разгоняется',cheal:'лечит низом',cagile:'бьёт и отходит',csage:'сбивает темп'});
 for(const k in CLS)if(CLS_AU[k])CLS[k].au=CLS_AU[k];
 for(const p of PETS)if(CLS_AU[p.cls])p.au=CLS_AU[p.cls];
+// puzzles keep the old rules: their creatures give the old neighbour auras
+const OLD_AU={cguard:'hog',cfight:'fox',cheal:'frog',cagile:'bat',csage:'owl'};
+{const m0=mkSide;mkSide=function(...a){const s=m0(...a);if(!HV())for(const p of s.pets)if(OLD_AU[p.au])p.au=OLD_AU[p.au];return s}}
 MV.hop={t:'вбок на 1 клетку',d:[[0,-1],[0,1]]};
 // Страж: who takes a single-target hit aimed at p
-function coverOf(O,p,t){if(!t||!['cell','melee'].includes(t.area))return p;
+function coverOf(O,p,t){if(!HV()||!t||!['cell','melee'].includes(t.area))return p;
   return alive(O).filter(q=>q.cls==='guard'&&q!==p&&q.c===p.c&&q.r<p.r&&!q.ghost&&!q.down&&!q.tok).sort((a,b)=>b.r-a.r)[0]||p}
 // Мудрец: the slowed enemy's cards still to come this turn move 20 later; the rest of the queue is re-ordered by the usual rules
 function sageLater(acts,i){const pf=G.turn%2===1,rest=acts.slice(i+1);
@@ -27,10 +30,10 @@ function sageLater(acts,i){const pf=G.turn%2===1,rest=acts.slice(i+1);
   rest.sort((x,y)=>x.sp-y.sp||(x.kind==='burn'?0:1)-(y.kind==='burn'?0:1)||(isMoveAct(x)?0:1)-(isMoveAct(y)?0:1)||((x.S===G.P)===pf?0:1)-((y.S===G.P)===pf?0:1));
   acts.splice(i+1,rest.length,...rest)}
 // Боец: extra damage from his run of attacking turns
-const napB=c=>c&&c.cls==='fighter'&&c.nap>0?kl(c,Math.min(NAPMAX,c.nap)):0;
+const napB=c=>HV()&&c&&c.cls==='fighter'&&c.nap>0?kl(c,Math.min(NAPMAX,c.nap)):0;
 function napTurnEnd(){for(const S of [G.P,G.B])for(const p of S.pets)if(p.cls==='fighter')p.nap=p.napT===G.turn?Math.min(NAPMAX,(p.nap||0)+1):0}
 // Целитель: after each of his ▼
-function careHeal(S,c){if(!c||c.cls!=='healer'||!c.alive||c.down||c.ghost)return;
+function careHeal(S,c){if(!HV()||!c||c.cls!=='healer'||!c.alive||c.down||c.ghost)return;
   const l=alive(S).filter(q=>!q.ghost&&!q.tok&&q.hp<q.max).sort((a,b)=>(b.max-b.hp)-(a.max-a.hp));if(!l.length)return;
   const q=l[0],h=Math.min(healAmt(Math.round(kl(c,CARE)*(c.leg?1+LEGV.heal:1))),q.max-q.hp);if(h<=0)return;
   q.hp+=h;bstHeal(S,q,h,0,c);ui.fx={};setFx(S,q,'💚 +'+h,'good');L(S,`💚 ${c.n} лечит ${q.n}: +${h} (Целитель).`);if(!SIMU){render();popFx();ui.fx={}}}
