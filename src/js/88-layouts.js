@@ -124,10 +124,10 @@ function layTx(f){
     const el=kids.find(e=>e.classList.contains('sb-el'));if(el)el.classList.add('lbot')}
 }
 
-/* 0.39.5 Anton: a played card must look played — it sinks lower, goes grey, and a stamp on the played half says ▲/▼ and its number */
-function layPlayed(e,up){if(!e.classList.contains('pl')&&!e.classList.contains('burned'))return;
-  const dn=e.classList.contains('burned'),b=e.querySelector('.badge'),no=b?b.textContent.replace(/[▲▼]/g,''):'';
-  e.classList.add('lpd');if(!up){e.style.setProperty('--y',(parseFloat(e.style.getPropertyValue('--y'))||0)+26+'px');e.style.setProperty('--s',.94)}
+/* 0.39.6 Anton: a played card must look played — it sinks lower, goes grey, and a stamp on the played half says ▲/▼ and its number */
+function layPlayed(e,up){const k=e.classList;if(!['pl','burned','plu','pld'].some(x=>k.contains(x)))return;
+  const dn=k.contains('burned')||k.contains('pld'),b=e.querySelector('.badge'),no=b?b.textContent.replace(/[▲▼]/g,''):'';
+  e.classList.add('lpd');if(!up){e.style.setProperty('--y',(parseFloat(e.style.getPropertyValue('--y'))||0)+12+'px');e.style.setProperty('--s',.92)}
   const st=document.createElement('div');st.className='lpst '+(dn?'d':'u');st.innerHTML=`<b>${dn?'▼':'▲'}${no}</b><span>сыграна</span>`;e.appendChild(st)}
 
 /* ----- the switcher ----- */
@@ -300,7 +300,7 @@ body[data-lay=fan] .hand.mini.lfan>.card.lpd>*:not(.lpst){filter:grayscale(1) br
 body[data-lay=fan] .hand.mini.lfan>.card.lpd>.badge{display:none}
 body[data-lay=fan] .hand.mini.lfan>.card.lpd.lup>*:not(.lpst){filter:grayscale(.6) brightness(.7)}
 .lpst{position:absolute;left:3px;width:46px;z-index:5;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 0 3px;border-radius:9px;background:#0E1420ee;border:2px solid var(--gold);box-shadow:0 2px 8px #000c;pointer-events:none;color:var(--gold);line-height:1}
-.lpst.u{top:14%}.lpst.d{bottom:12%;border-color:#4FC79A;color:#8FE3BF}
+.lpst.u{top:12%}.lpst.d{bottom:24%;border-color:#4FC79A;color:#8FE3BF}
 .lpst b{font-size:17px;font-weight:800}.lpst span{font-size:9px;font-weight:700;letter-spacing:.2px}
 
 body .lyghost{display:block!important;overflow:visible;padding:0;contain:none}body .lyghost>.card{width:64px;height:100px!important}

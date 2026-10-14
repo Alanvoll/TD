@@ -184,6 +184,17 @@ if(typeof setApp==='function'){const sa1=setApp;setApp=function(h){const r=sa1(h
 if(typeof document!=='undefined'&&document.body){const st=document.createElement('style');const imgCss=['Gold','Slate','Wood','Parch','Violet'].map(k=>`.lbp-${k}{background-image:${lbImg('0 0 100 40',lbPlateBody(k),'none')}}`).join('\n')+'\n'+
   Object.entries(LB_IC_SRC).map(([k,b])=>`.lbi-${k}{background-image:${lbImg('0 0 48 48',b)}}`).join('\n')+
   `\n.lb-md{background-image:${lbImg('0 0 60 60',LB_MD_BODY)}}\n.lby-scene{background-image:${lbImg('0 0 400 800',LBY_SCENE,'xMidYMid slice')}}\n.lby-ring i{background-image:${lbImg('-100 -100 200 200',LBY_RUNES_BODY)}}`;
+  // 0.39.5 Anton «тормозит»: bake every painted SVG into a plain bitmap once, so the phone never re-runs the brush filters
+  const bake=[];const add=(sel,vb,body,par,w,h)=>bake.push([sel,lbImg(vb,body,par),w,h]);
+  ['Gold','Slate','Wood','Parch','Violet'].forEach(k=>add('.lbp-'+k,'0 0 100 40',lbPlateBody(k),'none',480,160));
+  Object.entries(LB_IC_SRC).forEach(([k,b])=>add('.lbi-'+k,'0 0 48 48',b,'',144,144));
+  add('.lb-md','0 0 60 60',LB_MD_BODY,'',180,180);add('.lby-ring i','-100 -100 200 200',LBY_RUNES_BODY,'',600,600);
+  {const dpr=Math.min(2,window.devicePixelRatio||1),sc=Math.max(innerWidth/400,innerHeight/800)*dpr;add('.lby-scene','0 0 400 800',LBY_SCENE,'',Math.round(400*sc),Math.round(800*sc))}
+  const bst=document.createElement('style');document.body.appendChild(bst);
+  (async()=>{for(const [sel,u,w,h] of bake){try{const im=new Image();im.src=u.slice(5,-2);await im.decode();
+    const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(im,0,0,w,h);
+    const bl=await new Promise(r=>cv.toBlob(r));if(bl)bst.textContent+=`${sel}{background-image:url(${URL.createObjectURL(bl)})}\n`}catch(e){}
+    await new Promise(r=>setTimeout(r,0))}})();
   st.textContent=imgCss+`
 body.lby-on{overflow:hidden;height:100dvh}
 .lby{position:fixed;inset:0;z-index:1;overflow:hidden;color:#fff;touch-action:manipulation;-webkit-user-select:none;user-select:none;--lbf:"Philosopher","Rubik",Georgia,serif;--lbw:700}
@@ -291,6 +302,7 @@ body.lby-on{overflow:hidden;height:100dvh}
 .lby-more{position:absolute;inset:0;z-index:5;display:flex;align-items:flex-end;justify-content:center;background:#05040ca6;padding:0 12px max(78px,calc(env(safe-area-inset-bottom) + 78px))}
 .lby-sheet{position:relative;display:grid;background:linear-gradient(#2d2650,#17132c);border:2.5px solid #100b1a;border-radius:14px 10px 16px 12px;box-shadow:inset 0 1.5px 0 #b9a8ff55,0 8px 20px #000a;grid-template-columns:repeat(3,1fr);gap:14px 8px;width:100%;max-width:436px;padding:18px 10px 16px}
 .lby-sheet>.lby-rb{position:relative;z-index:1}
+.lby,.lby *{animation:none!important;will-change:auto!important}
 @media (max-height:700px){.lby .lby-go{padding:9px 12px 10px}.lby .lby-goi{width:36px;height:36px}.lby-got b{font-size:26px}.lby .lby-sb{padding:7px 8px 8px}.lby-more{padding-bottom:70px}}
 `;document.body.appendChild(st)}
 // the first screen is drawn before this file loads: draw the lobby right away

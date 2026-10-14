@@ -741,7 +741,7 @@ body.dragging .hsheet,body.dragging .hs-back{opacity:0;pointer-events:none}
 <div id="app"></div>
 
 <script>
-const VER='0.39.5',BUILD=143;
+const VER='0.39.6',BUILD=144;
 /* ART-BEGIN: creatures drawn in code (SVG + CSS idle animation), one file per family */
 const ARTS={};function ART_ADD(o){Object.assign(ARTS,o)}
 ART_ADD({
@@ -5462,10 +5462,10 @@ function layTx(f){
     const el=kids.find(e=>e.classList.contains('sb-el'));if(el)el.classList.add('lbot')}
 }
 
-/* 0.39.5 Anton: a played card must look played — it sinks lower, goes grey, and a stamp on the played half says ▲/▼ and its number */
-function layPlayed(e,up){if(!e.classList.contains('pl')&&!e.classList.contains('burned'))return;
-  const dn=e.classList.contains('burned'),b=e.querySelector('.badge'),no=b?b.textContent.replace(/[▲▼]/g,''):'';
-  e.classList.add('lpd');if(!up){e.style.setProperty('--y',(parseFloat(e.style.getPropertyValue('--y'))||0)+26+'px');e.style.setProperty('--s',.94)}
+/* 0.39.6 Anton: a played card must look played — it sinks lower, goes grey, and a stamp on the played half says ▲/▼ and its number */
+function layPlayed(e,up){const k=e.classList;if(!['pl','burned','plu','pld'].some(x=>k.contains(x)))return;
+  const dn=k.contains('burned')||k.contains('pld'),b=e.querySelector('.badge'),no=b?b.textContent.replace(/[▲▼]/g,''):'';
+  e.classList.add('lpd');if(!up){e.style.setProperty('--y',(parseFloat(e.style.getPropertyValue('--y'))||0)+12+'px');e.style.setProperty('--s',.92)}
   const st=document.createElement('div');st.className='lpst '+(dn?'d':'u');st.innerHTML=`<b>${dn?'▼':'▲'}${no}</b><span>сыграна</span>`;e.appendChild(st)}
 
 /* ----- the switcher ----- */
@@ -5638,7 +5638,7 @@ body[data-lay=fan] .hand.mini.lfan>.card.lpd>*:not(.lpst){filter:grayscale(1) br
 body[data-lay=fan] .hand.mini.lfan>.card.lpd>.badge{display:none}
 body[data-lay=fan] .hand.mini.lfan>.card.lpd.lup>*:not(.lpst){filter:grayscale(.6) brightness(.7)}
 .lpst{position:absolute;left:3px;width:46px;z-index:5;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 0 3px;border-radius:9px;background:#0E1420ee;border:2px solid var(--gold);box-shadow:0 2px 8px #000c;pointer-events:none;color:var(--gold);line-height:1}
-.lpst.u{top:14%}.lpst.d{bottom:12%;border-color:#4FC79A;color:#8FE3BF}
+.lpst.u{top:12%}.lpst.d{bottom:24%;border-color:#4FC79A;color:#8FE3BF}
 .lpst b{font-size:17px;font-weight:800}.lpst span{font-size:9px;font-weight:700;letter-spacing:.2px}
 
 body .lyghost{display:block!important;overflow:visible;padding:0;contain:none}body .lyghost>.card{width:64px;height:100px!important}
@@ -6169,6 +6169,17 @@ if(typeof setApp==='function'){const sa1=setApp;setApp=function(h){const r=sa1(h
 if(typeof document!=='undefined'&&document.body){const st=document.createElement('style');const imgCss=['Gold','Slate','Wood','Parch','Violet'].map(k=>`.lbp-${k}{background-image:${lbImg('0 0 100 40',lbPlateBody(k),'none')}}`).join('\n')+'\n'+
   Object.entries(LB_IC_SRC).map(([k,b])=>`.lbi-${k}{background-image:${lbImg('0 0 48 48',b)}}`).join('\n')+
   `\n.lb-md{background-image:${lbImg('0 0 60 60',LB_MD_BODY)}}\n.lby-scene{background-image:${lbImg('0 0 400 800',LBY_SCENE,'xMidYMid slice')}}\n.lby-ring i{background-image:${lbImg('-100 -100 200 200',LBY_RUNES_BODY)}}`;
+  // 0.39.5 Anton «тормозит»: bake every painted SVG into a plain bitmap once, so the phone never re-runs the brush filters
+  const bake=[];const add=(sel,vb,body,par,w,h)=>bake.push([sel,lbImg(vb,body,par),w,h]);
+  ['Gold','Slate','Wood','Parch','Violet'].forEach(k=>add('.lbp-'+k,'0 0 100 40',lbPlateBody(k),'none',480,160));
+  Object.entries(LB_IC_SRC).forEach(([k,b])=>add('.lbi-'+k,'0 0 48 48',b,'',144,144));
+  add('.lb-md','0 0 60 60',LB_MD_BODY,'',180,180);add('.lby-ring i','-100 -100 200 200',LBY_RUNES_BODY,'',600,600);
+  {const dpr=Math.min(2,window.devicePixelRatio||1),sc=Math.max(innerWidth/400,innerHeight/800)*dpr;add('.lby-scene','0 0 400 800',LBY_SCENE,'',Math.round(400*sc),Math.round(800*sc))}
+  const bst=document.createElement('style');document.body.appendChild(bst);
+  (async()=>{for(const [sel,u,w,h] of bake){try{const im=new Image();im.src=u.slice(5,-2);await im.decode();
+    const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(im,0,0,w,h);
+    const bl=await new Promise(r=>cv.toBlob(r));if(bl)bst.textContent+=`${sel}{background-image:url(${URL.createObjectURL(bl)})}\n`}catch(e){}
+    await new Promise(r=>setTimeout(r,0))}})();
   st.textContent=imgCss+`
 body.lby-on{overflow:hidden;height:100dvh}
 .lby{position:fixed;inset:0;z-index:1;overflow:hidden;color:#fff;touch-action:manipulation;-webkit-user-select:none;user-select:none;--lbf:"Philosopher","Rubik",Georgia,serif;--lbw:700}
@@ -6276,6 +6287,7 @@ body.lby-on{overflow:hidden;height:100dvh}
 .lby-more{position:absolute;inset:0;z-index:5;display:flex;align-items:flex-end;justify-content:center;background:#05040ca6;padding:0 12px max(78px,calc(env(safe-area-inset-bottom) + 78px))}
 .lby-sheet{position:relative;display:grid;background:linear-gradient(#2d2650,#17132c);border:2.5px solid #100b1a;border-radius:14px 10px 16px 12px;box-shadow:inset 0 1.5px 0 #b9a8ff55,0 8px 20px #000a;grid-template-columns:repeat(3,1fr);gap:14px 8px;width:100%;max-width:436px;padding:18px 10px 16px}
 .lby-sheet>.lby-rb{position:relative;z-index:1}
+.lby,.lby *{animation:none!important;will-change:auto!important}
 @media (max-height:700px){.lby .lby-go{padding:9px 12px 10px}.lby .lby-goi{width:36px;height:36px}.lby-got b{font-size:26px}.lby .lby-sb{padding:7px 8px 8px}.lby-more{padding-bottom:70px}}
 `;document.body.appendChild(st)}
 // the first screen is drawn before this file loads: draw the lobby right away
