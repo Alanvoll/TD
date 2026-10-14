@@ -741,7 +741,7 @@ body.dragging .hsheet,body.dragging .hs-back{opacity:0;pointer-events:none}
 <div id="app"></div>
 
 <script>
-const VER='0.39.9',BUILD=147;
+const VER='0.39.10',BUILD=148;
 /* ART-BEGIN: creatures drawn in code (SVG + CSS idle animation), one file per family */
 const ARTS={};function ART_ADD(o){Object.assign(ARTS,o)}
 ART_ADD({
@@ -6200,7 +6200,7 @@ function libInk(i){const h=libBgHash(PETS[i].n+'#fr');
    (the same ▲ top / ▼ bottom card from the hand), drawn for this creature at its level, with the name under it */
 let LSL=null;
 if(typeof libSheet==='function'){const ls0=libSheet;libSheet=function(i){const m=mp(PETS[i].n);
-  try{LSL={S:mkSide(false,[{...PETS[i],lv:m.lv,q:m.q,pi:i}],[[0,0]]),E:mkSide(true,[PETS[i]],[[0,0]])}}catch(e){LSL=null}
+  try{LSL={un:m.un,S:mkSide(false,[{...PETS[i],lv:m.lv,q:m.q,pi:i}],[[0,0]]),E:mkSide(true,[PETS[i]],[[0,0]])}}catch(e){LSL=null}
   try{return ls0(i)}finally{LSL=null}}}
 if(typeof cardMini==='function'){const cm0=cardMini;cardMini=function(k,p,lock,on,act){
   if(!LSL||typeof cardHtml!=='function')return cm0(k,p,lock,on,act);
@@ -6208,13 +6208,16 @@ if(typeof cardMini==='function'){const cm0=cardMini;cardMini=function(k,p,lock,o
   try{G={phase:'battle',P:LSL.S,E:LSL.E,turn:1};h=cardHtml({uid:'L'+k,t:k,pet:LSL.S.pets[0].id},true)}catch(e){h=''}finally{G=G0}
   if(!h)return cm0(k,p,lock,on,act);
   h=h.replace(/ data-card="[^"]*"/,'').replace(/ (disu|disd)\b/g,'').replace(/<span class="why">.*?<\/span>/,'').replace('<button','<div').replace(/<\/button>\s*$/,'</div>');
-  const lk=lock?lock.replace(/^откроется на качестве\s*/,''):'';
-  return`<button class="lslc ${on?'on':''} ${lock?'lk':''}" ${act&&!lock?`data-act="${act}"`:''}><div class="lsl-w"><div class="hand mini lsl-h">${h}</div></div><span class="lsl-n">${T[k].n}</span>${lock?`<span class="lc-lock">🔒 ${lk}</span>`:on?'<span class="lc-on">✓ в колоде</span>':'<span class="lc-on lc-off">&nbsp;</span>'}</button>`}}
+  const qn=lock?(lock.match(/«(.+?)»/)||[])[1]:'',lq=QN.indexOf(qn),qp=qn?qn.replace(/(ый|ий)$/,'ом'):'';
+  const st=lock?`<span class="lc-lock" style="color:${lq>=0?qC(lq):'var(--mut)'}">🔒 на «${qp}»</span>`:!LSL.un?(on?'<span class="lc-on lc-off">стартовая</span>':''):on?'<span class="lc-on">✓ в колоде</span>':'<span class="lc-on lc-pick">тапни — в колоду</span>';
+  return`<button class="lslc ${on?'on':''} ${lock?'lk':''} ${LSL.un?'':'un'}" ${act&&!lock?`data-act="${act}"`:''}><div class="lsl-w"><div class="hand mini lsl-h">${h}</div>${lock?'<span class="lsl-lki">🔒</span>':''}</div><span class="lsl-n">${T[k].n}</span>${st}</button>`}}
 
 if(typeof document!=='undefined'&&document.body){const st=document.createElement('style');st.textContent=`
-.lslc{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;min-width:0;padding:4px 3px 5px;border-radius:12px;background:var(--panel2);border:2px solid transparent;text-align:center;color:var(--fg)}
-.lslc.on{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 9%,var(--panel2))}.lslc.lk{opacity:.6}
-.lsl-w{zoom:var(--cz,.8)}
+.lslc{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;min-width:0;padding:2px 1px 3px;border-radius:10px;background:transparent;border:2px solid transparent;text-align:center;color:var(--fg)}
+.lslc.on:not(.un){border-color:var(--gold);background:color-mix(in srgb,var(--gold) 10%,transparent)}
+.lsl-w{position:relative;zoom:var(--cz,.8)}
+.lslc.lk .lsl-h,.lslc.un .lsl-h{filter:brightness(.42) saturate(.35)}.lslc.un.on .lsl-h{filter:brightness(.7) saturate(.6)}
+.lsl-lki{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:34px;filter:drop-shadow(0 2px 3px #000)}
 .lsl-h{display:block!important;overflow:visible!important;margin:0!important;padding:0!important;pointer-events:none}
 .lsl-h>.card.mini.zc.hv{width:120px!important;min-width:120px!important;height:182px!important;grid-template-rows:22px 29px 20px 23px 20px 29px 22px!important;gap:2px!important;padding:3px 5px!important;transform:none!important;
   border:1.5px solid color-mix(in srgb,var(--pc) 72%,#0B1018)!important;border-radius:11px!important;box-shadow:0 3px 8px #000a!important;opacity:1!important;filter:none!important}
@@ -6222,23 +6225,37 @@ if(typeof document!=='undefined'&&document.body){const st=document.createElement
 .lsl-h .zc.hv .zu,.lsl-h .zc.hv .zv{font-size:15px}.lsl-h .zc.hv .zm{font-size:23px}.lsl-h .zc.hv .zt{font-size:17px}
 .lsl-h .zc .zpet .cri{width:27px;height:27px}.lsl-h .zc .zcost .rr{width:18px;height:18px}.lsl-h .zc.hv .zz svg.zg{width:27px;height:auto}
 .lsl-h .zc.hv .zdn{font-size:17px}.lsl-h .zc.hv .ei.gn{width:16px;height:16px}
-.lsl-n{width:100%;font-size:11.5px;font-weight:700;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.lslc .lc-lock,.lslc .lc-on{margin-top:auto;font-size:10.5px;line-height:1.15}.lslc .lc-off{color:var(--mut)}
-/* Anton 21:38: one screen, no tabs: hero, the cards of the three cells side by side, quality and growth, traits */
-.lsheet.psheet{gap:6px;padding-top:12px;padding-bottom:12px}
-.lsheet .lbig{width:76px;height:76px}.lsheet .lhero h2{font-size:22px;line-height:1.1}
-.ls-pn{gap:6px}
-.ls-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto auto auto;grid-auto-flow:column;gap:4px 5px}
-.ls-pn .slot,.ls-pn .slr{display:contents}
-.ls-pn .slot>.m{font-size:11px!important;text-align:center;line-height:1.1}
-.ls-gr{display:flex;flex-direction:column;gap:5px}
-.ls-gr .qrow{gap:5px}.ls-gr .qlook{width:38px;height:38px;border-radius:9px;font-size:22px}
-.ls-gr .qup{margin:0;padding:6px 8px;gap:8px;font-size:13px}.ls-gr .qup .m{font-size:11px!important;line-height:1.25}.ls-gr .qup .btn{padding:7px 10px;font-size:13.5px;min-height:0}
-.ls-tr{display:grid;grid-template-columns:1fr 1fr;gap:5px}
-.ls-tr .fxr{margin:0;padding:5px 6px;gap:5px;font-size:12px;line-height:1.25}.ls-tr .fxr .m{font-size:11px}.ls-tr .fxr .fxi{font-size:15px;width:18px}
-.ls-note{font-size:10.5px!important;line-height:1.25}
-@media (max-height:720px){.lsheet .lbig{width:58px;height:58px}.lsheet .lhero h2{font-size:18px}.lsheet .lhero .m{font-size:12px!important}.lsheet .stt{font-size:12px}.lsheet .lhero>div:last-child{gap:1px}}
-.lsheet>.acts .btn{padding-top:9px;padding-bottom:9px}
+.lsheet .lsl-n{display:none!important}.lsl-big .lsl-n{display:block;width:auto;text-align:center;margin-top:10px;padding:6px 14px;border-radius:10px;background:#0b111b;border:1px solid #33416e;font-size:18px;font-weight:800;color:var(--fg)}.lsl-big{flex-direction:column}
+.lsl-n{width:100%;font-size:11.5px;letter-spacing:-.01em;font-weight:700;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lslc .lc-lock,.lslc .lc-on{margin-top:auto;font-size:11.5px;white-space:nowrap;letter-spacing:-.02em;font-weight:600;line-height:1.15}.lslc .lc-on{color:var(--gold)}.lslc .lc-off{color:var(--mut)}.lslc .lc-pick{color:#9fb4d8;font-weight:500}
+/* Anton 21:38: one screen, no tabs */
+.lsheet~.hint1,body:has(.lsheet) .hint1{display:none!important}
+.over:has(>.lsheet){background:#05080fe8;padding:10px}
+.lsheet.psheet{gap:7px;padding:10px 10px 10px}
+.lsheet .lhero{gap:9px;align-items:center}.lsheet .lbig{width:58px;height:58px}.lsheet .lhero h2{font-size:20px;line-height:1.1}
+.lsheet .lhero .m{font-size:12.5px!important}.lsheet .lhero>div:last-child{gap:2px 8px;flex-direction:row!important;flex-wrap:wrap;align-items:baseline}.lsheet .lhero>div:last-child>*{flex:1 1 100%}.lsheet .lhero>div:last-child>h2,.lsheet .lhero>div:last-child>h2+.m{flex:0 1 auto}.lsheet .stt{font-size:13px;margin:0}
+.ls-pn{gap:7px}
+.ls-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto auto auto;gap:5px}
+.ls-pn .slot{display:grid;grid-row:span 3;grid-template-rows:subgrid;gap:3px;min-width:0;padding:3px;border-radius:12px;background:#0e1628;border:1px solid #26345a}
+.ls-pn .slr{display:contents}
+.ls-pn .slot>.m{font-size:12px!important;text-align:center;line-height:1.2;color:var(--mut)}
+.ls-gr{display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:12px;background:var(--panel2)}
+.ls-gr .qrow{gap:8px}.ls-gr .qlook{width:44px;height:44px;border-radius:10px;font-size:26px}
+.ls-un .qlook.on{border-color:#2F3F58;box-shadow:none}
+.ls-gr .qup{margin:0;padding:0;gap:10px;font-size:14px;background:none;border-radius:0}.ls-gr .qup+.qup{padding-top:6px;border-top:1px solid #ffffff14}
+.ls-gr .qup .m{font-size:12.5px!important;line-height:1.3}
+.ls-gr .qup .btn{min-height:44px;padding:0 14px;font-size:14px}
+.ls-gr .qup .btn:disabled,.ls-qr .btn:disabled{background:#141c33!important;color:#7d8aa8!important;border:1px solid #33416e!important;box-shadow:none!important;opacity:1!important;filter:grayscale(1) brightness(.8)}
+.ls-gr .qup .btn:not(.main):not(:disabled){background:#22305a;border:1px solid #4a5d94;color:var(--fg)}
+.ls-frx{min-height:44px}.ls-fx1{font-size:14px;line-height:1.25}.ls-fx1 .m{font-size:12.5px}.lsheet .stt .xpb{flex:1 1 90px;min-width:90px;margin:0}.lsheet .stt{align-items:center}
+.ls-qr{display:flex;align-items:center;justify-content:space-between;gap:8px}.ls-qr .qrow{gap:6px;justify-content:flex-start}.ls-qr .qlook{width:42px;height:42px}.ls-qr .btn{flex:none;min-height:44px;padding:0 14px;font-size:14px}
+.ls-qr .btn:disabled{background:#141c33!important;color:#7d8aa8!important;border:1px solid #33416e!important;box-shadow:none!important;opacity:1!important}.ls-gr .qup.ls-qtx{display:block}
+.ls-c{display:inline-block;margin-right:8px;white-space:nowrap;font-size:12.5px;font-weight:600}.ls-c.ok{color:#5fd39a}.ls-c.no{color:#ff8a7a}
+.ls-max{text-align:center;font-size:13px;font-weight:700}
+.ls-tr{display:flex;flex-direction:column;gap:5px}
+.ls-tr .fxr{margin:0;padding:6px 7px;gap:6px;font-size:12.5px;line-height:1.28}.ls-tr .fxr .m{font-size:12.5px}.ls-tr .fxr .fxi{font-size:16px;width:19px}.ls-tr .fxr br{display:none}.ls-tr .fxr b:after{content:'. '}
+.lsheet>.acts{margin:0}.lsheet>.acts .btn.main{min-height:46px;padding:0;background:#1d2647!important;color:var(--fg)!important;border:1px solid #33416e!important;box-shadow:none!important}
+.lsl-big{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:#05080fd8;pointer-events:none}.lsl-big .lsl-h{zoom:1.8}
 
 .lbg{position:absolute;inset:0;display:block}.lbg svg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .lib .lcd{border-color:transparent!important;border-width:0!important}
@@ -6260,20 +6277,42 @@ if(typeof document!=='undefined'&&document.body){const st=document.createElement
 if(typeof lsTabs==='function'){lsTabs=function(bx){const kids=[...bx.children],q=sel=>kids.filter(k=>k.matches(sel));
   const hero=q('.lhero')[0],xp=q('.xpb')[0],stt=q('.stt')[0],qrow=q('.qrow')[0],ups=q('.qup'),fx=q('.fxr'),slots=q('.slot'),acts=q('.acts')[0];
   if(!hero||!slots.length)return;
+  const i=ui.lp,p=PETS[i],m=mp(p.n);
   const lock=!xp?kids.find(k=>k.matches('.m')&&/осколков/.test(k.textContent)):null;
-  const note=kids.filter(k=>k.matches('.m')).pop();
-  const info=hero.lastElementChild;if(info){if(stt)info.appendChild(stt);if(xp)info.appendChild(xp);if(lock)info.appendChild(lock)}
+  if(lock)lock.textContent=`Собери ${UNLOCK_FR} 🧩, чтобы открыть: сейчас ${m.fr}/${UNLOCK_FR}. Осколки: за победы, в Забеге, за задания и в лавке.`;
+  const info=hero.lastElementChild;if(info){if(stt){info.appendChild(stt);if(xp)stt.appendChild(xp)}else if(xp)info.appendChild(xp);if(lock)info.appendChild(lock)}
+  if(!m.un)bx.classList.add('ls-un');
   const cards=document.createElement('div');cards.className='ls-cards';cards.append(...slots);
-  const gr=document.createElement('div');gr.className='ls-gr';if(qrow)gr.appendChild(qrow);gr.append(...ups);
+  const gr=document.createElement('div');gr.className='ls-gr';if(qrow)gr.appendChild(qrow);
+  for(const u of ups){const b=u.querySelector('button'),a=b&&b.dataset.act||'';
+    if(!b){const t=document.createElement('div');t.className='ls-max';t.innerHTML=u.innerHTML;gr.appendChild(t);continue}
+    if(a.startsWith('qup-')){const qc=QUP[m.q],need=QNEED[m.q],ms=u.querySelectorAll('.m');
+      if(ms[0])ms[0].textContent=ms[0].textContent.replace(/\s*Нужен \d+ уровень\./,'');
+      const c=(ok,t)=>`<span class="ls-c ${ok?'ok':'no'}">${ok?'✓ ':''}${t}</span>`;
+      if(ms[1]&&qc)ms[1].innerHTML=c(m.lv>=need,'ур. '+m.lv+'/'+need)+c(m.fr>=qc.fr,'🧩 '+m.fr+'/'+qc.fr)+c(META.stones>=qc.st,'💎 '+META.stones+'/'+qc.st);
+      if(!b.disabled)b.classList.add('main');else b.classList.remove('main');
+      if(qrow&&qrow.parentNode===gr){const r=document.createElement('div');r.className='ls-qr';gr.replaceChild(r,qrow);r.append(qrow,b);u.classList.add('ls-qtx')}}
+    if(a.startsWith('frx-')){const done=typeof frxDone==='function'&&frxDone(p.n),L=u.firstElementChild;
+      if(L&&typeof FRX!=='undefined')L.innerHTML=`<div class="ls-fx1"><b>Обмен камней</b> <span class="m">${done?'сегодня уже был, завтра снова':'раз в день'}</span></div>${!done&&b.disabled?`<span class="ls-c no">есть 💎 ${META.stones}, нужно ${FRX.st}</span>`:''}`;
+      u.classList.add('ls-frx');b.classList.remove('main')}
+    gr.appendChild(u)}
   const tr=document.createElement('div');tr.className='ls-tr';tr.append(...fx);
+  if(m.un&&m.q>=4&&typeof LEGT!=='undefined')tr.insertAdjacentHTML('beforeend',`<div class="fxr ps ls-leg"><span class="fxi">👑</span><span><b>Черта Легендарного</b><br><span class="m">${LEGT[p.cls][0].toUpperCase()+LEGT[p.cls].slice(1)}.</span></span></div>`);
   const pn=document.createElement('div');pn.className='ls-pn';pn.append(cards,gr,tr);
-  if(note&&note!==lock){note.classList.add('ls-note');note.removeAttribute('style');pn.appendChild(note)}
   bx.replaceChildren(hero,pn);if(acts)bx.appendChild(acts)}}
 if(typeof lsFit==='function'){lsFit=function(){const bx=document.querySelector('.lsheet'),pn=bx&&bx.querySelector('.ls-pn');if(!pn)return;
-  pn.style.zoom='';const c=bx.querySelector('.lslc'),av=innerHeight-24;
-  let cz=Math.min(1,c?(c.clientWidth-8)/122:.8);bx.style.setProperty('--cz',cz.toFixed(3));
-  while(bx.scrollHeight>av&&cz>.62){cz-=.02;bx.style.setProperty('--cz',cz.toFixed(3))}
+  pn.style.zoom='';const c=bx.querySelector('.lslc'),av=innerHeight-20;
+  let cz=Math.min(1,c?(c.clientWidth-8)/121:.8);bx.style.setProperty('--cz',cz.toFixed(3));
+  while(bx.scrollHeight>av&&cz>.56){cz-=.02;bx.style.setProperty('--cz',cz.toFixed(3))}
   for(let z=1;bx.scrollHeight>av&&z>.6;){z-=.02;pn.style.zoom=z.toFixed(2)}}}
+/* hold a card in the creature window to see it at full size, as in battle; letting go hides it */
+if(typeof document!=='undefined'&&document.addEventListener){let lt=null,big=null,eat=false;
+  const hide=()=>{clearTimeout(lt);lt=null;if(big){big.remove();big=null}};
+  document.addEventListener('pointerdown',e=>{const c=e.target.closest&&e.target.closest('.lsheet .lslc');if(!c)return;eat=false;hide();
+    lt=setTimeout(()=>{const h=c.querySelector('.lsl-h');if(!h)return;big=document.createElement('div');big.className='lsl-big';big.innerHTML=h.outerHTML+`<div class="lsl-n">${(c.querySelector('.lsl-n')||{}).textContent||''}</div>`;document.body.appendChild(big);eat=true},380)},true);
+  for(const ev of['pointerup','pointercancel','pointerleave'])document.addEventListener(ev,hide,true);
+  document.addEventListener('click',e=>{if(eat&&e.target.closest&&e.target.closest('.lsheet')){eat=false;e.stopPropagation();e.preventDefault()}},true);
+  document.addEventListener('contextmenu',e=>{if(e.target.closest&&e.target.closest('.lsheet .lslc'))e.preventDefault()},true)}
 // perspective field: the tilted board keeps its flat layout height, so pull it up by the difference to reclaim the freed space
 function fitBoard(){for(const b of document.querySelectorAll('.board')){b.style.marginTop='';const lh=b.offsetHeight,vh=b.getBoundingClientRect().height;b.style.marginTop=(-(lh-vh)+4)+'px'}}
 if(typeof MutationObserver!=='undefined')new MutationObserver(()=>{for(const b of document.querySelectorAll('.board'))if(!b.dataset.fit){b.dataset.fit=1;fitBoard();break}}).observe(document.body,{childList:true,subtree:true});
