@@ -174,11 +174,6 @@ function layWhy(el,cd){if(typeof G==='undefined'||!G||!G.P||!HV())return;const c
 function layTurn(f){if(!layTurnTxt)return;const t=layFrag(`<span class="lturn">${layTurnTxt}</span>`);
   const fr=f.querySelector('.front .qs')||f.querySelector('.front')||f.querySelector('.lplan .lp-hd');if(fr)fr.insertBefore(t,fr.firstChild)}
 
-/* ----- 0.38.7 Anton: library tiles show the creature's elements, and are bigger (3 per row) ----- */
-if(typeof libTile==='function'){const lt0=libTile;libTile=function(i){const h=lt0(i),p=PETS[i];
-  if(!mp(p.n).un)return h;const el=`<span class="lt-el">${petEls(p).map(e=>EI(e,1)).join('')}</span>`;
-  const k=h.lastIndexOf('</button>');return k<0?h:h.slice(0,k)+el+h.slice(k)}}
-
 /* ----- 0.38.0: the battle screen fits the phone screen and never scrolls -----
    Larger hand cards when there is room; when there is not: normal cards, then a smaller board, then tighter gaps. */
 function layOver(){const r=app.getBoundingClientRect(),pb=parseFloat(getComputedStyle(document.body).paddingBottom)||0;return Math.ceil(r.bottom+pb-innerHeight)}
@@ -286,8 +281,8 @@ body[data-lay=big] .zc.hv .zz svg.zg{width:26px}
 body[data-lay=big] .zc.hv .ei.gn{width:15px;height:15px}
 /* веер */
 body[data-lay=fan] .hand.mini.lfan{display:flex!important;justify-content:center;overflow:visible!important;padding:30px 0 6px;margin-top:-18px}
-body[data-lay=fan]{--fw:90px}body[data-lay=fan][data-hcl=m]{--fw:100px}body[data-lay=fan][data-hcl=l]{--fw:114px}body[data-lay=fan][data-hcl=xl]{--fw:128px}
-body[data-lay=fan] .hand.mini.lfan>.card{flex:0 0 var(--fw)!important;width:var(--fw);min-width:var(--fw)!important;margin-left:min(4px,var(--ov));transform:translateY(var(--y)) rotate(var(--r)) scale(var(--s,1));transform-origin:50% 100%;transition:transform .15s;box-shadow:-5px 0 10px #000c!important;border:2px solid color-mix(in srgb,var(--pc) 60%,#C9D2DE)!important;border-radius:11px!important}
+body[data-lay=fan]{--fw:84px}body[data-lay=fan][data-hcl=m]{--fw:94px}body[data-lay=fan][data-hcl=l]{--fw:106px}body[data-lay=fan][data-hcl=xl]{--fw:120px}
+body[data-lay=fan] .hand.mini.lfan>.card{flex:0 0 var(--fw)!important;width:var(--fw);min-width:var(--fw)!important;margin-left:min(4px,var(--ov));transform:translateY(var(--y)) rotate(var(--r)) scale(var(--s,1));transform-origin:50% 100%;transition:transform .15s;box-shadow:-5px 0 10px #000c!important;border:1.5px solid color-mix(in srgb,var(--pc) 72%,#0B1018)!important;border-radius:11px!important}
 body[data-lay=fan] .hand.mini.lfan>.card:first-child{margin-left:0}
 body[data-lay=fan] .hand.mini.lfan>.card.lup{outline:2px solid var(--gold);outline-offset:0}
 body[data-lay=fan] .hand.mini.lfan>.card,body[data-lay=fan] .hand.mini.lfan>.card>*,body[data-lay=fan] .hand.mini.lfan>.card .bc-art>*{opacity:1!important}
@@ -416,6 +411,7 @@ body .bc.hv.disu .bc-h,body .bc.hv.disu .bc-art>*:not(.lxo),body .bc.hv.disu .bc
 body[data-lay=fan] .lfan>.zc.hv:not(.lup):not(:last-child)>.lxo{justify-self:start;margin-left:1px;max-width:50px}
 body[data-lay=fan] .lfan>.zc.hv:not(.lup):not(:last-child)>.lxo .lxt{display:none}
 body[data-lay=fan] .lfan>.zc.hv:not(.lup):not(:last-child)>.lxo .lxi{font-size:14px}body[data-lay=fan] .lfan>.zc.hv:not(.lup):not(:last-child)>.lxo .lxi .ei{width:17px;height:17px}
+.zc.hv>.z1{grid-row:1}.zc.hv>.z2{grid-row:2}.zc.hv>.zu{grid-row:3}.zc.hv>.zg4{grid-row:4}.zc.hv>.zv{grid-row:5}.zc.hv>.zd{grid-row:6}.zc.hv>.zb{grid-row:7}
 .zc.hv>.lxo.u{grid-row:1/4}.zc.hv>.lxo.d{grid-row:5/8}
 .lxo{display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 5px;border-radius:8px;background:#0b0f16e6;border:1px solid #FFB0A688;color:#FFB0A6;line-height:1.05;text-align:center;max-width:96%}
 .lxo .lxi{display:flex;gap:1px;align-items:center;justify-content:center;font-size:12px}.lxo .lxi .ei{width:14px;height:14px}
@@ -423,6 +419,13 @@ body[data-lay=fan] .lfan>.zc.hv:not(.lup):not(:last-child)>.lxo .lxi{font-size:1
 .bc-art,.bc-dn{position:relative}
 .bc-art>.lxo,.bc-dn>.lxo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;pointer-events:none;padding:4px 9px}
 .bc-art>.lxo .lxt,.bc-dn>.lxo .lxt{font-size:12px}.bc-art>.lxo .lxi .ei,.bc-dn>.lxo .lxi .ei{width:18px;height:18px}
+/* 0.38.8 Anton: mini cards a little taller, the element band always exactly in the middle */
+body[data-bfit] .hand.mini:not(.lpl)>.card.mini.zc.hv{grid-template-rows:1fr 1.3fr .95fr auto .95fr 1.3fr 1fr!important;align-content:stretch}
+body[data-bfit] .hand.mini:not(.lpl)>.card.mini.zc.hv>*{min-height:0}
+body[data-bfit]:not([data-hcl]) .hand.mini:not(.lpl)>.card.mini.zc.hv{height:112px!important}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl)>.card.mini.zc.hv{height:142px!important}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl)>.card.mini.zc.hv{height:168px!important}
+body[data-bfit][data-hcl=xl] .hand.mini:not(.lpl)>.card.mini.zc.hv{height:204px!important}
 /* 0.38.7 library */
 .lib{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}
 .lib .ltl{font-size:13px;padding:10px 3px 7px}

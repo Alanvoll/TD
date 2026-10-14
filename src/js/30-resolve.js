@@ -93,12 +93,16 @@ async function doMove(S,p,dir,label){
 }
 // 0.35: a card half with a step: the step goes before or after the effect, as the card says; the player may skip it (sdir null)
 async function exec(x){const st=x.card&&(x.kind==='card'||x.kind==='burn')?halfStp(x):null;
-  if(!st||!x.sdir)return execMain(x);
-  const S=x.S,c=x.card.pet?pet(S,x.card.pet):null;
-  const go=async()=>{if(!c||!c.alive||c.down)return;if(x.kind==='card'&&noAct(c))return;
-    if(noMove(c)){L(S,`${c.n}: шаг сорван (не может двигаться).`);return}
-    await doMove(S,c,x.sdir,'👣 '+T[x.card.t].n)};
-  if(st.f){await go();await execMain(x)}else{await execMain(x);await go()}}
+  if(!st||!x.sdir)await execMain(x);
+  else{const S=x.S,c=x.card.pet?pet(S,x.card.pet):null;
+    const go=async()=>{if(!c||!c.alive||c.down)return;if(x.kind==='card'&&noAct(c))return;
+      if(noMove(c)){L(S,`${c.n}: шаг сорван (не может двигаться).`);return}
+      await doMove(S,c,x.sdir,'👣 '+T[x.card.t].n)};
+    if(st.f){await go();await execMain(x)}else{await execMain(x);await go()}}
+  // 0.39 classes: Целитель heals after his ▼, Ловкач may step aside after his ▲ hit
+  {const S=x.S,c=x.card&&x.card.pet?pet(S,x.card.pet):null;
+    if(x.kind==='burn')careHeal(S,c);
+    if(x.kind==='card'&&x.sdir2&&x.hitAny&&c&&c.alive&&!c.down&&!c.sz&&!noMove(c)&&!noAct(c))await doMove(S,c,x.sdir2,'💨 Отскок')}}
 async function execMain(x){
   const S=x.S,O=other(S);BST_A=x.card&&x.card.pet?{S,id:x.card.pet}:null;
   if(x.kind==='burn'&&HV()&&!dnKey(x.card.t)){L(S,`▼ «${T[x.card.t].n}»: нет действия.`);return}
@@ -111,7 +115,7 @@ async function execMain(x){
     if(sb.colDmg||sb.frontDmg){
       const cells=sb.colDmg?offCells('melee',null,c,O):alive(O).filter(p=>p.r===0).map(p=>[p.r,p.c]);
       const names=[];
-      banner(S,petIc(c,1),'▼ '+t.n);await fxStep(O,cells,'hit',()=>{for(const[p,crit]of hitMap(O,cells)){const d=hit(O,p,sm(c,sb.colDmg||sb.frontDmg)*(crit?2:1));names.push(p.n+(crit?' ✶':'')+(d?' −'+d:' (щит)'))}},{S,p:c});
+      banner(S,petIc(c,1),'▼ '+t.n);await fxStep(O,cells,'hit',()=>{for(const[p,crit]of hitMap(O,cells)){const d=hit(O,p,(sm(c,sb.colDmg||sb.frontDmg)+napB(c))*(crit?2:1));names.push(p.n+(crit?' ✶':'')+(d?' −'+d:' (щит)'))}},{S,p:c});
       L(S,`▼ «${t.n}»: ${names.length?names.join(', '):'мимо'}.`);return;
     }
     const l=(sb.allShield||sb.allHeal)?alive(S):[c];
@@ -127,6 +131,7 @@ async function execMain(x){
   if(caster&&caster.down){L(S,`«${t.n}» отменена: ${caster.n} отключён.`);return}
   if(caster&&noAct(caster)&&!STEP.has(t.area)){L(S,`«${t.n}» отменена: ${caster.n} ${caster.frozen>0?'заморожен':'оглушён'}.`);banner(S,caster.frozen>0?'❄️':'💫',`«${t.n}» сорвана`);setFx(S,caster,(caster.frozen>0?'❄️':'💫')+' сорвано','bad');render();await sleep(650);return}
   for(const k of ELS)S.gen[k]+=(t.gen&&t.gen[k])||0;
+  if(caster&&caster.cls==='fighter'&&t.dmg)caster.napT=G.turn;
   banner(S,caster?petIc(caster,1):'👣',t.n);
   if(t.hpcost&&caster){caster.hp=Math.max(1,caster.hp-t.hpcost);L(S,`${caster.n} платит ${t.hpcost} здоровья.`)}
   if(x.paid&&x.paid.hp&&caster){caster.hp=Math.max(1,caster.hp-x.paid.hp);setFx(S,caster,'❤−'+x.paid.hp,'bad');L(S,`${caster.n} платит ${x.paid.hp} здоровья вместо стихий (демоны).`)}
@@ -177,11 +182,12 @@ async function execMain(x){
   const cells=offCells(t.area,x.cell,caster,O);
   const names=[];let pushed=false,drained=0;const hitL=[];
   await fxStep(O,cells.length?cells:[],'hit',()=>{
-    for(const[p,crit]of hitMap(O,cells)){
+    for(const[p0,crit]of hitMap(O,cells)){const p=coverOf(O,p0,t);if(p!==p0)names.push('🛡 '+p.n+' закрывает '+p0.n);
       if(t.dmg&&sv(p,'evade')){delete p.st.evade;setFx(O,p,'💨 мимо','info');names.push(p.n+' уклонился');continue}
+      if(caster&&caster.cls==='sage'&&p.alive&&p.slowT!==G.turn){p.slowT=G.turn;G.rs=1;names.push('🔮 '+p.n+' позже на '+SAGE_SLOW*INI_STEP)}
       if(t.strip){p.shield=0;if(p.st){delete p.st.immune;delete p.st.evade}}
       let base=dmgBase(S,O,caster,t,p,x.ch);const hadMark=base&&sv(p,'mark');base=dmgFinal(O,t,p,base);if(hadMark)delete p.st.mark;
-      const d=base?hit(O,p,base*(crit?2:1)):0;if(base){hitL.push(p);if(caster&&caster.leg)caster.legHit=1}if(d&&G.run&&caster&&caster.alive){if(O===G.P&&hasT('collar'))hit(S,caster,SC);if(S===G.P&&hasT('vamp'))caster.hp=Math.min(caster.max,caster.hp+SC)}
+      const d=base?hit(O,p,base*(crit?2:1)):0;if(base){hitL.push(p);x.hitAny=1;if(caster&&caster.leg)caster.legHit=1}if(d&&G.run&&caster&&caster.alive){if(O===G.P&&hasT('collar'))hit(S,caster,SC);if(S===G.P&&hasT('vamp'))caster.hp=Math.min(caster.max,caster.hp+SC)}
       if(t.drain)drained+=d;
       const ext=(k)=>(caster&&caster.fam==='insect'?1:0)+(G.run?talExt(S,k):0);
       const sts=[];for(const k of NEG)if(cst(t,k)&&applySt(p,k,cst(t,k)+ext(k)))sts.push(STI[k]);
@@ -224,7 +230,9 @@ async function resolve(){
   sortActs(acts);ui.queue=acts;ui.qi=-1;
   if(!acts.length)G.log.push('Никто ничего не сыграл.');
   render();
-  for(let i=0;i<acts.length;i++){if(G.over)break;ui.qi=i;render();await exec(acts[i]);flushDeaths();checkOver()}
+  G.rs=0;
+  for(let i=0;i<acts.length;i++){if(G.over)break;ui.qi=i;render();await exec(acts[i]);if(G.rs){G.rs=0;sageLater(acts,i)}flushDeaths();checkOver()}
+  napTurnEnd();
   ui.qi=acts.length;
   for(const S of [G.P,G.B]){
     for(const k of ELS)S.pool[k]+=S.gen[k];capPool(S.pool);

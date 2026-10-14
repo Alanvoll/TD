@@ -5,12 +5,12 @@ const {chromium}=require('/opt/node22/lib/node_modules/playwright');
 const F=process.argv[2];
 const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});
 const SC={
-  lair:['js:cheat("max");cheat("lairs")','act:m-lair','act:la-forest-1','js:TEAM=[0,1,2,3,4]','click:to-place','click:start'],
-  rush:['js:cheat("max")','act:m-lair','act:rush-go','js:TEAM=[5,6,7,8,9]','click:to-place','click:start'],
-  rank:['js:cheat("max")','act:m-rank','click:rk-go','js:TEAM=[0,1,2,3,4]','click:to-place','click:start'],
+  lair:['js:cheat("max");cheat("lairs")','act:m-lair','act:la-forest-1','js:TEAM=[0,1,2,3,4]','click:start'],
+  rush:['js:cheat("max")','act:m-lair','act:rush-go','js:TEAM=[5,6,7,8,9]','click:start'],
+  rank:['js:cheat("max")','act:m-rank','click:rk-go','js:TEAM=[0,1,2,3,4]','click:start'],
   puz:['act:m-puz','click:pz-0'],
-  quick:['js:cheat("max")','act:m-quick','js:VS="boss";QBOSS="hydra";TEAM=[10,11,12,13,14]','click:to-place','click:start'],
-  quickp:['act:m-quick','js:AI="master";TEAM=[20,21,22,23,24]','click:to-place','click:start'],
+  quick:['js:cheat("max")','act:m-quick','js:VS="boss";QBOSS="hydra";TEAM=[10,11,12,13,14]','click:start'],
+  quickp:['act:m-quick','js:AI="master";TEAM=[20,21,22,23,24]','click:start'],
   run:['js:cheat("max")','act:m-run','js:RS.team=[0,1,2]','click:rs-go','click:rn-','click:start'],
   codex:['js:cheat("cdx")','act:m-codex'],ach:['act:m-ach'],lib:['act:m-lib'],
 };

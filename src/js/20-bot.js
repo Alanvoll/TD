@@ -64,7 +64,7 @@ function dmgBase(S,O,caster,t,p,ch){
   if(!t.dmg)return 0;
   const b=sm(caster,t.dmg+(ch||0))*(caster&&caster.leg&&caster.cls==='fighter'&&!caster.legHit?1+LEGV.hit:1)+kl(caster)*((hasAura(S,caster,'fox')&&(!AURAV.foxST||t.area==='cell'||t.area==='melee')?1:0)
     +(caster&&caster.fam==='beast'&&caster.hp<=caster.max/2?1:0)+(caster&&caster.fam==='dragon'&&p.hp<=p.max/2?1:0))
-    +(t.exec&&p.hp<=p.max/2?sm(caster,t.exec):0)+(G&&G.run?talDmg(S,caster,t,p):0);
+    +(t.exec&&p.hp<=p.max/2?sm(caster,t.exec):0)+napB(caster)+(G&&G.run?talDmg(S,caster,t,p):0);
   return Math.max(0,Math.round(b))}
 function dmgFinal(O,t,p,b){
   if(!b)return 0;if(sv(p,'mark'))b+=kl(p,2);const wide=!['cell','melee'].includes(t.area);

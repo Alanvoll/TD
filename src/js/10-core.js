@@ -284,7 +284,8 @@ function whyInfo(S,card){
 function whyNot(S,card){const w=whyInfo(S,card);return w?w.long:null}
 function projPos(S,id){
   const p=pet(S,id);let r=p.r,c=p.c;
-  for(const e of S.plan){const d=e.petT===id&&e.dir?e.dir:e.card&&e.card.pet===id&&e.sdir?e.sdir:null;if(d){const nr=r+d[0],nc=c+d[1];if(inb(nr,nc)){r=nr;c=nc}}}
+  for(const e of S.plan){const d=e.petT===id&&e.dir?e.dir:e.card&&e.card.pet===id&&e.sdir?e.sdir:null;if(d){const nr=r+d[0],nc=c+d[1];if(inb(nr,nc)){r=nr;c=nc}}
+    if(e.card&&e.card.pet===id&&e.sdir2){const nr=r+e.sdir2[0],nc=c+e.sdir2[1];if(inb(nr,nc)){r=nr;c=nc}}}
   return[r,c];
 }
 function dirsFor(p){if(typeof ui!=='undefined'&&ui.stepE&&ui.stepE.card&&ui.stepE.card.pet===p.id){const h=halfStp(ui.stepE);if(h)return MV[h.m].d}return MV[p.mv].d}

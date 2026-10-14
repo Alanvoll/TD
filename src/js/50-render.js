@@ -110,10 +110,10 @@ function cardHtml(card,mini){
 }
 function petInfo(){
   const S=ui.info.side==='p'?G.P:G.B,p=pet(S,ui.info.id);if(!p||!p.alive)return'';
-  const got=nbrs(S,p).filter(q=>AURA[q.au]&&q.au!=='tok').map(q=>`${petIc(q,1)} ${AURA[q.au]}`);
+  const got=nbrs(S,p).filter(q=>AURA[q.au]&&q.au!=='tok'&&!CLS_AUS.has(q.au)).map(q=>`${petIc(q,1)} ${AURA[q.au]}`);
   const stl=petFx(p).map(fxLine).join(''),F=FAM[p.fam],C=CLS[p.cls],st=statLine(p);
   return`<div class="detail pinfo"><h3>${petIc(p,1)} ${p.n} <span class="m">${p.down?'⚙️':p.ghost?'👻':p.hp+'/'+p.max}</span></h3>${stl}
-  ${F?`<div>${F.ic} <b>${F.n}</b>: ${F.t[0]}.</div>`:''}<div>${C?C.ic+' <b>'+C.n+'</b>':AUB[p.au]||''}: ${AURA[p.au]||'соседям ничего не даёт'}.</div>${st?`<div class="m">${st}.</div>`:''}
+  ${F?`<div>${F.ic} <b>${F.n}</b>: ${F.t[0]}.</div>`:''}<div>${C?C.ic+' <b>'+C.n+'</b>':AUB[p.au]||''}: ${AURA[p.au]||'соседям ничего не даёт'}.${p.cls==='fighter'&&p.nap>0?' Сейчас разгон +'+napB(p)+'.':''}</div>${st?`<div class="m">${st}.</div>`:''}
   ${got.length?`<div class="m">От соседей: ${got.join('; ')}.</div>`:''}${p.mv&&MV[p.mv]&&!p.sz&&!HV()?`<div class="m">Ходит ${MV[p.mv].t}. Куда он может шагнуть, видно на поле.</div>`:''}${HV()?stepInfo(p):''}</div>`;
 }
 function detailHtml(){
@@ -157,7 +157,7 @@ function petSheet(v){
   return`<div class="over" data-act="ps-close"><div class="box psheet">
   <div class="psh"><span class="pbig">${petLive(p)}</span><div><h2>${p.n}</h2><div class="m"><b style="color:${rarC(p)}">${GRADE[p.rar].n}</b>${metaMode()&&!sandbox()?' · ур. '+mp(p.n).lv:''} · ${metaMode()&&!sandbox()?myDef(v).hp:p.hp} хп · ${petEls(p).map(e=>EI(e,1)).join('')} · ${C.ic} ${C.n} · ${F.ic} ${F.n}</div></div></div>
   <div class="fxr ps"><span class="fxi">${F.ic}</span><span><b>${F.n}</b><br><span class="m">${F.t[0][0].toUpperCase()+F.t[0].slice(1)}.</span></span></div>
-  <div class="fxr ps"><span class="fxi">${C.ic}</span><span><b>${C.n}</b><br><span class="m">${AURA[p.au][0].toUpperCase()+AURA[p.au].slice(1)} (соседи по сторонам).</span></span></div>
+  <div class="fxr ps"><span class="fxi">${C.ic}</span><span><b>${C.n}</b><br><span class="m">${AURA[p.au][0].toUpperCase()+AURA[p.au].slice(1)}.</span></span></div>
   ${st?`<div class="m">${st}.</div>`:''}
   ${HV()?stepCardsTxt(p):`<div class="m">Ходит ${moveIcon(p.mv)} ${MV[p.mv].t}. Двигается картой 👣 Шаг.</div>`}
   ${petCardsHtml(v)}

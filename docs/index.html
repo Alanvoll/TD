@@ -741,7 +741,7 @@ body.dragging .hsheet,body.dragging .hs-back{opacity:0;pointer-events:none}
 <div id="app"></div>
 
 <script>
-const VER='0.38.7',BUILD=136;
+const VER='0.38.8',BUILD=137;
 /* ART-BEGIN: creatures drawn in code (SVG + CSS idle animation), one file per family */
 const ARTS={};function ART_ADD(o){Object.assign(ARTS,o)}
 ART_ADD({
@@ -1243,7 +1243,8 @@ function whyInfo(S,card){
 function whyNot(S,card){const w=whyInfo(S,card);return w?w.long:null}
 function projPos(S,id){
   const p=pet(S,id);let r=p.r,c=p.c;
-  for(const e of S.plan){const d=e.petT===id&&e.dir?e.dir:e.card&&e.card.pet===id&&e.sdir?e.sdir:null;if(d){const nr=r+d[0],nc=c+d[1];if(inb(nr,nc)){r=nr;c=nc}}}
+  for(const e of S.plan){const d=e.petT===id&&e.dir?e.dir:e.card&&e.card.pet===id&&e.sdir?e.sdir:null;if(d){const nr=r+d[0],nc=c+d[1];if(inb(nr,nc)){r=nr;c=nc}}
+    if(e.card&&e.card.pet===id&&e.sdir2){const nr=r+e.sdir2[0],nc=c+e.sdir2[1];if(inb(nr,nc)){r=nr;c=nc}}}
   return[r,c];
 }
 function dirsFor(p){if(typeof ui!=='undefined'&&ui.stepE&&ui.stepE.card&&ui.stepE.card.pet===p.id){const h=halfStp(ui.stepE);if(h)return MV[h.m].d}return MV[p.mv].d}
@@ -1344,7 +1345,7 @@ function dmgBase(S,O,caster,t,p,ch){
   if(!t.dmg)return 0;
   const b=sm(caster,t.dmg+(ch||0))*(caster&&caster.leg&&caster.cls==='fighter'&&!caster.legHit?1+LEGV.hit:1)+kl(caster)*((hasAura(S,caster,'fox')&&(!AURAV.foxST||t.area==='cell'||t.area==='melee')?1:0)
     +(caster&&caster.fam==='beast'&&caster.hp<=caster.max/2?1:0)+(caster&&caster.fam==='dragon'&&p.hp<=p.max/2?1:0))
-    +(t.exec&&p.hp<=p.max/2?sm(caster,t.exec):0)+(G&&G.run?talDmg(S,caster,t,p):0);
+    +(t.exec&&p.hp<=p.max/2?sm(caster,t.exec):0)+napB(caster)+(G&&G.run?talDmg(S,caster,t,p):0);
   return Math.max(0,Math.round(b))}
 function dmgFinal(O,t,p,b){
   if(!b)return 0;if(sv(p,'mark'))b+=kl(p,2);const wide=!['cell','melee'].includes(t.area);
@@ -1522,12 +1523,16 @@ async function doMove(S,p,dir,label){
 }
 // 0.35: a card half with a step: the step goes before or after the effect, as the card says; the player may skip it (sdir null)
 async function exec(x){const st=x.card&&(x.kind==='card'||x.kind==='burn')?halfStp(x):null;
-  if(!st||!x.sdir)return execMain(x);
-  const S=x.S,c=x.card.pet?pet(S,x.card.pet):null;
-  const go=async()=>{if(!c||!c.alive||c.down)return;if(x.kind==='card'&&noAct(c))return;
-    if(noMove(c)){L(S,`${c.n}: шаг сорван (не может двигаться).`);return}
-    await doMove(S,c,x.sdir,'👣 '+T[x.card.t].n)};
-  if(st.f){await go();await execMain(x)}else{await execMain(x);await go()}}
+  if(!st||!x.sdir)await execMain(x);
+  else{const S=x.S,c=x.card.pet?pet(S,x.card.pet):null;
+    const go=async()=>{if(!c||!c.alive||c.down)return;if(x.kind==='card'&&noAct(c))return;
+      if(noMove(c)){L(S,`${c.n}: шаг сорван (не может двигаться).`);return}
+      await doMove(S,c,x.sdir,'👣 '+T[x.card.t].n)};
+    if(st.f){await go();await execMain(x)}else{await execMain(x);await go()}}
+  // 0.39 classes: Целитель heals after his ▼, Ловкач may step aside after his ▲ hit
+  {const S=x.S,c=x.card&&x.card.pet?pet(S,x.card.pet):null;
+    if(x.kind==='burn')careHeal(S,c);
+    if(x.kind==='card'&&x.sdir2&&x.hitAny&&c&&c.alive&&!c.down&&!c.sz&&!noMove(c)&&!noAct(c))await doMove(S,c,x.sdir2,'💨 Отскок')}}
 async function execMain(x){
   const S=x.S,O=other(S);BST_A=x.card&&x.card.pet?{S,id:x.card.pet}:null;
   if(x.kind==='burn'&&HV()&&!dnKey(x.card.t)){L(S,`▼ «${T[x.card.t].n}»: нет действия.`);return}
@@ -1540,7 +1545,7 @@ async function execMain(x){
     if(sb.colDmg||sb.frontDmg){
       const cells=sb.colDmg?offCells('melee',null,c,O):alive(O).filter(p=>p.r===0).map(p=>[p.r,p.c]);
       const names=[];
-      banner(S,petIc(c,1),'▼ '+t.n);await fxStep(O,cells,'hit',()=>{for(const[p,crit]of hitMap(O,cells)){const d=hit(O,p,sm(c,sb.colDmg||sb.frontDmg)*(crit?2:1));names.push(p.n+(crit?' ✶':'')+(d?' −'+d:' (щит)'))}},{S,p:c});
+      banner(S,petIc(c,1),'▼ '+t.n);await fxStep(O,cells,'hit',()=>{for(const[p,crit]of hitMap(O,cells)){const d=hit(O,p,(sm(c,sb.colDmg||sb.frontDmg)+napB(c))*(crit?2:1));names.push(p.n+(crit?' ✶':'')+(d?' −'+d:' (щит)'))}},{S,p:c});
       L(S,`▼ «${t.n}»: ${names.length?names.join(', '):'мимо'}.`);return;
     }
     const l=(sb.allShield||sb.allHeal)?alive(S):[c];
@@ -1556,6 +1561,7 @@ async function execMain(x){
   if(caster&&caster.down){L(S,`«${t.n}» отменена: ${caster.n} отключён.`);return}
   if(caster&&noAct(caster)&&!STEP.has(t.area)){L(S,`«${t.n}» отменена: ${caster.n} ${caster.frozen>0?'заморожен':'оглушён'}.`);banner(S,caster.frozen>0?'❄️':'💫',`«${t.n}» сорвана`);setFx(S,caster,(caster.frozen>0?'❄️':'💫')+' сорвано','bad');render();await sleep(650);return}
   for(const k of ELS)S.gen[k]+=(t.gen&&t.gen[k])||0;
+  if(caster&&caster.cls==='fighter'&&t.dmg)caster.napT=G.turn;
   banner(S,caster?petIc(caster,1):'👣',t.n);
   if(t.hpcost&&caster){caster.hp=Math.max(1,caster.hp-t.hpcost);L(S,`${caster.n} платит ${t.hpcost} здоровья.`)}
   if(x.paid&&x.paid.hp&&caster){caster.hp=Math.max(1,caster.hp-x.paid.hp);setFx(S,caster,'❤−'+x.paid.hp,'bad');L(S,`${caster.n} платит ${x.paid.hp} здоровья вместо стихий (демоны).`)}
@@ -1606,11 +1612,12 @@ async function execMain(x){
   const cells=offCells(t.area,x.cell,caster,O);
   const names=[];let pushed=false,drained=0;const hitL=[];
   await fxStep(O,cells.length?cells:[],'hit',()=>{
-    for(const[p,crit]of hitMap(O,cells)){
+    for(const[p0,crit]of hitMap(O,cells)){const p=coverOf(O,p0,t);if(p!==p0)names.push('🛡 '+p.n+' закрывает '+p0.n);
       if(t.dmg&&sv(p,'evade')){delete p.st.evade;setFx(O,p,'💨 мимо','info');names.push(p.n+' уклонился');continue}
+      if(caster&&caster.cls==='sage'&&p.alive&&p.slowT!==G.turn){p.slowT=G.turn;G.rs=1;names.push('🔮 '+p.n+' позже на '+SAGE_SLOW*INI_STEP)}
       if(t.strip){p.shield=0;if(p.st){delete p.st.immune;delete p.st.evade}}
       let base=dmgBase(S,O,caster,t,p,x.ch);const hadMark=base&&sv(p,'mark');base=dmgFinal(O,t,p,base);if(hadMark)delete p.st.mark;
-      const d=base?hit(O,p,base*(crit?2:1)):0;if(base){hitL.push(p);if(caster&&caster.leg)caster.legHit=1}if(d&&G.run&&caster&&caster.alive){if(O===G.P&&hasT('collar'))hit(S,caster,SC);if(S===G.P&&hasT('vamp'))caster.hp=Math.min(caster.max,caster.hp+SC)}
+      const d=base?hit(O,p,base*(crit?2:1)):0;if(base){hitL.push(p);x.hitAny=1;if(caster&&caster.leg)caster.legHit=1}if(d&&G.run&&caster&&caster.alive){if(O===G.P&&hasT('collar'))hit(S,caster,SC);if(S===G.P&&hasT('vamp'))caster.hp=Math.min(caster.max,caster.hp+SC)}
       if(t.drain)drained+=d;
       const ext=(k)=>(caster&&caster.fam==='insect'?1:0)+(G.run?talExt(S,k):0);
       const sts=[];for(const k of NEG)if(cst(t,k)&&applySt(p,k,cst(t,k)+ext(k)))sts.push(STI[k]);
@@ -1653,7 +1660,9 @@ async function resolve(){
   sortActs(acts);ui.queue=acts;ui.qi=-1;
   if(!acts.length)G.log.push('Никто ничего не сыграл.');
   render();
-  for(let i=0;i<acts.length;i++){if(G.over)break;ui.qi=i;render();await exec(acts[i]);flushDeaths();checkOver()}
+  G.rs=0;
+  for(let i=0;i<acts.length;i++){if(G.over)break;ui.qi=i;render();await exec(acts[i]);if(G.rs){G.rs=0;sageLater(acts,i)}flushDeaths();checkOver()}
+  napTurnEnd();
   ui.qi=acts.length;
   for(const S of [G.P,G.B]){
     for(const k of ELS)S.pool[k]+=S.gen[k];capPool(S.pool);
@@ -1872,10 +1881,10 @@ function cardHtml(card,mini){
 }
 function petInfo(){
   const S=ui.info.side==='p'?G.P:G.B,p=pet(S,ui.info.id);if(!p||!p.alive)return'';
-  const got=nbrs(S,p).filter(q=>AURA[q.au]&&q.au!=='tok').map(q=>`${petIc(q,1)} ${AURA[q.au]}`);
+  const got=nbrs(S,p).filter(q=>AURA[q.au]&&q.au!=='tok'&&!CLS_AUS.has(q.au)).map(q=>`${petIc(q,1)} ${AURA[q.au]}`);
   const stl=petFx(p).map(fxLine).join(''),F=FAM[p.fam],C=CLS[p.cls],st=statLine(p);
   return`<div class="detail pinfo"><h3>${petIc(p,1)} ${p.n} <span class="m">${p.down?'⚙️':p.ghost?'👻':p.hp+'/'+p.max}</span></h3>${stl}
-  ${F?`<div>${F.ic} <b>${F.n}</b>: ${F.t[0]}.</div>`:''}<div>${C?C.ic+' <b>'+C.n+'</b>':AUB[p.au]||''}: ${AURA[p.au]||'соседям ничего не даёт'}.</div>${st?`<div class="m">${st}.</div>`:''}
+  ${F?`<div>${F.ic} <b>${F.n}</b>: ${F.t[0]}.</div>`:''}<div>${C?C.ic+' <b>'+C.n+'</b>':AUB[p.au]||''}: ${AURA[p.au]||'соседям ничего не даёт'}.${p.cls==='fighter'&&p.nap>0?' Сейчас разгон +'+napB(p)+'.':''}</div>${st?`<div class="m">${st}.</div>`:''}
   ${got.length?`<div class="m">От соседей: ${got.join('; ')}.</div>`:''}${p.mv&&MV[p.mv]&&!p.sz&&!HV()?`<div class="m">Ходит ${MV[p.mv].t}. Куда он может шагнуть, видно на поле.</div>`:''}${HV()?stepInfo(p):''}</div>`;
 }
 function detailHtml(){
@@ -1919,7 +1928,7 @@ function petSheet(v){
   return`<div class="over" data-act="ps-close"><div class="box psheet">
   <div class="psh"><span class="pbig">${petLive(p)}</span><div><h2>${p.n}</h2><div class="m"><b style="color:${rarC(p)}">${GRADE[p.rar].n}</b>${metaMode()&&!sandbox()?' · ур. '+mp(p.n).lv:''} · ${metaMode()&&!sandbox()?myDef(v).hp:p.hp} хп · ${petEls(p).map(e=>EI(e,1)).join('')} · ${C.ic} ${C.n} · ${F.ic} ${F.n}</div></div></div>
   <div class="fxr ps"><span class="fxi">${F.ic}</span><span><b>${F.n}</b><br><span class="m">${F.t[0][0].toUpperCase()+F.t[0].slice(1)}.</span></span></div>
-  <div class="fxr ps"><span class="fxi">${C.ic}</span><span><b>${C.n}</b><br><span class="m">${AURA[p.au][0].toUpperCase()+AURA[p.au].slice(1)} (соседи по сторонам).</span></span></div>
+  <div class="fxr ps"><span class="fxi">${C.ic}</span><span><b>${C.n}</b><br><span class="m">${AURA[p.au][0].toUpperCase()+AURA[p.au].slice(1)}.</span></span></div>
   ${st?`<div class="m">${st}.</div>`:''}
   ${HV()?stepCardsTxt(p):`<div class="m">Ходит ${moveIcon(p.mv)} ${MV[p.mv].t}. Двигается картой 👣 Шаг.</div>`}
   ${petCardsHtml(v)}
@@ -3316,7 +3325,7 @@ function libSheet(i){const p=PETS[i],m=mp(p.n),F=FAM[p.fam],C=CLS[p.cls],d=myDef
   ${m.un?`<div class="xpb"><i style="width:${xpPct}%"></i><span>${m.lv>=cap?'Максимальный уровень':`опыт ${m.xp}/${xpNeed(m.lv)}`}</span></div>
   <div class="stt"><span>❤ ${d.hp}${d.hp!==p.hp?` <span class="m">(${p.hp}+${d.hp-p.hp})</span>`:''}</span><span>⚔ Сила ${Math.round(silaOf({sila:SILA0*lvGrow(m.lv),pw:p.pw}))}</span><span>${moveIcon(p.mv)}</span>${pstHtml(p.n)}</div>`:`<div class="m">Собери ${UNLOCK_FR} осколков 🧩, чтобы открыть. Сейчас ${m.fr}/${UNLOCK_FR}. Осколки дают победы, Забег, задания и лавка.</div>`}
   <div class="fxr ps"><span class="fxi">${F.ic}</span><span><b>${F.n}</b><br><span class="m">${F.t[0][0].toUpperCase()+F.t[0].slice(1)}.</span></span></div>
-  <div class="fxr ps"><span class="fxi">${C.ic}</span><span><b>${C.n}</b><br><span class="m">${AURA[p.au][0].toUpperCase()+AURA[p.au].slice(1)} (соседи по сторонам).</span></span></div>
+  <div class="fxr ps"><span class="fxi">${C.ic}</span><span><b>${C.n}</b><br><span class="m">${AURA[p.au][0].toUpperCase()+AURA[p.au].slice(1)}.</span></span></div>
   <h3 style="margin:8px 0 2px">Карты</h3><div class="m" style="font-size:11px">В каждой ячейке одна из двух карт. Вторая открывается качеством: в 1-й ячейке на Необычном, во 2-й на Редком, в 3-й на Эпическом. Тапни, чтобы выбрать.</div>${slots}
   ${m.un?(qc?`<div class="qup"><div><b>Качество → <span style="color:${qC(m.q+1)}">${QN[m.q+1]}</span></b><div class="m" style="font-size:11px">${m.q<3?'Вторая карта в ячейке '+(m.q+1):'Черта Легендарного: '+LEGT[p.cls]}, новый облик.${m.lv<need?' Нужен '+need+' уровень.':''}</div><div class="m" style="font-size:12px">🧩 ${m.fr}/${qc.fr} · 💎 ${META.stones}/${qc.st}</div></div><button class="btn main" data-act="qup-${i}" ${canQUp(p.n)?'':'disabled'}>Поднять</button></div>`:`<div class="qup"><b style="color:${qC(4)}">Высшее качество</b></div>`):''}${frxHtml(p,i)}
   <div class="m" style="font-size:11px">Уровень: +1,5% здоровья и Силы за уровень, до 25-го. Качество открывает вторые карты и черту Легендарного, уровень качество не ограничивает, но для повышения нужен минимальный уровень: 5, 10, 15 и 20.${m.q>=4?' <b>Черта:</b> '+LEGT[p.cls]+'.':''}</div>
@@ -4630,7 +4639,7 @@ function renderScreen(){syncRar();
     h+=`<div class="over" data-act="hint-close"><div class="box hintbox"><div class="boxhd"><h2>Подсказка</h2><button class="xb" data-act="hint-close" aria-label="Закрыть">✕</button></div>
     <h3>Как идёт ход</h3><div class="m">1. Рука добирается до числа живых петов + 1, со второго хода приходит ещё 1 стихия.<br>2. У каждой карты два действия: верх ▲ и низ ▼. С карты играешь одно из них: тяни карту за верх на цель или за низ на поле. Обе половины стоят стихий: низ ▼ стоит 1 стихию своей карты (если это не только шаг). Сама половина стихий не даёт.<br>3. Несыгранные карты в конце хода уходят в сброс и дают стихии, отмеченные полосой посередине карты.<br>4. «В бой»: карты обеих сторон срабатывают вперемешку по инициативе ⏱, у ▲ и ▼ она своя.<br>5. Лишние стихии остаются на следующий ход. Ближе к концу боя приходит Буря и ранит всех каждый ход.</div>
     <h3>Эффекты</h3><div class="m">Красные плохие, зелёные хорошие. Число у пета: сколько ходов ещё действует (у щита: сколько урона поглотит).</div>${fxLegend()}<h3>Стихии</h3><div class="ellg">${ELS.map(k=>`<span>${EI(k)} ${ELN[k]}</span>`).join('')}</div><div class="m"><span class="spdp">⏱ 15</span> инициатива карты: меньше число, раньше она сработает. Карты обеих сторон срабатывают вперемешку по инициативе. У ▼ своё число, оно внизу карты; при равенстве ▼ раньше ▲. Зелёное число: карта сейчас раньше обычного, красное: позже.</div>
-    <h3>Классы и соседство</h3><div class="m">Класс пета даёт бонус соседям по сторонам (не по диагонали), связь видна по зелёной грани клетки.</div>${P.pets.filter(p=>p.alive&&AURA[p.au]&&p.au!=='tok').map(p=>`<div>${petIc(p,1)} <b>${p.n}</b>${CLS[p.cls]?' '+CLS[p.cls].ic+' '+CLS[p.cls].n:''}: ${AURA[p.au]}</div>`).join('')}
+    <h3>Классы</h3><div class="m">У каждого класса своё правило, оно работает на самого пета, где бы он ни стоял.</div>${P.pets.filter(p=>p.alive&&AURA[p.au]&&p.au!=='tok').map(p=>`<div>${petIc(p,1)} <b>${p.n}</b>${CLS[p.cls]?' '+CLS[p.cls].ic+' '+CLS[p.cls].n:''}: ${AURA[p.au]}</div>`).join('')}
     <div><b>Строй:</b> пет с 2+ соседями по сторонам получает на ${K} меньше от широких ударов.</div>
     <h3>Семейства</h3><div class="m">У каждого семейства своё свойство, оно работает и у одного пета.</div><div><b>Твои:</b><br>${fams(P)}</div><div><b>Соперника:</b><br>${fams(B)}</div>
     <h3>Соперник</h3><div>Рука ${B.hand.length}, колода ${B.deck.length}, сброс ${B.discard.length}.</div>
@@ -4649,7 +4658,7 @@ function renderScreen(){syncRar();
   <li><b>Ход.</b> Оба втайне выбирают карты, сколько хватит стихий. Затем все карты обеих сторон срабатывают по <b>инициативе</b> ⏱ от 1 до 100: меньше число, раньше карта. У ▲ и ▼ каждой карты своя инициатива. При равенстве ▼ раньше ▲, потом тот, у кого первый ход. Удары бьют по клеткам: если пет успел уйти, удар мимо.</li>
   <li><b>Очередь.</b> Полоса между сетками показывает порядок твоих карт, пока планируешь. В бою вместо руки виден таймлайн обеих сторон. Зелёная рамка твоя, красная соперника, золотая срабатывает сейчас. Число на плашке это инициатива карты. Метка ⚑ показывает, кто ходит первым при равной ⏱. Пока тянешь карту, пунктирная плашка показывает, когда она сработает, а твои карты после неё бледнеют со стрелкой ↓.</li>
   <li><b>Семейство</b> у каждого пета одно из десяти, и у каждого семейства своё свойство. Оно работает даже у одного пета: ${Object.values(FAM).map(f=>f.ic+' '+f.n+': '+f.t[0]).join('; ')}.</li>
-  <li><b>Класс</b> даёт бонус соседям по сторонам (не по диагонали): ${Object.values(CLS).map(c=>c.ic+' '+c.n+': '+AURA[c.au]).join('; ')}.</li>
+  <li><b>Класс</b> даёт пету своё правило: ${Object.values(CLS).map(c=>c.ic+' '+c.n+': '+AURA[c.au]).join('; ')}.</li>
   <li><b>Сила.</b> У каждого существа есть ⚔ Сила, обычно около 20. Карта бьёт, лечит и даёт щит в процентах от Силы своего существа, на карте сразу написано итоговое число. Сила растёт с уровнем.</li>
   <li><b>Строй.</b> Пет, у которого 2 или больше соседей по сторонам, получает на ${K} урона меньше от широких ударов (линия, ряд, столбец, крест, квадрат, все враги).</li>
   <li><b>Щит</b> держится, пока его не собьют, и не бывает больше ${SHIELD_CAP}. Быстрый щит защищает уже в этом ходу, медленный пригодится в следующем.</li>
@@ -5257,6 +5266,61 @@ const DN_MUL=1.5;
   for(const f of ['shield','heal','colDmg','frontDmg','allShield','allHeal'])if(s[f])s[f]=Math.round(s[f]*DN_MUL);
   const[a,b]=subTexts(s);s.short=a;s.txt=b}
  for(const k in DNK){if(DNK[k])delete T[DNK[k]];delete DNK[k]}}
+/* ---------- 0.39 Anton (thread «Классы без в упор»): a class no longer gives anything to its neighbours, each class has its own rule.
+   Страж: single-target enemy hits on own pets behind him in his column go into him (not rows or areas).
+   Боец: every turn in a row with a ▲ attack makes his hits +K, up to +3K; a turn without one resets it.
+   Целитель: each of his ▼ also heals the most wounded pet of the pack.
+   Ловкач: after his ▲ hit he may step 1 cell sideways (chosen while planning, may skip).
+   Мудрец: when his ▲ hits an enemy, that enemy's cards still to come this turn go 20 later (once per turn per enemy).
+   No numbers were tuned (no balancing in this pass). Summons and bosses keep the old neighbour auras. ---------- */
+const CLS_AU={guard:'cguard',fighter:'cfight',healer:'cheal',agile:'cagile',sage:'csage'},CLS_AUS=new Set(Object.values(CLS_AU));
+const NAPMAX=3,CARE=1.5,SAGE_SLOW=1;// Боец: stacks of +K; Целитель: heal in K; Мудрец: initiative steps (×20)
+Object.assign(AURA,{
+  cguard:'одиночные удары врага по своим петам позади него в его столбце достаются ему. Удары по ряду и площади он не ловит',
+  cfight:`каждый ход подряд, когда он сыграл верх ▲ с ударом, его удары сильнее на ${K} (до +${NAPMAX*K}). Ход без удара сверху сбрасывает разгон`,
+  cheal:`каждая его карта, сыгранная низом ▼, ещё лечит самого раненого пета стаи на ${Math.round(CARE*K)}`,
+  cagile:'после своего удара сверху ▲ может шагнуть на 1 клетку вбок (или остаться)',
+  csage:`когда его карта сверху ▲ попадает во врага, оставшиеся карты этого врага в этом ходу срабатывают на ${SAGE_SLOW*INI_STEP} позже`});
+Object.assign(AUB,{cguard:'🛡',cfight:'⚔️',cheal:'💚',cagile:'💨',csage:'🔮'});
+Object.assign(AUS,{cguard:'прикрывает свой столбец',cfight:'разгоняется',cheal:'лечит низом',cagile:'бьёт и отходит',csage:'сбивает темп'});
+for(const k in CLS)if(CLS_AU[k])CLS[k].au=CLS_AU[k];
+for(const p of PETS)if(CLS_AU[p.cls])p.au=CLS_AU[p.cls];
+MV.hop={t:'вбок на 1 клетку',d:[[0,-1],[0,1]]};
+// Страж: who takes a single-target hit aimed at p
+function coverOf(O,p,t){if(!t||!['cell','melee'].includes(t.area))return p;
+  return alive(O).filter(q=>q.cls==='guard'&&q!==p&&q.c===p.c&&q.r<p.r&&!q.ghost&&!q.down&&!q.tok).sort((a,b)=>b.r-a.r)[0]||p}
+// Мудрец: the slowed enemy's cards still to come this turn move 20 later; the rest of the queue is re-ordered by the usual rules
+function sageLater(acts,i){const pf=G.turn%2===1,rest=acts.slice(i+1);
+  for(const x of rest){const c=x.card&&x.card.pet?pet(x.S,x.card.pet):null;if(c&&c.slowT===G.turn&&!x.sgd){x.sgd=1;x.sp=Math.min(100,x.sp+SAGE_SLOW*INI_STEP)}}
+  rest.sort((x,y)=>x.sp-y.sp||(x.kind==='burn'?0:1)-(y.kind==='burn'?0:1)||(isMoveAct(x)?0:1)-(isMoveAct(y)?0:1)||((x.S===G.P)===pf?0:1)-((y.S===G.P)===pf?0:1));
+  acts.splice(i+1,rest.length,...rest)}
+// Боец: extra damage from his run of attacking turns
+const napB=c=>c&&c.cls==='fighter'&&c.nap>0?kl(c,Math.min(NAPMAX,c.nap)):0;
+function napTurnEnd(){for(const S of [G.P,G.B])for(const p of S.pets)if(p.cls==='fighter')p.nap=p.napT===G.turn?Math.min(NAPMAX,(p.nap||0)+1):0}
+// Целитель: after each of his ▼
+function careHeal(S,c){if(!c||c.cls!=='healer'||!c.alive||c.down||c.ghost)return;
+  const l=alive(S).filter(q=>!q.ghost&&!q.tok&&q.hp<q.max).sort((a,b)=>(b.max-b.hp)-(a.max-a.hp));if(!l.length)return;
+  const q=l[0],h=Math.min(healAmt(Math.round(kl(c,CARE)*(c.leg?1+LEGV.heal:1))),q.max-q.hp);if(h<=0)return;
+  q.hp+=h;bstHeal(S,q,h,0,c);ui.fx={};setFx(S,q,'💚 +'+h,'good');L(S,`💚 ${c.n} лечит ${q.n}: +${h} (Целитель).`);if(!SIMU){render();popFx();ui.fx={}}}
+// Ловкач: a ▲ with damage of an agile creature may end with a sideways step
+function agileHop(e){if(!HV()||!e||e.kind!=='card'||!e.card||!e.card.pet)return false;const t=T[e.card.t];if(!t||!t.dmg||STEP.has(t.area))return false;
+  const S=G.P.plan&&G.P.plan.includes(e)?G.P:G.B,c=pet(S,e.card.pet);return!!(c&&c.cls==='agile')}
+function hopFrom(S,e){const i=S.plan.indexOf(e);return projPos({...S,plan:S.plan.slice(0,i+1).map(x=>x===e?{...x,sdir2:null}:x)},e.card.pet)}
+function hopDests(S,e){const c=pet(S,e.card.pet);if(!c||!c.alive||c.sz||noMove(c))return[];const[pr,pc]=hopFrom(S,e);return MV.hop.d.filter(d=>inb(pr+d[0],pc+d[1]))}
+{const a0=stepAsk;stepAsk=function(){if(!ui.stepE||!G||!G.P||!G.P.plan||!G.P.plan.includes(ui.stepE)||ui.busy||G.over)ui.hop=0;a0();if(!ui.stepE)ui.hop=0;if(ui.stepE||!G||G.phase!=='battle'||!G.P||!HV()||ui.busy||G.over)return;
+  for(const e of G.P.plan){if('sdir2' in e||!agileHop(e)||(halfStp(e)&&!('sdir' in e)))continue;
+    if(!hopDests(G.P,e).length){e.sdir2=null;continue}
+    ui.stepE=e;ui.hop=1;ui.mover=e.card.pet;ui.sel=null;ui.selDn=null;return}}}
+{const s0=stepSet;stepSet=function(d){if(ui.hop&&ui.stepE){ui.stepE.sdir2=d||null;ui.hop=0;ui.stepE=null;ui.mover=null;ui.msg=null;render();return}ui.hop=0;return s0(d)}}
+{const t0=stepTap;stepTap=function(side,r,c){if(!ui.hop)return t0(side,r,c);const e=ui.stepE,S=G.P;
+  if(side==='p'){const[pr,pc]=hopFrom(S,e);const d=hopDests(S,e).find(d=>pr+d[0]===r&&pc+d[1]===c);if(d)return stepSet(d)}stepSet(null)}}
+{const d0=dirsFor;dirsFor=function(p,...a){if(ui.hop&&ui.stepE&&ui.stepE.card&&ui.stepE.card.pet===p.id)return MV.hop.d;return d0(p,...a)}}
+{const d1=detailHtml;detailHtml=function(){if(ui.hop&&ui.stepE&&!ui.busy){const e=ui.stepE,p=pet(G.P,e.card.pet);
+  return`<div class="detail">${petIc(p,1)} ${p.n} (💨 Ловкач) после удара «${T[e.card.t].n}» может отскочить вбок на 1 клетку: тапни подсвеченную клетку или перетащи его. <button class="pill sm" data-act="st-skip">Остаться</button></div>`}return d1()}}
+// bots: pick the safer side or stay
+{const b0=botSteps;botSteps=function(S,O){b0(S,O);if(!HV()||!S.plan)return;
+  for(const e of S.plan){if('sdir2' in e||!agileHop(e))continue;e.sdir2=null;const p=pet(S,e.card.pet),ds=hopDests(S,e);if(!ds.length)continue;const[pr,pc]=hopFrom(S,e);
+    let best=null,bs=0;for(const d of ds){const v=(dangerAt(S,O,pr,pc)-dangerAt(S,O,pr+d[0],pc+d[1]))*(p.hp<p.max*.5?1.6:1)-.2+(Math.random()-.5)*(aiNoise(S.ai)||.25)*.3;if(v>bs){bs=v;best=d}}e.sdir2=best}}}
 /* ---------- 0.36.1 Anton: a button to put the game in full screen and back (⛶ in the menu and battle top bars) ---------- */
 const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
 /* 0.37.1: iPhone Safari has no page fullscreen; the way there is «На экран Домой» (the GitHub copy opens as an app) */
@@ -5445,11 +5509,6 @@ function layWhy(el,cd){if(typeof G==='undefined'||!G||!G.P||!HV())return;const c
 function layTurn(f){if(!layTurnTxt)return;const t=layFrag(`<span class="lturn">${layTurnTxt}</span>`);
   const fr=f.querySelector('.front .qs')||f.querySelector('.front')||f.querySelector('.lplan .lp-hd');if(fr)fr.insertBefore(t,fr.firstChild)}
 
-/* ----- 0.38.7 Anton: library tiles show the creature's elements, and are bigger (3 per row) ----- */
-if(typeof libTile==='function'){const lt0=libTile;libTile=function(i){const h=lt0(i),p=PETS[i];
-  if(!mp(p.n).un)return h;const el=`<span class="lt-el">${petEls(p).map(e=>EI(e,1)).join('')}</span>`;
-  const k=h.lastIndexOf('</button>');return k<0?h:h.slice(0,k)+el+h.slice(k)}}
-
 /* ----- 0.38.0: the battle screen fits the phone screen and never scrolls -----
    Larger hand cards when there is room; when there is not: normal cards, then a smaller board, then tighter gaps. */
 function layOver(){const r=app.getBoundingClientRect(),pb=parseFloat(getComputedStyle(document.body).paddingBottom)||0;return Math.ceil(r.bottom+pb-innerHeight)}
@@ -5557,8 +5616,8 @@ body[data-lay=big] .zc.hv .zz svg.zg{width:26px}
 body[data-lay=big] .zc.hv .ei.gn{width:15px;height:15px}
 /* веер */
 body[data-lay=fan] .hand.mini.lfan{display:flex!important;justify-content:center;overflow:visible!important;padding:30px 0 6px;margin-top:-18px}
-body[data-lay=fan]{--fw:90px}body[data-lay=fan][data-hcl=m]{--fw:100px}body[data-lay=fan][data-hcl=l]{--fw:114px}body[data-lay=fan][data-hcl=xl]{--fw:128px}
-body[data-lay=fan] .hand.mini.lfan>.card{flex:0 0 var(--fw)!important;width:var(--fw);min-width:var(--fw)!important;margin-left:min(4px,var(--ov));transform:translateY(var(--y)) rotate(var(--r)) scale(var(--s,1));transform-origin:50% 100%;transition:transform .15s;box-shadow:-5px 0 10px #000c!important;border:2px solid color-mix(in srgb,var(--pc) 60%,#C9D2DE)!important;border-radius:11px!important}
+body[data-lay=fan]{--fw:84px}body[data-lay=fan][data-hcl=m]{--fw:94px}body[data-lay=fan][data-hcl=l]{--fw:106px}body[data-lay=fan][data-hcl=xl]{--fw:120px}
+body[data-lay=fan] .hand.mini.lfan>.card{flex:0 0 var(--fw)!important;width:var(--fw);min-width:var(--fw)!important;margin-left:min(4px,var(--ov));transform:translateY(var(--y)) rotate(var(--r)) scale(var(--s,1));transform-origin:50% 100%;transition:transform .15s;box-shadow:-5px 0 10px #000c!important;border:1.5px solid color-mix(in srgb,var(--pc) 72%,#0B1018)!important;border-radius:11px!important}
 body[data-lay=fan] .hand.mini.lfan>.card:first-child{margin-left:0}
 body[data-lay=fan] .hand.mini.lfan>.card.lup{outline:2px solid var(--gold);outline-offset:0}
 body[data-lay=fan] .hand.mini.lfan>.card,body[data-lay=fan] .hand.mini.lfan>.card>*,body[data-lay=fan] .hand.mini.lfan>.card .bc-art>*{opacity:1!important}
@@ -5687,6 +5746,7 @@ body .bc.hv.disu .bc-h,body .bc.hv.disu .bc-art>*:not(.lxo),body .bc.hv.disu .bc
 body[data-lay=fan] .lfan>.zc.hv:not(.lup):not(:last-child)>.lxo{justify-self:start;margin-left:1px;max-width:50px}
 body[data-lay=fan] .lfan>.zc.hv:not(.lup):not(:last-child)>.lxo .lxt{display:none}
 body[data-lay=fan] .lfan>.zc.hv:not(.lup):not(:last-child)>.lxo .lxi{font-size:14px}body[data-lay=fan] .lfan>.zc.hv:not(.lup):not(:last-child)>.lxo .lxi .ei{width:17px;height:17px}
+.zc.hv>.z1{grid-row:1}.zc.hv>.z2{grid-row:2}.zc.hv>.zu{grid-row:3}.zc.hv>.zg4{grid-row:4}.zc.hv>.zv{grid-row:5}.zc.hv>.zd{grid-row:6}.zc.hv>.zb{grid-row:7}
 .zc.hv>.lxo.u{grid-row:1/4}.zc.hv>.lxo.d{grid-row:5/8}
 .lxo{display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 5px;border-radius:8px;background:#0b0f16e6;border:1px solid #FFB0A688;color:#FFB0A6;line-height:1.05;text-align:center;max-width:96%}
 .lxo .lxi{display:flex;gap:1px;align-items:center;justify-content:center;font-size:12px}.lxo .lxi .ei{width:14px;height:14px}
@@ -5694,6 +5754,13 @@ body[data-lay=fan] .lfan>.zc.hv:not(.lup):not(:last-child)>.lxo .lxi{font-size:1
 .bc-art,.bc-dn{position:relative}
 .bc-art>.lxo,.bc-dn>.lxo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;pointer-events:none;padding:4px 9px}
 .bc-art>.lxo .lxt,.bc-dn>.lxo .lxt{font-size:12px}.bc-art>.lxo .lxi .ei,.bc-dn>.lxo .lxi .ei{width:18px;height:18px}
+/* 0.38.8 Anton: mini cards a little taller, the element band always exactly in the middle */
+body[data-bfit] .hand.mini:not(.lpl)>.card.mini.zc.hv{grid-template-rows:1fr 1.3fr .95fr auto .95fr 1.3fr 1fr!important;align-content:stretch}
+body[data-bfit] .hand.mini:not(.lpl)>.card.mini.zc.hv>*{min-height:0}
+body[data-bfit]:not([data-hcl]) .hand.mini:not(.lpl)>.card.mini.zc.hv{height:112px!important}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl)>.card.mini.zc.hv{height:142px!important}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl)>.card.mini.zc.hv{height:168px!important}
+body[data-bfit][data-hcl=xl] .hand.mini:not(.lpl)>.card.mini.zc.hv{height:204px!important}
 /* 0.38.7 library */
 .lib{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}
 .lib .ltl{font-size:13px;padding:10px 3px 7px}
@@ -5757,6 +5824,164 @@ body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc.hv .ei.gn{width:12px;height
 `;document.body.appendChild(st)}
 /* mode «Бой четвёрок» (0.38.1): quick fight with 4 creatures a side on a 3-deep, 4-wide field; everything else counts creatures as usual */
 function setTN(n){TN=n;COLS=n===4?4:5;ROWS=3}
+/* ---------- 0.38.8 Anton: screens outside the battle.
+   1) placement is done right on the creature pick screen (no separate «Расстановка» step before a battle);
+   2) library creature cards are drawn as game cards (frame by quality, scene behind the art, level, family, elements, fragments);
+   3) the main screen looks like a game lobby; daily and weekly quests move to their own page («Задания»), achievements already have one.
+   Only screens change here, no rules. ---------- */
+
+/* ----- 1) placement on the pick screen. PLACE[k] is the cell of TEAM[k]; PLACE._t remembers which team it was laid out for,
+   so adding or removing a creature keeps everyone else where they stood ----- */
+function pkSync(){
+  if(!Array.isArray(PLACE))PLACE=START.slice(0,TN).map(x=>[...x]);
+  const t=Array.isArray(PLACE._t)?PLACE._t:TEAM.slice(),pos=new Map(),key=c=>c[0]+','+c[1],used=new Set(),out=[];
+  t.forEach((pi,k)=>{if(PLACE[k])pos.set(pi,PLACE[k])});
+  TEAM.forEach((pi,k)=>{const c=pos.get(pi);if(c&&c[0]<ROWS&&c[1]<COLS&&!used.has(key(c))){out[k]=[c[0],c[1]];used.add(key(c))}});
+  const all=[];for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)all.push([r,c]);
+  const free=START.filter(c=>c[1]<COLS).concat(all).filter(c=>!used.has(key(c)));
+  TEAM.forEach((pi,k)=>{if(!out[k]){const c=free.find(x=>!used.has(key(x)));out[k]=[c[0],c[1]];used.add(key(c))}});
+  out._t=TEAM.slice();PLACE=out;if(ui.ps!=null&&ui.ps>=TEAM.length)ui.ps=null}
+function pkGridHtml(){
+  let g=`<div class="pkg" style="grid-template-columns:repeat(${COLS},1fr)">`;
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const i=PLACE.findIndex(x=>x[0]===r&&x[1]===c),p=i>=0&&i<TEAM.length?PETS[TEAM[i]]:null;
+    g+=`<button class="pkc ${ui.ps===i&&p?'sel':''} ${ui.ps!=null&&i!==ui.ps?'dest':''}" data-pcell="${r},${c}">${p?`<span class="pkp">${petIc(p,1)}</span>`:''}</button>`}
+  return`<div class="pkw"><div class="pkhd"><span class="pkf">▲ фронт</span><span class="m">${TEAM.length?(ui.ps!=null?'Теперь тапни клетку.':'Тапни существо, потом клетку. Соседи по сторонам усиливают друг друга.'):'Добавь существ «+», они встанут сюда.'}</span></div>${g}</div>
+  ${TEAM.length?`<div class="pkb"><button class="pill sm" data-act="place-smart">Умно</button><button class="pill sm" data-act="place-rand">Случайно</button></div>`:''}</div>`}
+if(typeof renderPick==='function'){const rp0=renderPick;renderPick=function(){pkSync();return rp0()}}
+
+/* ----- 2) library cards ----- */
+const SCN=`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 40' preserveAspectRatio='none'%3E%3Cpath d='M0 26 L10 20 L18 24 L28 14 L36 21 L46 17 L56 23 L66 12 L74 19 L84 15 L94 22 L104 16 L112 21 L120 18 V40 H0Z' fill='%23ffffff' fill-opacity='.07'/%3E%3Cpath d='M0 32 Q15 25 30 30 T60 29 T90 31 T120 28 V40 H0Z' fill='%23060b14' fill-opacity='.85'/%3E%3Cpath d='M14 31 v-5 a3 3 0 0 1 6 0 v5Z M98 30 v-6 a3.5 3.5 0 0 1 7 0 v6Z M52 30 h1.6 v-4 h1.8 v-1.6 h-1.8 v-2 h-1.6 v2 h-1.8 v1.6 h1.8Z' fill='%23060b14'/%3E%3C/svg%3E")`;
+libTile=function(i){const p=PETS[i],m=mp(p.n),need=m.un?QUP[m.q]:{fr:UNLOCK_FR},fp=need?Math.min(1,m.fr/need.fr):1,ready=m.un?canQUp(p.n):false;
+  const els=petEls(p),ec=ELC[els[0]]||'#5AA9F0',qc=m.un?qC(m.q):'#46526A',f=FAM[p.fam]||{ic:'',n:''};
+  const nmS=p.n.length>11?'font-size:11px':p.n.length>8?'font-size:12px':'';
+  return`<button class="lcd ${m.un?'':'lock'} ${ready?'rdy':''}" data-act="lib-${i}" style="--qc:${qc};--ec:${ec}">
+  <span class="lcd-sc"></span>
+  <span class="lcd-q" title="${m.un?QN[m.q]:''}"></span>${m.un?`<span class="lcd-lv">Ур. ${m.lv}</span>`:'<span class="lcd-lk">🔒</span>'}
+  <span class="lcd-art">${m.un?qArt(p,m.q,1):`<span class="sil0">${petIc(p,1)}</span>`}</span>
+  <span class="lcd-ft"><span class="lcd-nm" style="${nmS}">${m.un?p.n:'???'}</span>
+  <span class="lcd-row"><span class="lcd-fm" title="${f.n}">${f.ic}${m.un?'':' '+f.n}</span>${m.un?`<span class="lcd-el">${els.map(e=>`<span class="lcd-e">${EI(e,1)}</span>`).join('')}</span>`:''}</span>
+  <span class="lcd-bar"><span class="lcd-bi">🧩</span><span class="lcd-tr"><i style="width:${fp*100}%"></i></span><b>${m.fr}${need?'/'+need.fr:''}</b></span></span>
+  ${ready?'<span class="lcd-up">▲</span>':''}</button>`};
+
+/* ----- 3) main screen + quests page ----- */
+function heroTeam(){const own=i=>PETS[i]&&mp(PETS[i].n).un;let l=(META.lastQ||[]).filter(own);
+  if(l.length<3)l=l.concat(PETS.map((p,i)=>i).filter(i=>own(i)&&!l.includes(i)));return l.slice(0,3)}
+function questReady(){return questsToday().filter(q=>q.p>=QDEF[q.k].g&&!q.cl).length+questsWeek().filter(q=>!q.cl&&q.p>=WDEF[q.k].g).length}
+renderMenu=function(){
+  const lg=LEAGUES[lgOf(rk().pts)],up=PETS.filter(p=>canQUp(p.n)).length,qr=questReady(),ar=achReady(),own=PETS.filter(p=>mp(p.n).un).length;
+  const dot=n=>n?`<span class="qdot">${n}</span>`:'';
+  const tile=(act,ic,t,s)=>`<button class="mt" data-act="${act}"><span class="mt-ic">${ic}</span><b>${t}</b><span class="mt-s">${s}</span></button>`;
+  const ht=heroTeam();
+  setApp(`<div class="lb-top"><span class="lb-me"><span class="lb-av">🐾</span><span><b>Стая</b><span class="lb-lg">${lg.ic} ${lg.n}</span></span></span>
+  <span class="lb-r"><span class="lb-cur">💎 <b>${META.stones}</b></span><button class="pill lb-mb${ui.mm?' on':''}" data-act="mm-menu">☰</button></span></div>
+  <div class="lb-hero"><div class="lb-logo">Бой стаи</div>
+  <div class="lb-team">${ht.map((i,k)=>`<span class="lb-pet p${k}">${petIc(PETS[i],1)}</span>`).join('')}</div><div class="lb-plat"></div></div>
+  ${typeof renderRun==='function'?`<button class="lb-go" data-act="m-run"><span class="lb-goi">🧭</span><span><b>${META.run?'Продолжить забег':'Забег'}</b><span>${META.run?`Акт ${META.run.act+1}, ❤ ${META.run.lives}`:'Путь через три земли: бои, находки, боссы'}</span></span></button>`:''}
+  ${typeof goalHtml==='function'?goalHtml():''}
+  <div class="mtg">
+  ${tile('m-quick','⚔️','Быстрый бой','против бота')}
+  ${tile('m-quick4','4️⃣','Бой четвёрок','4 на 4, поле 3×4')}
+  ${tile('m-rank','🏆','Лига',`${plN(rk().pts,'очко','очка','очков',1)}`)}
+  ${tile('m-lair','👑','Логова',`⭐ ${Object.keys(BOSSES).reduce((a,k)=>a+lairOf(k).t,0)} из ${Object.keys(BOSSES).length*3}`)}
+  ${tile('m-puz','🧩','Задачи',`${Object.keys(pzs().done).length} из ${PUZ.length}`)}
+  ${tile('m-codex','📖','Кодекс',`${cdxCount()} из ${cdxTotal()}`)}
+  </div>
+  <div class="lb-ver">v${VER} · сборка ${BUILD}</div>
+  <div class="lb-nav"><button data-act="m-lib"><span class="lb-ni">📚${dot(up)}</span>Библиотека<small>${own} из ${PETS.length}</small></button><button data-act="m-quests"><span class="lb-ni">📋${dot(qr)}</span>Задания<small>день и неделя</small></button><button data-act="m-ach"><span class="lb-ni">🏅${dot(ar)}</span>Достижения<small>${ACH.filter(a=>META.ach&&META.ach[a.k]).length} из ${ACH.length}</small></button></div>
+  ${ui.mm?`<div class="lmenu-over" data-act="mm-x"><div class="lmenu-pop lb-pop"><button class="pill lmi" data-act="fs">⛶<span class="lmi-l">Весь экран</span></button><button class="pill lmi" data-act="lay-open">🎛<span class="lmi-l">Вид экрана боя</span></button><button class="pill lmi" data-act="m-cheat">🛠<span class="lmi-l">Читы</span></button><span class="m lb-pv">v${VER} · сборка ${BUILD}</span></div></div>`:''}`)};
+function renderQuests(){const qd=questsToday().filter(q=>q.p>=QDEF[q.k].g&&!q.cl).length,wd=questsWeek().filter(q=>!q.cl&&q.p>=WDEF[q.k].g).length;
+  setApp(`<div class="top"><button class="pill sm" data-act="m-menu">‹ Меню</button><div class="title">Задания</div><span class="m">💎 ${META.stones}</span></div>
+  <div class="msec" style="margin-top:2px">Задания дня${qd?` <span class="qdot">${qd}</span>`:''}</div><div class="qlist">${questsHtml()}</div>
+  <div class="msec">Задания недели${wd?` <span class="qdot">${wd}</span>`:''} <span class="m" style="font-size:11px;font-weight:400;text-transform:none;letter-spacing:0">ещё ${weekLeft()}</span></div><div class="qlist">${weekHtml()}</div>`)}
+if(typeof renderScreen==='function'){const rs0=renderScreen;renderScreen=function(){if(G&&G.phase==='quests'){syncRar();return renderQuests()}return rs0()}}
+if(typeof modeClick==='function'){const mc0=modeClick;modeClick=function(act){
+  if(act==='m-quests'){ui.mm=false;CTX=null;G={phase:'quests'};render();return true}
+  if(act==='mm-menu'){ui.mm=!ui.mm;render();return true}
+  if(act==='mm-x'){if(bgHit(act)){ui.mm=false;render()}return true}
+  return mc0(act)}}
+
+/* a pick in the main-screen list closes the list, then the action runs */
+if(typeof document!=='undefined')document.addEventListener('click',e=>{if(ui.mm&&e.target.closest&&e.target.closest('.lb-pop [data-act]'))ui.mm=false},true);
+
+/* the pick screen: placement grid under the team bar, and the main button starts the battle */
+if(typeof setApp==='function'){const sa0=setApp;setApp=function(h){
+  const ph=typeof G!=='undefined'&&G?G.phase:null;
+  if(ph==='pick'&&Array.isArray(PLACE)){const t=document.createElement('template');t.innerHTML=h;const f=t.content;
+    const tb=f.querySelector('.tbar');if(tb)tb.insertAdjacentHTML('afterend',pkGridHtml());
+    const b=f.querySelector('[data-act="to-place"]');if(b){b.dataset.act='start';if(TEAM.length>=TN)b.textContent='В бой'}
+    const hint=[...f.querySelectorAll('.m')].find(x=>/«\+»: сразу в стаю/.test(x.textContent));if(hint)hint.remove();
+    h=t.innerHTML}
+  return sa0(h)}}
+
+if(typeof document!=='undefined'&&document.body){const st=document.createElement('style');st.textContent=`
+/* placement on the pick screen */
+.pkw{margin-top:6px;padding:6px 6px 7px;border-radius:14px;background:linear-gradient(#18243a,#111a29);border:1px solid #2F3F58}
+.pkhd{display:flex;gap:8px;align-items:baseline;margin:0 2px 5px}.pkhd .m{font-size:11px;line-height:1.2}
+.pkf{font-size:10px;font-weight:700;color:#FFB0A6;white-space:nowrap;letter-spacing:.04em}
+.pkg{display:grid;gap:4px}
+.pkc{position:relative;aspect-ratio:1/.78;border-radius:8px;background:#223047;border:1px solid #2F3F58;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0}
+.pkc.sel{border-color:var(--gold);box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 45%,transparent) inset}
+.pkc.dest{background:color-mix(in srgb,var(--ally) 22%,#223047);border-color:color-mix(in srgb,var(--ally) 60%,transparent)}
+.pkp{display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:26px}.pkp img{width:94%;height:94%;object-fit:contain}
+.pkb{display:flex;gap:6px;justify-content:flex-end;margin-top:6px}
+/* library cards */
+.lib .lcd{position:relative;display:flex;flex-direction:column;aspect-ratio:3/4.1;min-width:0;padding:0;border-radius:13px;overflow:hidden;text-align:left;color:var(--fg);
+  border:2px solid var(--qc);background:linear-gradient(#1d2c47,#0d1522);box-shadow:0 3px 10px #0008,inset 0 0 0 1px #ffffff10,inset 0 0 18px color-mix(in srgb,var(--qc) 25%,transparent)}
+.lcd-sc{position:absolute;inset:0;background:${SCN} bottom/100% 46% no-repeat,radial-gradient(70% 45% at 50% 40%,color-mix(in srgb,var(--ec) 42%,transparent),transparent 72%),radial-gradient(12px 12px at 78% 16%,#fff3c8aa,transparent 70%),linear-gradient(#22345a,#121c30 70%)}
+.lcd-q{position:absolute;left:6px;top:6px;width:13px;height:13px;transform:rotate(45deg);border-radius:3px;background:var(--qc);box-shadow:0 0 8px var(--qc),inset 0 0 0 2px #0006;z-index:2}
+.lcd-lv{position:absolute;right:5px;top:5px;z-index:2;font-size:11px;font-weight:800;padding:2px 6px;border-radius:7px;background:#0b111bcc;border:1px solid #ffffff22}
+.lcd-lk{position:absolute;right:5px;top:4px;z-index:2;font-size:14px}
+.lcd-art{position:relative;z-index:1;flex:1;display:flex;align-items:flex-end;justify-content:center;min-height:0;padding:16px 4px 0}
+.lcd-art .qa,.lcd-art .sil0{display:flex;align-items:flex-end;justify-content:center;width:100%;height:100%;font-size:44px}
+.lcd-art img{width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 4px 4px #000a)}
+.lcd.lock .lcd-art img{filter:brightness(0) drop-shadow(0 0 6px #7a8bb055);opacity:.75}
+.lcd-ft{position:relative;z-index:2;display:flex;flex-direction:column;gap:3px;padding:14px 6px 6px;margin-top:-14px;background:linear-gradient(transparent,#070c15ee 38%)}
+.lcd-nm{font-family:var(--disp,inherit);font-size:13px;font-weight:800;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px #000,0 0 6px #000}
+.lcd-row{display:flex;align-items:center;gap:3px;min-height:18px}
+.lcd-fm{flex:1;min-width:0;font-size:10px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lcd-el{display:flex;gap:2px}.lcd-e{display:flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;background:#0b111b;border:1px solid #ffffff26}.lcd-e .ei{width:13px;height:13px}
+.lcd-bar{display:flex;align-items:center;gap:3px}.lcd-bi{font-size:10px}
+.lcd-tr{flex:1;height:5px;border-radius:3px;background:#ffffff18;overflow:hidden}.lcd-tr i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#3FA9F5,#6FE0FF)}
+.lcd-bar b{font-size:9.5px;font-weight:700;color:var(--mut)}
+.lcd.rdy{box-shadow:0 0 0 2px #E9C46A88,0 0 14px #E9C46A66}.lcd.rdy .lcd-tr i{background:linear-gradient(90deg,#E9C46A,#FFE59A)}
+.lcd-up{position:absolute;left:50%;top:5px;transform:translateX(-50%);z-index:3;font-size:11px;font-weight:900;color:#1A1206;background:#E9C46A;border-radius:6px;padding:1px 6px}
+.lcd.lock{border-color:#46526A}.lcd.lock .lcd-sc{filter:saturate(.3) brightness(.7)}
+/* main screen */
+.lb-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.lb-me{display:flex;align-items:center;gap:8px}.lb-me b{display:block;font-size:15px;line-height:1.1}
+.lb-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:21px;background:radial-gradient(circle at 35% 30%,#3a5584,#16233a);border:2px solid var(--gold);box-shadow:0 0 10px #E9C46A44}
+.lb-lg{font-size:11px;color:var(--mut)}
+.lb-r{display:flex;align-items:center;gap:6px}
+.lb-cur{padding:5px 11px;border-radius:999px;background:#0b111b;border:1px solid #5AA9F055;font-size:13px}.lb-cur b{color:#BFE3FF}
+.lb-mb{font-size:16px;padding:6px 12px}
+.lb-hero{position:relative;height:210px;border-radius:18px;overflow:hidden;border:1px solid #33456a;
+  background:${SCN} bottom/100% 55% no-repeat,radial-gradient(36px 36px at 80% 22%,#fff6d0,#f3dc9a 45%,transparent 72%),radial-gradient(90px 90px at 80% 22%,#f3dc9a33,transparent 70%),
+  radial-gradient(1.5px 1.5px at 12% 18%,#fff,transparent),radial-gradient(1.5px 1.5px at 30% 9%,#fff,transparent),radial-gradient(1px 1px at 46% 24%,#fff,transparent),radial-gradient(1.5px 1.5px at 62% 12%,#fff,transparent),radial-gradient(1px 1px at 92% 40%,#fff,transparent),radial-gradient(1px 1px at 22% 36%,#fff,transparent),
+  linear-gradient(#1a2550,#2a2a5c 45%,#162038)}
+.lb-logo{position:absolute;left:0;right:0;top:12px;text-align:center;font-family:var(--disp,inherit);font-size:34px;font-weight:900;letter-spacing:.02em;color:#FFE7A3;
+  text-shadow:0 2px 0 #9a5a12,0 4px 0 #4a2a08,0 0 18px #ffb84a66;-webkit-text-stroke:1px #6a3c0c}
+.lb-team{position:absolute;left:0;right:0;bottom:22px;display:flex;justify-content:center;align-items:flex-end;gap:2px;z-index:1}
+.lb-pet{display:flex;align-items:flex-end;justify-content:center;width:96px;height:100px;font-size:52px;animation:lbB 3.2s ease-in-out infinite}
+.lb-pet.p1{width:118px;height:122px;animation-delay:-1.1s}.lb-pet.p2{animation-delay:-2s}
+.lb-pet img{width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 6px 5px #000b)}
+@keyframes lbB{50%{transform:translateY(-4px)}}
+.lb-plat{position:absolute;left:12%;right:12%;bottom:12px;height:26px;border-radius:50%;background:radial-gradient(closest-side,#7fb8ff55,#3b5c9a33 60%,transparent)}
+.lb-go{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 16px;border-radius:16px;color:#2A1A05;
+  background:linear-gradient(#FFE08A,#E9B44A 55%,#C98A2A);border:2px solid #FFF0B8;box-shadow:0 4px 0 #8a5a14,0 8px 16px #0008}
+.lb-go:active{transform:translateY(2px);box-shadow:0 2px 0 #8a5a14,0 4px 10px #0008}
+.lb-goi{font-size:30px}.lb-go b{display:block;font-size:19px;font-weight:900}.lb-go span span{font-size:12px;opacity:.8}
+.mtg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mt{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 9px;border-radius:14px;background:linear-gradient(#22324d,#172234);border:1px solid #33466a;box-shadow:0 3px 0 #0c1320;color:var(--fg)}
+.mt:active{transform:translateY(2px);box-shadow:0 1px 0 #0c1320}
+.mt-ic{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:25px;background:radial-gradient(circle at 35% 30%,#3a5584,#121c2e);border:2px solid #4a6290}
+.mt b{font-size:12.5px;line-height:1.1;text-align:center}.mt-s{font-size:10px;color:var(--mut);text-align:center;line-height:1.15}
+.lb-ver{text-align:center;font-size:10px;color:var(--mut);opacity:.7;margin-top:2px}
+.lb-nav{position:sticky;bottom:6px;z-index:5;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:6px;border-radius:18px;background:#0e1626f0;border:1px solid #33466a;box-shadow:0 -4px 16px #0009;margin-top:4px}
+.lb-nav button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;border-radius:12px;color:var(--fg);font-size:12px;font-weight:700;background:linear-gradient(#22324d,#172234)}
+.lb-nav small{font-size:9.5px;font-weight:400;color:var(--mut)}
+.lb-ni{position:relative;font-size:24px;line-height:1.1}.lb-ni .qdot{position:absolute;right:-12px;top:-2px}
+.lb-pop .lb-pv{font-size:10px;text-align:center;padding:4px 0 0}
+`;document.body.appendChild(st)}
 // perspective field: the tilted board keeps its flat layout height, so pull it up by the difference to reclaim the freed space
 function fitBoard(){for(const b of document.querySelectorAll('.board')){b.style.marginTop='';const lh=b.offsetHeight,vh=b.getBoundingClientRect().height;b.style.marginTop=(-(lh-vh)+4)+'px'}}
 if(typeof MutationObserver!=='undefined')new MutationObserver(()=>{for(const b of document.querySelectorAll('.board'))if(!b.dataset.fit){b.dataset.fit=1;fitBoard();break}}).observe(document.body,{childList:true,subtree:true});
