@@ -3,6 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Бой стаи</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Бой стаи">
+<meta name="theme-color" content="#16233a">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
 <title>Бой стаи</title>
@@ -733,7 +741,7 @@ body.dragging .hsheet,body.dragging .hs-back{opacity:0;pointer-events:none}
 <div id="app"></div>
 
 <script>
-const VER='0.37.0',BUILD=127;
+const VER='0.37.1',BUILD=128;
 /* ART-BEGIN: creatures drawn in code (SVG + CSS idle animation), one file per family */
 const ARTS={};function ART_ADD(o){Object.assign(ARTS,o)}
 ART_ADD({
@@ -5244,7 +5252,11 @@ const DN_MUL=1.5;
  for(const k in DNK){if(DNK[k])delete T[DNK[k]];delete DNK[k]}}
 /* ---------- 0.36.1 Anton: a button to put the game in full screen and back (⛶ in the menu and battle top bars) ---------- */
 const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+/* 0.37.1: iPhone Safari has no page fullscreen; the way there is «На экран Домой» (the GitHub copy opens as an app) */
+const fsIOS=()=>/iPhone|iPod|iPad/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 function fsToggle(){const d=document,e=d.documentElement;
+  if(navigator.standalone){msg('Игра уже открыта на весь экран.');return}
+  if(fsIOS()&&!fsEl()&&!(e.requestFullscreen||e.webkitRequestFullscreen)){msg('На iPhone весь экран так не включить. Открой игру в Safari по ссылке alanvoll.github.io/TD, нажми «Поделиться» → «На экран Домой» и запускай с иконки.');return}
   try{if(fsEl()){(d.exitFullscreen||d.webkitExitFullscreen).call(d);return}
     const req=e.requestFullscreen||e.webkitRequestFullscreen;if(!req)throw 0;
     const r=req.call(e,{navigationUI:'hide'});if(r&&r.catch)r.catch(()=>msg('Браузер не дал включить весь экран.'))}
