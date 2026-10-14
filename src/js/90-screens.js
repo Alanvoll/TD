@@ -48,6 +48,7 @@ function renderQuests(){const qd=questsToday().filter(q=>q.p>=QDEF[q.k].g&&!q.cl
 if(typeof renderScreen==='function'){const rs0=renderScreen;renderScreen=function(){if(G&&G.phase==='quests'){syncRar();return renderQuests()}return rs0()}}
 if(typeof modeClick==='function'){const mc0=modeClick;modeClick=function(act){
   if(act==='m-quests'){ui.mm=false;CTX=null;G={phase:'quests'};render();return true}
+  if(/^lt-[cgt]$/.test(act)){ui.ltab=act[3];render();return true}
   if(act==='lfl-open'){ui.lflt=true;render();return true}
   if(act==='lfl-x'){if(bgHit(act)||(LASTE&&LASTE.target&&LASTE.target.closest&&LASTE.target.closest('button[data-act="lfl-x"]'))){ui.lflt=false;render()}return true}
   if(act==='mm-menu'){ui.mm=!ui.mm;render();return true}
@@ -76,9 +77,35 @@ if(typeof setApp==='function'){const sa0=setApp;setApp=function(h){
         bx.insertAdjacentHTML('beforeend','<div class="acts"><button class="btn main" data-act="lfl-x">Готово</button></div>');f.appendChild(ov)}
       else ms.forEach(m=>m.remove());
       h=t.innerHTML}}
-  return sa0(h)}}
+  if(ph==='lib'&&ui.lp!=null){const t=document.createElement('template');t.innerHTML=h;const bx=t.content.querySelector('.lsheet');if(bx){lsTabs(bx);h=t.innerHTML}}
+  const r=sa0(h);if(ph==='lib'&&ui.lp!=null)lsFit();return r}}
+/* Anton 20:37: the creature window fits one screen: a short header, then tabs (cards · growth · traits); if it is still too tall the tab content shrinks to fit */
+function lsTabs(bx){const kids=[...bx.children],q=sel=>kids.filter(k=>k.matches(sel));
+  const hero=q('.lhero')[0],xp=q('.xpb')[0],stt=q('.stt')[0],qrow=q('.qrow')[0],ups=q('.qup'),fx=q('.fxr'),slots=q('.slot'),acts=q('.acts')[0];
+  if(!hero||!slots.length)return;
+  const qcap=qrow&&qrow.nextElementSibling&&qrow.nextElementSibling.matches('.m')?qrow.nextElementSibling:null;
+  const lock=!xp?kids.find(k=>k.matches('.m')&&/осколков/.test(k.textContent)):null;
+  const note=kids.filter(k=>k.matches('.m')).pop();
+  const info=hero.lastElementChild;if(info){if(stt)info.appendChild(stt);if(xp)info.appendChild(xp);if(lock)info.appendChild(lock)}
+  const tab=ui.ltab||'c',rdy=bx.querySelector('[data-act^="qup-"]:not([disabled])');
+  const tabs=document.createElement('div');tabs.className='ls-tabs';tabs.innerHTML=`<button class="${tab==='c'?'on':''}" data-act="lt-c">Карты</button><button class="${tab==='g'?'on':''}" data-act="lt-g">Прокачка${rdy?' <span class="qdot">!</span>':''}</button><button class="${tab==='t'?'on':''}" data-act="lt-t">Особенности</button>`;
+  const pn=document.createElement('div');pn.className='ls-pn';
+  if(tab==='c'){pn.append(...slots);pn.insertAdjacentHTML('beforeend','<div class="m ls-cap">Вторая карта ячейки открывается качеством. Тапни карту, чтобы выбрать.</div>')}
+  else if(tab==='g'){if(qrow)pn.appendChild(qrow);if(qcap)pn.appendChild(qcap);pn.append(...ups)}
+  else{pn.append(...fx);if(note&&note!==lock&&note!==qcap)pn.appendChild(note)}
+  bx.replaceChildren(hero,tabs,pn);if(acts)bx.appendChild(acts)}
+function lsFit(){const bx=document.querySelector('.lsheet'),pn=bx&&bx.querySelector('.ls-pn');if(!pn)return;pn.style.zoom='';
+  const av=innerHeight-24;for(let z=1;bx.scrollHeight>av&&z>.56;){z-=.03;pn.style.zoom=z.toFixed(2)}}
+if(typeof addEventListener==='function')addEventListener('resize',()=>{if(typeof G!=='undefined'&&G&&G.phase==='lib'&&ui.lp!=null)lsFit()});
 
 if(typeof document!=='undefined'&&document.body){const st=document.createElement('style');st.textContent=`
+.lsheet.psheet{max-height:calc(100dvh - 24px);overflow:hidden;display:flex;flex-direction:column;gap:8px}
+.lsheet .lhero{gap:10px}.lsheet .lbig{width:92px;height:92px}.lsheet .lhero h2{margin:0}.lsheet .lhero>div:last-child{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.lsheet .stt{margin:2px 0 0;gap:8px;flex-wrap:wrap;font-size:13px}.lsheet .xpb{margin:2px 0 0}
+.ls-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:3px;border-radius:12px;background:#0b111b}
+.ls-tabs button{padding:7px 2px;border-radius:9px;font-size:12.5px;font-weight:700;color:var(--mut)}.ls-tabs button.on{background:var(--panel2);color:var(--fg);box-shadow:inset 0 0 0 1px var(--qc)}
+.ls-pn{display:flex;flex-direction:column;gap:8px;min-height:0}.ls-pn .slot{display:flex;flex-direction:column;gap:3px}.ls-cap{font-size:11px;text-align:center}
+.lsheet>.acts{margin-top:0}
 .lfb{display:flex;gap:6px;flex-wrap:wrap}
 .lflbox h4{margin:10px 0 4px}.lflbox .modes{flex-wrap:wrap}
 /* placement on the pick screen */

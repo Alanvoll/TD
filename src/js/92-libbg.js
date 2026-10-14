@@ -74,13 +74,17 @@ function libInk(i){const p=PETS[i];let sd=(libBgHash(p.n+'#ink')||3);const R=()=
     seg(W-m-r,H-m,m+r,H-m,4);pts.push([m+r*.3+J(),H-m-r*.3+J()]);seg(m,H-m-r,m,m+r,5);pts.push([m+r*.3+J(),m+r*.3+J()]);
     let d=`M${f(pts[0][0])} ${f(pts[0][1])}`;for(let k=1;k<=pts.length;k++){const a=pts[k-1],b=pts[k%pts.length];d+=` Q${f(a[0])} ${f(a[1])} ${f((a[0]+b[0])/2)} ${f((a[1]+b[1])/2)}`}
     const o=R()*1.5;return d+` L${f(pts[0][0]+o)} ${f(pts[0][1]-o*.4)}`};
-  return`<svg class="lcd-ink" viewBox="0 0 100 137" preserveAspectRatio="none" aria-hidden="true"><path d="${path(2.2,1.6)}" stroke="#0a0d18" stroke-width="5" opacity=".75"/><path d="${path(2.2,1.4)}" stroke="var(--qc)" stroke-width="2.6"/><path d="${path(3.6,2.2)}" stroke="var(--qc)" stroke-width="1" opacity=".55"/></svg>`}
+  const main=path(2.6,1.4),wear=()=>{let d=[];for(let k=0;k<14;k++)d.push(f(R()*1.6+.4),f(R()*30+14));return d.join(' ')},gaps=()=>{let d=[];for(let k=0;k<14;k++)d.push(f(R()*26+10),f(R()*2+.6));return d.join(' ')},
+    scr=()=>{let o='';for(let k=0;k<5;k++){const side=Math.floor(R()*4),t=R()*.8+.1,x=side===0||side===2?6+t*88:side===1?97.4:2.6,y=side===1||side===3?8+t*121:side===2?134.4:2.6,l=R()*3+1.5,v=side===1||side===3;
+      o+=`<path d="M${f(x-(v?.6:l/2))} ${f(y-(v?l/2:.6))} L${f(x+(v?.6:l/2))} ${f(y+(v?l/2:.6))}" stroke="#fff6dc" stroke-width=".8" opacity="${f(R()*.35+.25)}"/>`}return o};
+  return`<svg class="lcd-ink" viewBox="0 0 100 137" preserveAspectRatio="none" aria-hidden="true"><path d="${path(2.6,1.6)}" stroke="#0a0d18" stroke-width="6.5" opacity=".75"/><path d="${main}" stroke="var(--qc)" stroke-width="3.8"/><path d="${main}" stroke="#1a1e2c" stroke-width="2.6" stroke-dasharray="${wear()}" opacity=".8"/><path d="${main}" stroke="#000" stroke-width="1" stroke-dasharray="${wear()}" opacity=".3"/><path d="${path(4.6,2.2)}" stroke="var(--qc)" stroke-width="1" opacity=".5" stroke-dasharray="${gaps()}"/>${scr()}</svg>`}
 
 if(typeof document!=='undefined'&&document.body){const st=document.createElement('style');st.textContent=`
 .lbg{position:absolute;inset:0;display:block}.lbg svg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .lib .lcd{border-color:transparent!important;border-width:0!important}
 .lib .lcd-ft{padding:14px 8px 8px}.lib .lcd-lv{right:8px;top:7px}.lib .lcd-lk{right:8px;top:6px}.lib .lcd-q{left:9px;top:9px}
 .lcd-ink{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;fill:none;overflow:visible}.lcd-ink path{vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}
+.lib .lcd.rdy{box-shadow:0 3px 10px #0008!important}
 .lcd.lock .lbg{filter:saturate(.25) brightness(.55)}
 `;document.body.appendChild(st)}
 // both pictures depend only on the creature: draw each once
