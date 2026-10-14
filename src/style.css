@@ -693,7 +693,7 @@ body.dragging .hsheet,body.dragging .hs-back{opacity:0;pointer-events:none}
 .qc.lt{opacity:.55;transform:translateX(3px)}
 .qc.lt b::after{content:"\2193";margin-left:1px;color:var(--mut)}
 /* ===== perspective field (Anton 2026-10-13: 35° + medium, one shared plane) ===== */
-:root{--tilt:35deg;--bpersp:950px}
+:root{--tilt:40deg;--bpersp:700px}
 .board{display:flex;flex-direction:column;gap:5px}
 .board{transform:perspective(var(--bpersp)) rotateX(var(--tilt));transform-origin:50% 100%;transform-style:preserve-3d}
 .board .grid.field{transform-style:preserve-3d;contain:none}

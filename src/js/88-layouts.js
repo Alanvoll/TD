@@ -150,7 +150,7 @@ setApp=function(h){
 function layOver(){const r=app.getBoundingClientRect(),pb=parseFloat(getComputedStyle(document.body).paddingBottom)||0;return Math.ceil(r.bottom+pb-innerHeight)}
 function layFit(on){const B=document.body;
   if(!on){if(B.dataset.bfit){delete B.dataset.bfit;delete B.dataset.hcl;delete B.dataset.tight;B.style.removeProperty('--bw')}return}
-  B.dataset.bfit=1;delete B.dataset.tight;
+  B.dataset.bfit=1;delete B.dataset.tight;B.dataset.tn=typeof TN!=='undefined'?TN:5;
   const bd=app.querySelector('.board'),refit=()=>{if(bd&&typeof fitBoard==='function')fitBoard()};
   // shrink the board (down to minW % of the width) until the screen fits; true when it does
   const squeeze=minW=>{let o=layOver();if(o<=0)return true;if(!bd)return false;const h=bd.getBoundingClientRect().height;if(!(h>0))return false;
@@ -363,6 +363,10 @@ body[data-bfit]{box-sizing:border-box;margin:0;height:100dvh;overflow:hidden;ove
 body[data-bfit] #app{min-height:100%}
 body[data-bfit] .board{width:var(--bw,100%);margin-inline:auto}
 body[data-bfit][data-tight] #app{gap:5px}
+/* Anton 0.38.3: in «Бой четвёрок» the hand has fewer cards, so it sits in the middle */
+body[data-bfit][data-tn="4"] .hand.mini:not(.lpl){justify-content:center}
+body[data-bfit][data-tn="4"]:not([data-lay=drawer]) .hgrid{display:flex;flex-wrap:wrap;justify-content:center}
+body[data-bfit][data-tn="4"]:not([data-lay=drawer]) .hgrid>.card{flex:0 0 calc((100% - 14px)/3);min-width:0}
 body[data-bfit][data-tight] .lplan .hand.mini.lpl{min-height:0;padding-top:5px}
 body[data-bfit][data-tight] .lplan .hand.mini.lpl>.card{zoom:.72}
 body[data-bfit][data-lay=thumb] #app{min-height:100%}
