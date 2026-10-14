@@ -23,7 +23,7 @@ function qChip(x,st){
   const S=x.S,side=S===G.P?'me':'op',t=x.card?T[x.card.t]:null,pp=id=>id!=null?pet(S,id):null;
   if(x.kind==='burn'){const c=pp(x.card.pet);return`<div class="qc dn ${side} ${st}">▼<b>${x.sp}</b>${c?petIc(c,1):x.card.t==='step'?'👣':''}</div>`}
   if(isMoveAct(x)){const q=pp(x.petT);return`<div class="qc mv ${side} ${st}"><b>${x.sp}</b>👣${q?petIc(q,1):''}</div>`}
-  const c=pp(x.card.pet);return`<div class="qc ${side} ${st}"><b>${x.sp}</b>${c?petIc(c,1):''}<i>${t.n}</i></div>`;
+  const c=pp(x.card.pet);return`<div class="qc ${side} ${st}">▲<b>${x.sp}</b>${c?petIc(c,1):''}<i>${t.n}</i></div>`;
 }
 // timeline shown instead of the hand while a turn resolves: one row per side (enemy on top, you below), ▼ chips dashed.
 // Time mode: a column per moment something fires (▼ before ▲ inside a cell). Speed mode: a column per action in order.

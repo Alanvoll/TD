@@ -134,14 +134,15 @@ function lbyTeam(){const own=i=>PETS[i]&&mp(PETS[i].n).un;let l=(META.lastQ||[])
   if(l.length<3)l=l.concat(PETS.map((p,i)=>i).filter(i=>own(i)&&!l.includes(i)));return l.slice(0,3)}
 const lbyFF=[...Array(8).keys()].map(i=>`<i style="left:${(i*37+11)%100}%;top:${48+(i*23)%40}%;animation-delay:${-(i*1.7)%9}s;animation-duration:${7+i%5}s"></i>`).join('');
 
+/* 0.39.5 Anton 21:16 «слишком перегружен, сделай проще»: only the pack, one big «Забег» and two quick fights stay on the screen;
+   the six other places (Лига, Логова, Задачи, Задания, Награды, Кодекс) moved behind «Ещё» in the bottom bar; no fireflies, fog or twinkles */
 renderMenu=function(){
   const lg=LEAGUES[lgOf(rk().pts)],up=PETS.filter(p=>canQUp(p.n)).length,qr=questReady(),ar=achReady();
   const dot=n=>n?`<span class="lby-dot">${n}</span>`:'';
   const rb=(act,ic,t,n)=>`<button class="lby-rb" data-act="${act}"><span class="lby-rbi">${LB_MD}${LB_IC[ic]}${dot(n)}</span><span class="lby-rbt">${t}</span></button>`;
-  const t=lbyTeam(),g=typeof goalNext==='function'?goalNext():null,R=META.run;
-  const gic=g?(g.a==='m-run'?'compass':g.a==='m-lib'?'star':'scroll'):'';
+  const t=lbyTeam(),R=META.run;
   setApp(`<div class="lby">
-  <div class="lby-bg"><div class="lby-scene"></div><div class="lby-tw">${LBY_TW}</div><div class="lby-fog f1"></div><div class="lby-fog f2"></div><div class="lby-ff">${lbyFF}</div></div>
+  <div class="lby-bg"><div class="lby-scene"></div></div>
   <div class="lby-in">
     <div class="lby-hud">
       <button class="lby-me" data-act="m-rank"><span class="lby-av">${LB_MD}${LB_IC.paw}</span><span class="lby-mt">${lbPlate('Wood')}<b>${lg.ic} ${lg.n}</b><span>${plN(rk().pts,'очко','очка','очков',1)}</span></span></button>
@@ -150,27 +151,31 @@ renderMenu=function(){
     </div>
     <div class="lby-logo"><div class="lby-lt">Бой стаи</div><div class="lby-ver">v${VER} · сборка ${BUILD}</div></div>
     <div class="lby-stage">
-      <div class="lby-side">${rb('m-rank','trophy','Лига',0)}${rb('m-lair','crown','Логова',0)}${rb('m-puz','puzzle','Задачи',0)}</div>
-      <button class="lby-arena" data-act="m-lib" aria-label="Библиотека"><span class="lby-beam"></span><span class="lby-ring"><i></i></span>
-        ${t.map((i,k)=>`<span class="lby-pet q${k}"><span class="lby-bob"><span class="lby-sh"></span>${petIc(PETS[i],1)}</span></span>`).join('')}</button>
-      <div class="lby-side">${rb('m-quests','scroll','Задания',qr)}${rb('m-ach','medal','Награды',ar)}${rb('m-codex','book','Кодекс',0)}</div>
+      <button class="lby-arena" data-act="m-lib" aria-label="Стая"><span class="lby-ring"><i></i></span>
+        ${t.map((i,k)=>`<span class="lby-pet q${k}"><span class="lby-sh"></span>${petIc(PETS[i],1)}</span>`).join('')}</button>
     </div>
-    ${g?`<button class="lby-goal" data-act="${g.a}">${lbPlate('Parch')}<span class="lby-gi">${LB_IC[gic]}</span><span class="lby-gt">${g.t}</span></button>`:''}
+    <button class="lby-go" data-act="m-run">${lbPlate('Gold')}<span class="lby-goi">${LB_IC.compass}</span><span class="lby-got"><b${R?' class="lby-cont"':''}>${R?'Продолжить забег':'Забег'}</b><small>${R?`акт ${R.act+1} · ❤ ${R.lives}`:'бои, находки, боссы'}</small></span></button>
     <div class="lby-play">
       <button class="lby-sb" data-act="m-quick">${lbPlate('Slate')}${LB_IC.swords}<b>Быстрый бой</b></button>
-      <button class="lby-go" data-act="m-run">${lbPlate('Gold')}<span class="lby-shine"></span><span class="lby-goi">${LB_IC.compass}</span><span class="lby-got"><b${R?' class="lby-cont"':''}>${R?'Продолжить':'Забег'}</b><small>${R?`акт ${R.act+1} · ❤ ${R.lives}`:'бои, находки, боссы'}</small></span></button>
       <button class="lby-sb" data-act="m-quick4">${lbPlate('Slate')}<span class="lby-4">4</span><b>Бой четвёрок</b></button>
     </div>
     <div class="lby-nav">${lbPlate('Wood')}
       <button data-act="m-lib"><span class="lby-ni">${LB_IC.paw}${dot(up)}</span><span class="lby-nt">Стая</span></button>
       <button class="on" data-act="mm-home">${lbPlate('Slate')}<span class="lby-onr"></span><span class="lby-ni">${LB_IC.swords}</span><span class="lby-nt">Бой</span></button>
       <button data-act="m-shop"><span class="lby-ni">${LB_IC.bag}</span><span class="lby-nt">Лавка</span></button>
+      <button class="${ui.lmore?'op':''}" data-act="mm-more"><span class="lby-ni">${LB_IC.scroll}${dot(qr+ar)}</span><span class="lby-nt">Ещё</span></button>
     </div>
   </div>
+  ${ui.lmore?`<div class="lby-more" data-act="mm-morex"><div class="lby-sheet">
+    ${rb('m-quests','scroll','Задания',qr)}${rb('m-ach','medal','Награды',ar)}${rb('m-rank','trophy','Лига',0)}
+    ${rb('m-lair','crown','Логова',0)}${rb('m-puz','puzzle','Задачи',0)}${rb('m-codex','book','Кодекс',0)}</div></div>`:''}
   ${ui.mm?`<div class="lmenu-over" data-act="mm-x"><div class="lmenu-pop lb-pop"><button class="pill lmi" data-act="fs">⛶<span class="lmi-l">Весь экран</span></button><button class="pill lmi" data-act="lay-open">🎛<span class="lmi-l">Вид экрана боя</span></button><button class="pill lmi" data-act="m-cheat">🛠<span class="lmi-l">Читы</span></button><span class="m lb-pv">v${VER} · сборка ${BUILD}</span></div></div>`:''}
   </div>`)};
 if(typeof modeClick==='function'){const mc1=modeClick;modeClick=function(act){
   if(act==='mm-home')return true;
+  if(act==='mm-more'){ui.lmore=!ui.lmore;render();return true}
+  if(act==='mm-morex'){ui.lmore=false;render();return true}
+  if(ui.lmore)ui.lmore=false;
   if(act==='m-shop'){ui.mm=false;CTX=null;G={phase:'lib'};ui.lp=null;ui.shop=true;render();return true}
   return mc1(act)}}
 // the lobby owns the whole screen: no page scroll behind it
@@ -270,6 +275,23 @@ body.lby-on{overflow:hidden;height:100dvh}
   .lby-goal{padding:4px 12px 5px 6px;font-size:13px}.lby-gi{width:24px;height:24px}.lby-play{margin-top:6px}.lby-nav{margin-top:6px}.lby-ni{width:26px;height:26px}.lby-goi{width:34px;height:34px}}
 @media (max-width:370px){.lby-side{width:58px}.lby-sb{width:70px}.lby-go{gap:5px;padding-left:6px;padding-right:6px}.lby-goi{width:32px;height:32px}.lby-got small{font-size:12px}}
 @media (prefers-reduced-motion:reduce){.lby *,.lby{animation:none!important}}
+/* 0.39.5 simpler layout */
+.lby-stage{margin-top:0}.lby-arena{width:100%}
+.lby-ring{width:min(92cqw,60cqh)}.lby-ring i{animation:none}
+.lby-pet{animation:none}
+.lby-pet.q0{bottom:4cqh;width:min(46cqw,52cqh);height:min(46cqw,52cqh)}
+.lby-pet.q1,.lby-pet.q2{bottom:calc(6cqh + min(46cqw,52cqh)*.55);width:min(30cqw,34cqh);height:min(30cqw,34cqh)}
+.lby-pet.q1{left:8cqw}.lby-pet.q2{right:8cqw}
+.lby .lby-go{flex:none;width:100%;margin-top:6px;padding:12px 14px 13px;gap:10px}
+.lby .lby-goi{width:42px;height:42px}.lby-got b{font-size:30px}.lby-got b.lby-cont{font-size:24px}.lby-got small{font-size:13px}
+.lby .lby-play{margin-top:8px}
+.lby .lby-sb{flex:1;width:auto;flex-direction:row;gap:8px;padding:9px 8px 10px}
+.lby .lby-sb b{font-size:14px;white-space:nowrap}.lby .lby-sb .lb-ic{width:26px;height:26px}.lby .lby-4{width:24px;height:24px;font-size:16px}
+.lby-nav{grid-template-columns:repeat(4,1fr)}
+.lby-more{position:absolute;inset:0;z-index:5;display:flex;align-items:flex-end;justify-content:center;background:#05040ca6;padding:0 12px max(78px,calc(env(safe-area-inset-bottom) + 78px))}
+.lby-sheet{position:relative;display:grid;background:linear-gradient(#2d2650,#17132c);border:2.5px solid #100b1a;border-radius:14px 10px 16px 12px;box-shadow:inset 0 1.5px 0 #b9a8ff55,0 8px 20px #000a;grid-template-columns:repeat(3,1fr);gap:14px 8px;width:100%;max-width:436px;padding:18px 10px 16px}
+.lby-sheet>.lby-rb{position:relative;z-index:1}
+@media (max-height:700px){.lby .lby-go{padding:9px 12px 10px}.lby .lby-goi{width:36px;height:36px}.lby-got b{font-size:26px}.lby .lby-sb{padding:7px 8px 8px}.lby-more{padding-bottom:70px}}
 `;document.body.appendChild(st)}
 // the first screen is drawn before this file loads: draw the lobby right away
 try{const tp=document.createElement('template');if(tp.content&&typeof tp.content.querySelector==='function'&&typeof G!=='undefined'&&G&&G.phase==='menu'&&typeof app!=='undefined'&&app&&typeof render==='function')render()}catch(e){}

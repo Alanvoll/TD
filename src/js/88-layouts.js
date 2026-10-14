@@ -85,7 +85,7 @@ function layTx(f){
   if(L==='big'&&hand){const n=hand.children.length;hand.classList.remove('scr');hand.classList.add('lybig');hand.style.setProperty('--cols',Math.max(2,Math.ceil(n/2)))}
   if(L==='fan'&&hand){const els=[...hand.children],n=els.length,m=(n-1)/2;
     hand.classList.add('lfan');hand.style.setProperty('--ov',n>1?`calc((100% - 46px - ${n}*var(--fw))/${n-1})`:'0px');
-    els.forEach((e,i)=>{const up=e.dataset.card===ui.lfan;e.style.setProperty('--r',(up?0:(i-m)*2.5)+'deg');e.style.setProperty('--y',(up?-22:Math.abs(i-m)*Math.abs(i-m)*1.6)+'px');e.style.setProperty('--s',up?1.3:1);e.style.zIndex=up?30:i+1;if(up)e.classList.add('lup')})}
+    els.forEach((e,i)=>{const up=e.dataset.card===ui.lfan;e.style.setProperty('--r',(up?0:(i-m)*2.5)+'deg');e.style.setProperty('--y',(up?-22:Math.abs(i-m)*Math.abs(i-m)*1.6)+'px');e.style.setProperty('--s',up?1.3:1);e.style.zIndex=up?30:i+1;if(up)e.classList.add('lup');layPlayed(e,up)})}
   if((L==='list'||L==='grid')&&hand){const cs=cardsOf();hand.classList.remove('scr');hand.classList.add(L==='list'?'lwl':'lgr');
     hand.innerHTML=cs.map(c=>L==='list'?wideCard(c):cardHtml(c)).join('');
     // grid: the creature icon moves next to the name, the big art row goes, so three cards fit in a row and two rows on screen
@@ -123,6 +123,12 @@ function layTx(f){
     if(bact)bact.replaceWith(tb);else if(acts)acts.parentNode.insertBefore(tb,acts);
     const el=kids.find(e=>e.classList.contains('sb-el'));if(el)el.classList.add('lbot')}
 }
+
+/* 0.39.5 Anton: a played card must look played — it sinks lower, goes grey, and a stamp on the played half says ▲/▼ and its number */
+function layPlayed(e,up){if(!e.classList.contains('pl')&&!e.classList.contains('burned'))return;
+  const dn=e.classList.contains('burned'),b=e.querySelector('.badge'),no=b?b.textContent.replace(/[▲▼]/g,''):'';
+  e.classList.add('lpd');if(!up){e.style.setProperty('--y',(parseFloat(e.style.getPropertyValue('--y'))||0)+26+'px');e.style.setProperty('--s',.94)}
+  const st=document.createElement('div');st.className='lpst '+(dn?'d':'u');st.innerHTML=`<b>${dn?'▼':'▲'}${no}</b><span>сыграна</span>`;e.appendChild(st)}
 
 /* ----- the switcher ----- */
 function layPickHtml(){return`<div class="over lay-over" data-act="lay-close"><div class="box"><div class="boxhd"><h2>Вид экрана боя</h2><button class="xb" data-act="lay-close" aria-label="Закрыть">✕</button></div>
@@ -289,6 +295,13 @@ body[data-lay=fan] .hand.mini.lfan>.card,body[data-lay=fan] .hand.mini.lfan>.car
 body[data-lay=fan] .hand.mini.lfan>.card.burned{filter:brightness(.55) saturate(.45)}
 body[data-lay=fan] .hand.mini.lfan>.card.pl{filter:brightness(.7)}
 body[data-lay=fan] .hand.mini.lfan>.card.lup{filter:none}
+body[data-lay=fan] .hand.mini.lfan>.card.lpd{filter:none;border-color:#5B6577!important;border-style:dashed!important;background:#151B26!important}
+body[data-lay=fan] .hand.mini.lfan>.card.lpd>*:not(.lpst){filter:grayscale(1) brightness(.42)}
+body[data-lay=fan] .hand.mini.lfan>.card.lpd>.badge{display:none}
+body[data-lay=fan] .hand.mini.lfan>.card.lpd.lup>*:not(.lpst){filter:grayscale(.6) brightness(.7)}
+.lpst{position:absolute;left:3px;width:46px;z-index:5;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 0 3px;border-radius:9px;background:#0E1420ee;border:2px solid var(--gold);box-shadow:0 2px 8px #000c;pointer-events:none;color:var(--gold);line-height:1}
+.lpst.u{top:14%}.lpst.d{bottom:12%;border-color:#4FC79A;color:#8FE3BF}
+.lpst b{font-size:17px;font-weight:800}.lpst span{font-size:9px;font-weight:700;letter-spacing:.2px}
 
 body .lyghost{display:block!important;overflow:visible;padding:0;contain:none}body .lyghost>.card{width:64px;height:100px!important}
 /* лупа */
