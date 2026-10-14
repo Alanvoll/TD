@@ -217,17 +217,23 @@ function tlHtml(){
   return`<div class="tl tl1"><div class="tl-l"><div class="tl-n"><span class="tl-op">● Враг</span><br><span class="tl-me">● Ты</span></div><div class="tl-n tl-h">инициатива</div></div><div class="tl-s" id="tls"><div class="tl-g" style="grid-template-columns:repeat(${Math.max(1,q.length)},minmax(30px,auto))">${g}</div></div></div><div class="tl-cap">${cap||'&nbsp;'}</div>`};
 /* 0.29.0: healing and shield absorption in «Итоги боя». Heal from a card goes to the creature whose card it is; passive heals to the healed creature. Absorbed = damage eaten by the creature's own shield */
 function bstO(k){const b=G.bst=G.bst||{};return b[k]=b[k]||{d:0,t:0,k:0,h:0,a:0}}
-function bstHeal(S,p,h,self){if(SIMU||!G||!h)return;const a=!self&&BST_A&&BST_A.S===S?BST_A:{S,id:p.id};const o=bstO((a.S===G.P?'P':'B')+a.id);o.h=(o.h||0)+h}
-function bstAbs(S,p,v){if(SIMU||!G||!v)return;const o=bstO((S===G.P?'P':'B')+p.id);o.a=(o.a||0)+v}
+function bstHeal(S,p,h,self,by){if(SIMU||!G||!h)return;const a=by?{S,id:by.id}:!self&&BST_A&&BST_A.S===S?BST_A:{S,id:p.id};const o=bstO((a.S===G.P?'P':'B')+a.id);o.h=(o.h||0)+h}
+/* 0.38.4: shield absorption goes to the creature that cast the shield (oldest shield layer is eaten first); shields with no caster (auras, relics) stay with the holder */
+const SHSRC=new WeakMap();
+function shSrcAdd(S,p,by,v){if(SIMU||!G||!v)return;const l=SHSRC.get(p)||[];l.push([(S===G.P?'P':'B')+by.id,v]);SHSRC.set(p,l)}
+function bstAbs(S,p,v){if(SIMU||!G||!v)return;const own=(S===G.P?'P':'B')+p.id,l=SHSRC.get(p)||[];
+  let ex=l.reduce((a,x)=>a+x[1],0)-(p.shield+v);while(ex>0&&l.length){const c=Math.min(ex,l[0][1]);l[0][1]-=c;ex-=c;if(!l[0][1])l.shift()}
+  let r=v;while(r>0&&l.length){const c=Math.min(r,l[0][1]);const o=bstO(l[0][0]);o.a=(o.a||0)+c;l[0][1]-=c;r-=c;if(!l[0][1])l.shift()}
+  if(r>0){const o=bstO(own);o.a=(o.a||0)+r}}
 function bstHtml(){if(!G||!G.bst||!G.P)return'';const b=G.bst,z={d:0,t:0,k:0,h:0,a:0},row=(S,p)=>({p,s:{...z,...(b[(S===G.P?'P':'B')+p.id]||{})}});
   const mine=G.P.pets.map(p=>row(G.P,p)).sort((x,y)=>y.s.d-x.s.d),foe=G.B.pets.map(p=>row(G.B,p)).sort((x,y)=>y.s.d-x.s.d);
   if(!ui.bst)return`<button class="pill sm" data-act="bst" style="margin-top:8px">📊 Итоги боя</button>`;
-  const tr=(r,i,top)=>`<tr${r.p.alive?'':' class="dead"'}><td>${i===0&&r.s.d>0&&top?'👑 ':''}${r.p.ic||''} ${r.p.n}</td><td>${r.s.d}</td><td>${r.s.t}</td><td>${r.s.h||''}</td><td>${r.s.a||''}</td><td>${r.s.k||''}</td></tr>`;
-  const sum=(a,f)=>a.reduce((x,r)=>x+r.s[f],0),tot=(n,a)=>`<tr class="bst-t"><td>${n}</td><td>${sum(a,'d')}</td><td>${sum(a,'t')}</td><td>${sum(a,'h')}</td><td>${sum(a,'a')}</td><td>${sum(a,'k')}</td></tr>`;
-  const hd=n=>`<tr><th>${n}</th><th title="нанёс">⚔</th><th title="получил">🩸</th><th title="исцелил">💚</th><th title="поглотил щитом">🛡</th><th title="победил">💀</th></tr>`;
+  const tr=(r,i,top)=>`<tr${r.p.alive?'':' class="dead"'}><td>${i===0&&r.s.d>0&&top?'👑 ':''}${r.p.ic||''} ${r.p.n}</td><td>${r.s.d}</td><td>${r.s.h||''}</td><td>${r.s.a||''}</td><td>${r.s.k||''}</td></tr>`;
+  const sum=(a,f)=>a.reduce((x,r)=>x+r.s[f],0),tot=(n,a)=>`<tr class="bst-t"><td>${n}</td><td>${sum(a,'d')}</td><td>${sum(a,'h')}</td><td>${sum(a,'a')}</td><td>${sum(a,'k')}</td></tr>`;
+  const hd=n=>`<tr><th>${n}</th><th title="нанёс">⚔</th><th title="исцелил">💚</th><th title="поглотили его щиты">🛡</th><th title="победил">💀</th></tr>`;
   return`<div class="bst"><table>${hd('Твоя стая')}${mine.map((r,i)=>tr(r,i,1)).join('')}${tot('Всего',mine)}
   ${hd('Соперник')}${foe.map((r,i)=>tr(r,i,0)).join('')}${tot('Всего',foe)}</table>
-  <div class="m" style="font-size:11px;margin-top:4px">⚔ урон по врагам, 🩸 полученный урон (после щитов), 💚 исцеление (от карты пета или его собственное восстановление), 🛡 урон, поглощённый щитом пета, 💀 добивания. Ловушки и разряды босса не приписаны никому.</div></div>`};
+  <div class="m" style="font-size:11px;margin-top:4px">⚔ урон по врагам, 💚 исцеление, которое пет дал своими картами (себе или другим) или само восстановление, 🛡 урон, поглощённый щитами, которые наложил пет, 💀 добивания. Ловушки и разряды босса не приписаны никому.</div></div>`};
 
 
 // In-app confirm/prompt: browser confirm() and prompt() are blocked inside the artifact frame.

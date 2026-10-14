@@ -145,7 +145,7 @@ const TOUGH=2;const ccOn=p=>p.frozen>0||sv(p,'stun')>0;const ccBlock=p=>p.tough>
 function canSt(p,k){if(!p||!p.alive||p.ghost)return false;if(k==='stun'&&ccBlock(p))return false;if(NEG.includes(k)){if(sv(p,'immune')>0)return false;if(p.sz&&(k==='stun'||k==='root'))return false;}return true}
 function applySt(p,k,n){if(!canSt(p,k))return false;p.st=p.st||{};p.st[k]=Math.max(sv(p,k),n);if(k==='burn'&&typeof BST_A!=='undefined'&&BST_A)p.burnBy=BST_A;return true}
 function cleanse(p){let n=0;if(p.st)for(const k of NEG)if(p.st[k]){if(k==='stun')p.tough=TOUGH;delete p.st[k];n++}if(p.frozen){p.frozen=0;p.tough=TOUGH;n++}return n}
-const addShield=(p,v)=>{p.shield=Math.min(SHIELD_CAP,p.shield+v)};
+const addShield=(p,v,by,S)=>{const o=p.shield;p.shield=Math.min(SHIELD_CAP,p.shield+v);if(by&&typeof shSrcAdd==='function')shSrcAdd(S,p,by,p.shield-o)};
 let G,ui={sel:null,mover:null,hover:null,busy:false,flash:null,fx:{},rules:false};
 
 function mkSide(bot,team,pos){

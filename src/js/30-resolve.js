@@ -116,8 +116,8 @@ async function execMain(x){
     }
     const l=(sb.allShield||sb.allHeal)?alive(S):[c];
     await fxStep(S,l.map(p=>[p.r,p.c]),'good',()=>{for(const p of l){
-      if(sb.shield||sb.allShield){const v=sm(c,sb.shield||sb.allShield);addShield(p,v);setFx(S,p,'щит '+v,'info')}
-      if(sb.heal||sb.allHeal){const h=Math.min(healAmt(hlv(c,sb.heal||sb.allHeal)),p.max-p.hp);p.hp+=h;bstHeal(S,p,h);setFx(S,p,'+'+h,'good')}
+      if(sb.shield||sb.allShield){const v=sm(c,sb.shield||sb.allShield);addShield(p,v,c,S);setFx(S,p,'щит '+v,'info')}
+      if(sb.heal||sb.allHeal){const h=Math.min(healAmt(hlv(c,sb.heal||sb.allHeal)),p.max-p.hp);p.hp+=h;bstHeal(S,p,h,0,c);setFx(S,p,'+'+h,'good')}
     }
     if(sb.draw){S.lim.push({n:sb.draw,t:sb.dur||1});setFx(S,c,'рука +1','info')}});
     L(S,`▼ «${t.n}»: ${sb.short}.`);return;
@@ -137,8 +137,8 @@ async function execMain(x){
   }
   if(t.area==='self'){
     await fxStep(S,[[caster.r,caster.c]],'good',()=>{
-      if(t.shield){const v=sm(caster,t.shield)+(G.run?talSh(S):0);addShield(caster,v);setFx(S,caster,'щит '+v,'info')}
-      if(t.heal){const h=Math.min(healAmt(hlv(caster,t.heal)+(G.run?talH(S):0)),caster.max-caster.hp);caster.hp+=h;bstHeal(S,caster,h);setFx(S,caster,'+'+h,'good')}
+      if(t.shield){const v=sm(caster,t.shield)+(G.run?talSh(S):0);addShield(caster,v,caster,S);setFx(S,caster,'щит '+v,'info')}
+      if(t.heal){const h=Math.min(healAmt(hlv(caster,t.heal)+(G.run?talH(S):0)),caster.max-caster.hp);caster.hp+=h;bstHeal(S,caster,h,0,caster);setFx(S,caster,'+'+h,'good')}
       if(t.cleanse&&cleanse(caster))setFx(S,caster,'очищен','good');
       if(t.immune){applySt(caster,'immune',t.immune);setFx(S,caster,'✨ иммунитет','info')}
       if(t.evade){applySt(caster,'evade',t.evade);if(!t.shield&&!t.heal)setFx(S,caster,'💨 уклонение','info')}
@@ -149,8 +149,8 @@ async function execMain(x){
   if(t.area==='ally'||t.area==='allies'){
     const l=t.area==='ally'?[pet(S,x.petT)].filter(p=>p.alive):alive(S);
     await fxStep(S,l.map(p=>[p.r,p.c]),'good',()=>{for(const p of l){
-      if(t.heal){const h=Math.min(healAmt(hlv(caster,t.heal)+(G.run?talH(S):0)),p.max-p.hp);p.hp+=h;bstHeal(S,p,h);setFx(S,p,'+'+h,'good')}
-      if(t.shield){const v=sm(caster,t.shield)+(G.run?talSh(S):0);addShield(p,v);setFx(S,p,'щит '+v,'info')}
+      if(t.heal){const h=Math.min(healAmt(hlv(caster,t.heal)+(G.run?talH(S):0)),p.max-p.hp);p.hp+=h;bstHeal(S,p,h,0,caster);setFx(S,p,'+'+h,'good')}
+      if(t.shield){const v=sm(caster,t.shield)+(G.run?talSh(S):0);addShield(p,v,caster,S);setFx(S,p,'щит '+v,'info')}
       if(t.cleanse&&cleanse(p))setFx(S,p,'очищен','good');
       if(t.immune){applySt(p,'immune',t.immune);if(!t.heal&&!t.shield)setFx(S,p,'✨','info')}
       if(t.evade){applySt(p,'evade',t.evade);if(!t.heal&&!t.shield)setFx(S,p,'💨','info')}
@@ -193,7 +193,7 @@ async function execMain(x){
     }
     const ch=t.chain||0;
     if(ch&&hitL.length){const f=hitL[0];let l=alive(O).filter(q=>!hitL.includes(q));if(!t.chain)l=l.filter(q=>Math.abs(q.r-f.r)+Math.abs(q.c-f.c)===1);const q=l[Math.floor(Math.random()*l.length)];if(q){const d=hit(O,q,sm(caster,ch));names.push('⚡ '+q.n+(d?' −'+d:' (щит)'))}}
-    if(drained&&caster&&caster.alive&&!caster.ghost){const h=Math.min(drained,caster.max-caster.hp);if(h){caster.hp+=h;bstHeal(S,caster,h);setFx(S,caster,'+'+h,'good')}}
+    if(drained&&caster&&caster.alive&&!caster.ghost){const h=Math.min(drained,caster.max-caster.hp);if(h){caster.hp+=h;bstHeal(S,caster,h,0,caster);setFx(S,caster,'+'+h,'good')}}
   },caster&&{S,p:caster,el:t.el});
   L(S,`«${t.n}»: ${names.length?names.join(', '):'мимо'}.`);
   if(pushed)await checkTraps(O);

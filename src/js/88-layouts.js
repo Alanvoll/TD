@@ -5,16 +5,17 @@
 // 0.38.0 Anton: the battle screen never scrolls, hand cards a bit larger and in ONE row; «Лупа» is not a variant any more but how every card behaves.
 // So the variants with several rows of cards (Крупная рука, Список, Сетка карт) and «Лупа» left the list (their code below stays unused).
 const LAYS=[
- {k:'base',ic:'▦',n:'Как сейчас',d:'Обычный экран: мини-карты, тап открывает руку.'},
+ {k:'fan',ic:'🃏',n:'Веер (обычный)',d:'Карты веером с лёгким наклоном. Тап поднимает карту целиком, второй тап открывает её окно. Тянуть можно любую.'},
+ {k:'base',ic:'▦',n:'Ровный ряд',d:'Как было раньше: карты ровным рядом, тап открывает руку.'},
  {k:'tap',ic:'👆',n:'Тап вместо перетаскивания',d:'Тап по карте: под рукой панель с полным текстом, цели на поле подсвечены. Тапни цель или нажми «Сыграть». Поле не закрывается.'},
- {k:'fan',ic:'🃏',n:'Веер',d:'Крупные карты внахлёст. Тап поднимает карту целиком, второй тап открывает её окно. Тянуть можно любую.'},
  {k:'focus',ic:'🎯',n:'Карта в фокусе',d:'Одна карта крупно с полным текстом, под ней значки остальных. Тап по значку переносит карту в фокус.'},
  {k:'drawer',ic:'🗂',n:'Нижняя шторка',d:'Тап по руке открывает низкую шторку с крупными картами в ряд, поле остаётся видно. Карту тянешь прямо из шторки.'},
  {k:'thumb',ic:'🤚',n:'Одной рукой',d:'Все кнопки внизу под большим пальцем, сверху только поле. «В бой» самая крупная.'},
  {k:'plan',ic:'⏩',n:'План полосой',d:'Сыгранная карта уходит из руки в полосу «Ход» и встаёт по порядку срабатывания.'},
 ];
 const LAYK=new Set(LAYS.map(l=>l.k));
-let LAY=(()=>{try{const v=localStorage.getItem('pb-lay');return LAYK.has(v)?v:'base'}catch(e){return'base'}})();
+// 0.38.4 Anton: the fan is the usual hand now, so the choice is kept under a new key (old saved «Как сейчас» → fan)
+let LAY=(()=>{try{const v=localStorage.getItem('pb-lay2');return LAYK.has(v)?v:'fan'}catch(e){return'fan'}})();
 const layOf=k=>LAYS.find(l=>l.k===k)||LAYS[0];
 // a layout is drawn only in a normal battle (puzzles keep the old card rules and the old screen)
 const layOn=()=>LAY!=='base'&&typeof G!=='undefined'&&G&&G.phase==='battle'&&!!G.P&&HV();
@@ -83,7 +84,7 @@ function layTx(f){
   const L=LAY;
   if(L==='big'&&hand){const n=hand.children.length;hand.classList.remove('scr');hand.classList.add('lybig');hand.style.setProperty('--cols',Math.max(2,Math.ceil(n/2)))}
   if(L==='fan'&&hand){const els=[...hand.children],n=els.length,m=(n-1)/2;
-    hand.classList.add('lfan');hand.style.setProperty('--ov',n>1?`calc((100% - 12px - ${n}*90px)/${n-1})`:'0px');
+    hand.classList.add('lfan');hand.style.setProperty('--ov',n>1?`calc((100% - 30px - ${n}*var(--fw))/${n-1})`:'0px');
     els.forEach((e,i)=>{const up=e.dataset.card===ui.lfan;e.style.setProperty('--r',(up?0:(i-m)*2.5)+'deg');e.style.setProperty('--y',(up?-22:Math.abs(i-m)*Math.abs(i-m)*1.6)+'px');e.style.zIndex=up?30:i+1;if(up)e.classList.add('lup')})}
   if((L==='list'||L==='grid')&&hand){const cs=cardsOf();hand.classList.remove('scr');hand.classList.add(L==='list'?'lwl':'lgr');
     hand.innerHTML=cs.map(c=>L==='list'?wideCard(c):cardHtml(c)).join('');
@@ -167,7 +168,7 @@ document.addEventListener('click',e=>{
   if(a){const act=a.dataset.act;e.stopPropagation();e.preventDefault();
     if(act==='lay-open'){ui.set=false;ui.layPick=true;return render()}
     if(act==='lay-close'){if(e.target===a||a.tagName==='BUTTON'){ui.layPick=false;render()}return}
-    if(act==='lay-set'){LAY=a.dataset.lay;try{localStorage.setItem('pb-lay',LAY)}catch(_){}ui.layPick=false;ui.lh=null;ui.lfan=null;ui.lfoc=null;ui.handOpen=false;
+    if(act==='lay-set'){LAY=a.dataset.lay;try{localStorage.setItem('pb-lay2',LAY)}catch(_){}ui.layPick=false;ui.lh=null;ui.lfan=null;ui.lfoc=null;ui.handOpen=false;
       if(typeof G!=='undefined'&&G&&G.phase==='battle'&&ui.sel)ui.sel=null;ui.toast='Вид экрана: '+layOf(LAY).n;ui.toastT=Date.now();return render()}
     if(!G||G.phase!=='battle'||!layIdle())return;
     if(act==='lay-x'){layClear();return render()}
@@ -220,16 +221,16 @@ if(typeof document!=='undefined'&&document.body){const st=document.createElement
 .lay-setb{width:100%;margin:6px 0}
 
 /* крупная рука и веер: высокие мини-карты с крупными цифрами */
-body[data-lay=big] .hand.mini>.card.mini.zc.hv,body[data-lay=fan] .hand.mini>.card.mini.zc.hv,body[data-lay=thumb] .hand.mini>.card.mini.zc.hv{height:150px!important;grid-template-rows:18px 24px 17px 19px 17px 24px 18px!important;gap:1.5px!important;padding:3px 4px!important}
-body[data-lay=big] .zc.hv .zu,body[data-lay=big] .zc.hv .zv,body[data-lay=fan] .zc.hv .zu,body[data-lay=thumb] .zc.hv .zu,body[data-lay=fan] .zc.hv .zv,body[data-lay=thumb] .zc.hv .zv{font-size:12.5px}
-body[data-lay=big] .zc.hv .zm,body[data-lay=fan] .zc.hv .zm,body[data-lay=thumb] .zc.hv .zm{font-size:19px}
-body[data-lay=big] .zc.hv .zt,body[data-lay=fan] .zc.hv .zt,body[data-lay=thumb] .zc.hv .zt{font-size:14px}
-body[data-lay=big] .zc .zpet .cri,body[data-lay=fan] .zc .zpet .cri,body[data-lay=thumb] .zc .zpet .cri{width:22px;height:22px}
-body[data-lay=big] .zc .zcost .rr,body[data-lay=fan] .zc .zcost .rr,body[data-lay=thumb] .zc .zcost .rr{width:15px;height:15px}
-body[data-lay=big] .zc.hv .zz svg.zg,body[data-lay=fan] .zc.hv .zz svg.zg,body[data-lay=thumb] .zc.hv .zz svg.zg{width:22px;height:auto}
-body[data-lay=big] .zc.hv .zdn,body[data-lay=fan] .zc.hv .zdn,body[data-lay=thumb] .zc.hv .zdn{font-size:14px}
-body[data-lay=big] .zc.hv .ei.gn,body[data-lay=fan] .zc.hv .ei.gn,body[data-lay=thumb] .zc.hv .ei.gn{width:13px;height:13px}
-body[data-lay=big] .hand.mini .badge,body[data-lay=fan] .hand.mini .badge,body[data-lay=thumb] .hand.mini .badge{width:22px;height:22px;font-size:12px}
+body[data-lay=big] .hand.mini>.card.mini.zc.hv,body[data-lay=thumb] .hand.mini>.card.mini.zc.hv{height:150px!important;grid-template-rows:18px 24px 17px 19px 17px 24px 18px!important;gap:1.5px!important;padding:3px 4px!important}
+body[data-lay=big] .zc.hv .zu,body[data-lay=big] .zc.hv .zv,body[data-lay=thumb] .zc.hv .zu,body[data-lay=thumb] .zc.hv .zv{font-size:12.5px}
+body[data-lay=big] .zc.hv .zm,body[data-lay=thumb] .zc.hv .zm{font-size:19px}
+body[data-lay=big] .zc.hv .zt,body[data-lay=thumb] .zc.hv .zt{font-size:14px}
+body[data-lay=big] .zc .zpet .cri,body[data-lay=thumb] .zc .zpet .cri{width:22px;height:22px}
+body[data-lay=big] .zc .zcost .rr,body[data-lay=thumb] .zc .zcost .rr{width:15px;height:15px}
+body[data-lay=big] .zc.hv .zz svg.zg,body[data-lay=thumb] .zc.hv .zz svg.zg{width:22px;height:auto}
+body[data-lay=big] .zc.hv .zdn,body[data-lay=thumb] .zc.hv .zdn{font-size:14px}
+body[data-lay=big] .zc.hv .ei.gn,body[data-lay=thumb] .zc.hv .ei.gn{width:13px;height:13px}
+body[data-lay=big] .hand.mini .badge,body[data-lay=thumb] .hand.mini .badge{width:22px;height:22px;font-size:12px}
 
 body[data-lay=big] .hand.mini.lybig{display:grid!important;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:6px;overflow:visible}
 body[data-lay=big] .hand.mini.lybig>.card{flex:none!important;min-width:0;touch-action:none}
@@ -241,9 +242,14 @@ body[data-lay=big] .zc.hv .zz svg.zg{width:26px}
 body[data-lay=big] .zc.hv .ei.gn{width:15px;height:15px}
 /* веер */
 body[data-lay=fan] .hand.mini.lfan{display:flex!important;justify-content:center;overflow:visible!important;padding:30px 0 6px;margin-top:-18px}
-body[data-lay=fan] .hand.mini.lfan>.card{flex:0 0 90px!important;width:90px;min-width:90px!important;margin-left:min(4px,var(--ov));transform:translateY(var(--y)) rotate(var(--r));transform-origin:50% 50%;transition:transform .15s;box-shadow:-4px 0 10px #0009!important}
+body[data-lay=fan]{--fw:72px}body[data-lay=fan][data-hcl=m]{--fw:80px}body[data-lay=fan][data-hcl=l]{--fw:92px}
+body[data-lay=fan] .hand.mini.lfan>.card{flex:0 0 var(--fw)!important;width:var(--fw);min-width:var(--fw)!important;margin-left:min(4px,var(--ov));transform:translateY(var(--y)) rotate(var(--r));transform-origin:50% 50%;transition:transform .15s;box-shadow:-4px 0 10px #0009!important}
 body[data-lay=fan] .hand.mini.lfan>.card:first-child{margin-left:0}
 body[data-lay=fan] .hand.mini.lfan>.card.lup{outline:2px solid var(--gold);outline-offset:0}
+body[data-lay=fan] .hand.mini.lfan>.card,body[data-lay=fan] .hand.mini.lfan>.card>*,body[data-lay=fan] .hand.mini.lfan>.card .bc-art>*{opacity:1!important}
+body[data-lay=fan] .hand.mini.lfan>.card.dis,body[data-lay=fan] .hand.mini.lfan>.card.burned{filter:brightness(.55) saturate(.45)}
+body[data-lay=fan] .hand.mini.lfan>.card.pl{filter:brightness(.7)}
+body[data-lay=fan] .hand.mini.lfan>.card.lup{filter:none}
 
 body .lyghost{display:block!important;overflow:visible;padding:0;contain:none}body .lyghost>.card{width:64px;height:100px!important}
 /* лупа */
