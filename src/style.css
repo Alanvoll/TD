@@ -718,3 +718,11 @@ body.dragging .hsheet,body.dragging .hs-back{opacity:0;pointer-events:none}
 .grid .cell .pet .ovl .pn.mb{box-shadow:inset 0 0 0 1.5px var(--gold),0 0 0 1px #131C28}
 .cell.planned2{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--plan) 45%,transparent)}
 .grid .cell.prev2{background:color-mix(in srgb,var(--gold) 14%,#1E2D40)!important;outline:2px dashed color-mix(in srgb,var(--gold) 75%,transparent);outline-offset:-3px}
+
+/* 0.40 Anton 2026-10-14: стихии на карте могут быть разными, поэтому у карт способностей нет цвета стихии: один нейтральный вид, стихии видны только по значкам */
+[style*="--pc"]{--pc:#B4C1D4!important}
+.card.hv{border-color:#ffffff30!important}
+.zc .zcost .rr{border-radius:50%;box-shadow:0 0 0 1px #ffffff66}
+.zc.hv .z1,.zc.hv .zb{justify-content:flex-start!important}
+.hand.mini.lfan .zc .zcost .rr+.rr{margin-left:-5px!important}
+.hand .card.hv.plu,.hand .card.hv.pld{border-color:#ffffffA0!important}
