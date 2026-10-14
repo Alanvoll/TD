@@ -741,7 +741,7 @@ body.dragging .hsheet,body.dragging .hs-back{opacity:0;pointer-events:none}
 <div id="app"></div>
 
 <script>
-const VER='0.38.1',BUILD=130;
+const VER='0.38.2',BUILD=131;
 /* ART-BEGIN: creatures drawn in code (SVG + CSS idle animation), one file per family */
 const ARTS={};function ART_ADD(o){Object.assign(ARTS,o)}
 ART_ADD({
@@ -5424,7 +5424,7 @@ function layFit(on){const B=document.body;
   for(const t of ['l','m',''])
     {if(t)B.dataset.hcl=t;else delete B.dataset.hcl;B.style.removeProperty('--bw');refit();if(squeeze(78))return}
   B.dataset.tight=1;B.style.removeProperty('--bw');refit();squeeze(55)}
-addEventListener('resize',()=>{if(typeof G!=='undefined'&&G&&G.phase==='battle')requestAnimationFrame(()=>layFit(true))});
+if(typeof addEventListener==='function')addEventListener('resize',()=>{if(typeof G!=='undefined'&&G&&G.phase==='battle')requestAnimationFrame(()=>layFit(true))});
 
 /* ----- input ----- */
 document.addEventListener('click',e=>{

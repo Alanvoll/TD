@@ -159,7 +159,7 @@ function layFit(on){const B=document.body;
   for(const t of ['l','m',''])
     {if(t)B.dataset.hcl=t;else delete B.dataset.hcl;B.style.removeProperty('--bw');refit();if(squeeze(78))return}
   B.dataset.tight=1;B.style.removeProperty('--bw');refit();squeeze(55)}
-addEventListener('resize',()=>{if(typeof G!=='undefined'&&G&&G.phase==='battle')requestAnimationFrame(()=>layFit(true))});
+if(typeof addEventListener==='function')addEventListener('resize',()=>{if(typeof G!=='undefined'&&G&&G.phase==='battle')requestAnimationFrame(()=>layFit(true))});
 
 /* ----- input ----- */
 document.addEventListener('click',e=>{
