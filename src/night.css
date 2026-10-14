@@ -275,3 +275,10 @@ body[data-bfit] .board .grid.field.enemyg{position:relative}
 .board .grid.field .cell .pet .hp{order:-2}
 .board .grid.field .cell .pet .hpn{order:-1}
 .board .grid.field .cell .pet .av{margin-top:1px}
+/* round 4: on small phones the HP number was wider than the creature column and lost its first digit */
+.board .grid.field .cell .pet{min-width:max-content}
+.board .grid.field .cell .pet .hpn{white-space:nowrap;width:max-content;font-variant-numeric:tabular-nums}
+/* status badges (shield, speed) were as big as the creature on small phones */
+.board .grid.field:not([style*="--pz"]) .cell .ovr{zoom:.8;right:-8px}
+/* HP over the head of the top row needs room inside the field's rim */
+body[data-bfit] .board .grid.field{padding-top:16px}
