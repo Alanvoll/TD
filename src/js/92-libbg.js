@@ -71,7 +71,32 @@ function libBg(i){const p=PETS[i],els=petEls(p),c1=ELC[els[0]]||'#7a8cff',c2=ELC
 function libInk(i){const h=libBgHash(PETS[i].n+'#fr');
   return`<span class="lcd-ink" style="--wa:${12+h%76}%;--wb:${14+(h>>>7)%72}%;--wc:${10+(h>>>14)%80}%"></span><span class="lcd-ink2"></span>`}
 
+/* Anton 21:38: in the creature window the creature's cards look strange: show them exactly as the cards in battle
+   (the same ▲ top / ▼ bottom card from the hand), drawn for this creature at its level, with the name under it */
+let LSL=null;
+if(typeof libSheet==='function'){const ls0=libSheet;libSheet=function(i){const m=mp(PETS[i].n);
+  try{LSL={S:mkSide(false,[{...PETS[i],lv:m.lv,q:m.q,pi:i}],[[0,0]]),E:mkSide(true,[PETS[i]],[[0,0]])}}catch(e){LSL=null}
+  try{return ls0(i)}finally{LSL=null}}}
+if(typeof cardMini==='function'){const cm0=cardMini;cardMini=function(k,p,lock,on,act){
+  if(!LSL||typeof cardHtml!=='function')return cm0(k,p,lock,on,act);
+  const G0=G;let h='';
+  try{G={phase:'battle',P:LSL.S,E:LSL.E,turn:1};h=cardHtml({uid:'L'+k,t:k,pet:LSL.S.pets[0].id},true)}catch(e){h=''}finally{G=G0}
+  if(!h)return cm0(k,p,lock,on,act);
+  h=h.replace(/ data-card="[^"]*"/,'').replace(/ (disu|disd)\b/g,'').replace(/<span class="why">.*?<\/span>/,'').replace('<button','<div').replace(/<\/button>\s*$/,'</div>');
+  return`<button class="lslc ${on?'on':''} ${lock?'lk':''}" ${act&&!lock?`data-act="${act}"`:''}><div class="hand mini lsl-h">${h}</div><span class="lsl-n">${T[k].n}</span>${lock?`<span class="lc-lock">🔒 ${lock}</span>`:on?'<span class="lc-on">✓ в колоде</span>':''}</button>`}}
+
 if(typeof document!=='undefined'&&document.body){const st=document.createElement('style');st.textContent=`
+.lslc{display:flex;flex-direction:column;align-items:stretch;gap:3px;min-width:0;padding:5px;border-radius:12px;background:var(--panel2);border:2px solid transparent;text-align:center;color:var(--fg)}
+.lslc.on{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 9%,var(--panel2))}.lslc.lk{opacity:.6}
+.lsl-h{display:block!important;overflow:visible!important;margin:0!important;padding:0!important;pointer-events:none}
+.lsl-h>.card.mini.zc.hv{width:100%!important;height:150px!important;grid-template-rows:18px 24px 17px 19px 17px 24px 18px!important;gap:1.5px!important;padding:3px 4px!important;transform:none!important}
+.lsl-h .zc.hv .zu,.lsl-h .zc.hv .zv{font-size:12.5px}.lsl-h .zc.hv .zm{font-size:19px}.lsl-h .zc.hv .zt{font-size:14px}
+.lsl-h .zc .zpet .cri{width:22px;height:22px}.lsl-h .zc .zcost .rr{width:15px;height:15px}.lsl-h .zc.hv .zz svg.zg{width:22px;height:auto}
+.lsl-h .zc.hv .zdn{font-size:14px}.lsl-h .zc.hv .ei.gn{width:13px;height:13px}
+.lsl-n{font-size:12.5px;font-weight:700;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lslc .lc-lock,.lslc .lc-on{font-size:11px;line-height:1.2}
+@media (max-height:760px){.lsl-h>.card.mini.zc.hv{height:118px!important;grid-template-rows:14px 19px 13px 15px 13px 19px 14px!important;gap:1px!important}.lsl-h .zc.hv .zm{font-size:16px}.lsl-h .zc.hv .zu,.lsl-h .zc.hv .zv{font-size:11.5px}.lsl-h .zc .zpet .cri{width:18px;height:18px}.lslc{padding:4px;gap:2px}}
+
 .lbg{position:absolute;inset:0;display:block}.lbg svg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .lib .lcd{border-color:transparent!important;border-width:0!important}
 .lib .lcd-ft{padding:14px 8px 8px}.lib .lcd-lv{right:8px;top:7px}.lib .lcd-lk{right:8px;top:6px}.lib .lcd-q{left:9px;top:9px}
