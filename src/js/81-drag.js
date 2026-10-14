@@ -120,7 +120,7 @@ function endDrag(e){
     if(dir){if(d.stepUid){const card=S.hand.find(c=>c.uid===d.stepUid);planPush(S,card,{petT:d.petMove,dir},isDnSel()&&ui.sel===d.stepUid)}else S.plan.push({kind:'move',petT:d.petMove,dir})}
     return done()}
   const card=S.hand.find(c=>c.uid===d.uid);if(!card)return done();
-  if(up&&(inBurn(e)||belowHand(e)||(fe&&fe.closest('[data-burn]')))){ui.mover=null;if(HV()&&!d.dn)return done();if(d.why)return done();return doBurn(card)}
+  if(up&&(inBurn(e)||belowHand(e)||(fe&&fe.closest('[data-burn]')))){ui.mover=null;if(HV()&&!d.dn)return done();if(d.why){ui.sel=null;ui.msg=d.why;ui.peek=card.uid;return render()}return doBurn(card)}
   if(d.why){ui.sel=null;ui.mover=null;ui.msg=d.why;ui.peek=card.uid;return render()}
   if(d.dn){if(board)planPush(S,card,{},1);return done()}
   const t=T[card.t];

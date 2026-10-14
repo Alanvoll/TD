@@ -84,7 +84,7 @@ const weekKey=()=>Math.floor((Date.now()/864e5+3)/7);
 function questsWeek(){const w=weekKey();if(!META.wq||META.wq.w!==w){META.wq={w,list:shuffle(Object.keys(WDEF)).slice(0,3).map(k=>({k,p:0,cl:false}))};saveMeta()}return META.wq.list}
 function weekClaim(i){const q=questsWeek()[i],D=WDEF[q.k];if(!q||q.cl||q.p<D.g)return null;q.cl=true;const log=[];giveSt(D.st,log);
   const lk=shuffle(PETS.filter(p=>!mp(p.n).un));if(lk.length)giveFr(lk[0].n,10,log);else giveSt(20,log);saveMeta();return log}
-const weekLeft=()=>{const ms=(weekKey()+1)*7*864e5-3*864e5-Date.now(),d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5);return d?`${d} д. ${h} ч.`:`${h} ч.`};
+const weekLeft=()=>{const ms=(weekKey()+1)*7*864e5-3*864e5-Date.now(),d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5);return d?`${d}\u00a0д.\u00a0${h}\u00a0ч.`:`${h}\u00a0ч.`};
 function weekHtml(){return questsWeek().map((q,i)=>{const D=WDEF[q.k],done=q.p>=D.g;return`<div class="qst ${q.cl?'cl':''}"><span style="flex:1"><b>${D.t}</b><div class="xpb sm"><i style="width:${100*q.p/D.g}%"></i><span>${q.p}/${D.g}</span></div></span><span class="m" style="font-size:11px">💎${D.st} 🧩10</span>${q.cl?'<span class="m">✓</span>':`<button class="pill sm ${done?'on':''}" data-act="wc-${i}" ${done?'':'disabled'}>Забрать</button>`}</div>`}).join('')}
 function weekClick(a){if(a.startsWith('wc-')){const l=weekClaim(+a.slice(3));if(l)toast(l.map(x=>x.k==='st'?'💎 +'+x.v:x.k==='fr'?'🧩 +'+x.v+' '+x.n:'').join(' · '));render();return true}return false}
 /* 0.21.3: stone → fragment exchange in the creature sheet. Sims showed stones pile up (4000+ unspent after 60 runs) while fragments gate progress.
