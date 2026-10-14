@@ -741,7 +741,7 @@ body.dragging .hsheet,body.dragging .hs-back{opacity:0;pointer-events:none}
 <div id="app"></div>
 
 <script>
-const VER='0.37.1',BUILD=128;
+const VER='0.38.1',BUILD=130;
 /* ART-BEGIN: creatures drawn in code (SVG + CSS idle animation), one file per family */
 const ARTS={};function ART_ADD(o){Object.assign(ARTS,o)}
 ART_ADD({
@@ -957,7 +957,7 @@ const petIc=(p,still)=>{if(!artK(p))return p.ic;if(still)return`<img class="cri"
   return`<span class="crw${fl}" style="--d:${d}s;--b:${(-(t+o*1.9+1.3)).toFixed(2)}s"><img class="cri" src="${b}" alt="">${s?`<img class="cri crb" src="${s}" alt="">`:''}</span>`};
 const petLive=p=>artK(p)?artSvg(ARTS[p.n],0,1):p.ic;
 /* ART-END */
-const ROWS=3,COLS=5,START=[[1,1],[0,2],[2,1],[1,3],[2,3]];
+let ROWS=3,COLS=5,TN=5;const START=[[1,1],[0,2],[2,1],[1,3],[2,3]];
 const MAXPLAY=99,CAP=10;
 // 0.32.0 growth: all hp-type numbers ×3 (SC). K is the runtime unit of flat effects (auras, burn, storm), = old 2 × SC.
 // Сила: a creature number (20 at level 1), cards deal % of it; base card numbers are written for Сила 20.
@@ -1133,9 +1133,9 @@ function smartPlace(defs,n){
   return best}
 function newGame(){
   ui.bst=false;for(const k in lastPos)delete lastPos[k];
-  const bt=shuffle(petPool()).slice(0,5),cells=shuffle([...Array(ROWS*COLS).keys()]).slice(0,5).map(k=>[Math.floor(k/COLS),k%COLS]);
+  const bt=shuffle(petPool()).slice(0,TN),cells=shuffle([...Array(ROWS*COLS).keys()]).slice(0,TN).map(k=>[Math.floor(k/COLS),k%COLS]);
   const nx=NEXT;NEXT=null;let eTeam=bt,eAI=AI,boss=VS==='boss'&&!CTX||!!(CTX&&CTX.kind==='lair');
-  if(nx){eTeam=nx.enemy||nx.enemyIdx||bt;eAI=nx.ai||AI;if(eTeam.length!==5)cells.length=eTeam.length;while(cells.length<eTeam.length){const k=Math.floor(Math.random()*ROWS*COLS),rc=[Math.floor(k/COLS),k%COLS];if(!cells.some(x=>x[0]===rc[0]&&x[1]===rc[1]))cells.push(rc)}}
+  if(nx){eTeam=nx.enemy||nx.enemyIdx||bt;eAI=nx.ai||AI;if(eTeam.length!==TN)cells.length=eTeam.length;while(cells.length<eTeam.length){const k=Math.floor(Math.random()*ROWS*COLS),rc=[Math.floor(k/COLS),k%COLS];if(!cells.some(x=>x[0]===rc[0]&&x[1]===rc[1]))cells.push(rc)}}
   if(eAI==='hard'||eAI==='smart'||eAI==='master'||HK.smartAll||eAI==='auto'&&autoLv()>=5){const dd=eTeam.map(x=>typeof x==='object'?x:PETS[x]);const sp=smartPlace(dd,eTeam.length);cells.length=0;cells.push(...sp)}
   const useM=metaMode()&&!sandbox();if(useM&&!nx&&!boss&&!CTX)eTeam=mirrorTeam(eTeam);
   const isRun=CTX&&CTX.kind==='run'&&META.run;if(isRun)META.run.place=(PLACE||START).map(x=>[...x]);
@@ -1147,7 +1147,7 @@ function newGame(){
   if(isRun){runBattleStart(nx);anyPlan(G.B,G.P);render()}
   if(G.B.bk)cdxMark('boss',G.B.bk);if(G.emod)cdxMark('el',G.emod);
   if(!SIMU&&CTX&&CTX.kind==='rank'){rk().pend=1;saveMeta()}
-  if(!SIMU&&!CTX&&!sandbox()&&Array.isArray(TEAM)&&TEAM.every(x=>typeof x==='number')){META.lastQ=TEAM.slice();META.lastQP=(PLACE||START).map(x=>[...x]);saveMeta()}
+  if(!SIMU&&!CTX&&!sandbox()&&Array.isArray(TEAM)&&TEAM.every(x=>typeof x==='number')){META[TN===5?'lastQ':'lastQ'+TN]=TEAM.slice();META[TN===5?'lastQP':'lastQP'+TN]=(PLACE||START).map(x=>[...x]);saveMeta()}
   ui.bIntro=!SIMU&&G.B.bk&&!(CTX&&CTX.kind==='puz')?G.B.bk:null;
   if(!SIMU)ui.auto=!!META.autoOn&&!(CTX&&CTX.kind==='puz');// Auto stays on from fight to fight until the player turns it off
 }
@@ -1898,7 +1898,7 @@ function teamSums(){const g=z0(),c=z0();for(const i of TEAM){const p=PETS[i];for
 // v29: team rating fitted on 60k bot-vs-bot battles (logistic model: pets + family tiers)
 function rateScore(team){let s=RATE70.b||0;const c={};for(const i of team){s+=RATE70.p[PETS[i].n]||0;const k=PETS[i].cls;c[k]=(c[k]||0)+1}for(const k in RATE70.c)if(c[k])s+=RATE70.c[k];for(const k in RATE70.c3||{})if(c[k]>=3)s+=RATE70.c3[k];return{s,c}}
 function teamRating(){
-  if(TEAM.length<5)return`<div class="m">Оценка стаи появится, когда выберешь всех пятерых.</div>`;
+  if(TN!==5)return'';if(TEAM.length<5)return`<div class="m">Оценка стаи появится, когда выберешь всех пятерых.</div>`;
   const {n,c}=rateGrade(),s=rateScore(TEAM).s,win=Math.round(100/(1+Math.exp(-s)));
   const why=[],cl=new Set(TEAM.map(i=>PETS[i].cls));
   for(const k of ['guard','healer'])if(!cl.has(k))why.push('нет ни одного '+(k==='guard'?'Стража':'Целителя'));
@@ -1915,7 +1915,7 @@ function rateGrade(){const {s}=rateScore(TEAM),q=RATE70.q;let g=0;while(g<4&&s>q
 let RATE70={"p":{"Медведь":0.061,"Волк":0.002,"Олень":-0.021,"Лиса":0.047,"Сова":-0.058,"Дубовик":-0.002,"Колючник":0.069,"Лотосовик":-0.037,"Мухолов":0.06,"Солнечник":-0.082,"Жук-носорог":-0.009,"Богомол":-0.051,"Пчела":-0.02,"Комар":0.027,"Паук":0.026,"Единорог":-0.029,"Грифон":0.042,"Фея":-0.032,"Джинн":-0.032,"Русалка":0.047,"Скелет":0.064,"Зомби":0.053,"Призрак":0.054,"Вампир":-0.038,"Лич":-0.01,"Робот":0.002,"Мехскорпион":-0.025,"Ремонтник":0.006,"Мехзмей":-0.074,"Дрон":-0.01,"Голем":0.001,"Огневик":-0.016,"Водяной":-0.007,"Вихрик":-0.083,"Искрун":-0.038,"Цербер":0.056,"Бес":0.055,"Козлорог":0.006,"Тенекот":-0.046,"Демон хаоса":0.018,"Слизень":0.057,"Кальмар":-0.022,"Медуза":0.026,"Глазун":0.025,"Осьминог":-0.052,"Каменный дракон":0.008,"Дракончик":-0.003,"Златокрыл":-0.015,"Виверна":0.045,"Тёмный дракон":-0.045},"c":{"guard":0.134,"fighter":0.059,"healer":0.11,"agile":0.015,"sage":0.081},"c3":{"guard":-0.177,"fighter":-0.037,"healer":-0.08,"agile":-0.104,"sage":-0.04},"b":-0.254,"q":[-0.142,-0.027,0.077,0.179]};
 const statLine=p=>[`⚔ Сила ${Math.round(silaOf(p))}: от неё считаются числа его карт`,p.leg&&LEGT[p.cls]?`👑 Черта: ${LEGT[p.cls]}`:'',p.sp?`⏱ Инициатива его карт ${p.sp>0?'−':'+'}${Math.abs(p.sp)*INI_STEP}: они срабатывают ${p.sp>0?'раньше':'позже'}`:''].filter(Boolean).join('. ');
 function petSheet(v){
-  const p=PETS[v],inT=TEAM.includes(v),full=TEAM.length>=5&&!inT,C=CLS[p.cls],F=FAM[p.fam],st=statLine(p);
+  const p=PETS[v],inT=TEAM.includes(v),full=TEAM.length>=TN&&!inT,C=CLS[p.cls],F=FAM[p.fam],st=statLine(p);
   return`<div class="over" data-act="ps-close"><div class="box psheet">
   <div class="psh"><span class="pbig">${petLive(p)}</span><div><h2>${p.n}</h2><div class="m"><b style="color:${rarC(p)}">${GRADE[p.rar].n}</b>${metaMode()&&!sandbox()?' · ур. '+mp(p.n).lv:''} · ${metaMode()&&!sandbox()?myDef(v).hp:p.hp} хп · ${petEls(p).map(e=>EI(e,1)).join('')} · ${C.ic} ${C.n} · ${F.ic} ${F.n}</div></div></div>
   <div class="fxr ps"><span class="fxi">${F.ic}</span><span><b>${F.n}</b><br><span class="m">${F.t[0][0].toUpperCase()+F.t[0].slice(1)}.</span></span></div>
@@ -1960,15 +1960,15 @@ function renderPick(){
   const so={q:(a,b)=>PETS[b].rar-PETS[a].rar||PETS[a].n.localeCompare(PETS[b].n,'ru'),name:(a,b)=>PETS[a].n.localeCompare(PETS[b].n,'ru'),hp:(a,b)=>PETS[b].hp-PETS[a].hp,el:(a,b)=>ELS.indexOf(petEls(PETS[a])[0])-ELS.indexOf(petEls(PETS[b])[0])||PETS[a].n.localeCompare(PETS[b].n,'ru'),fam:(a,b)=>Object.keys(FAM).indexOf(PETS[a].fam)-Object.keys(FAM).indexOf(PETS[b].fam)||Object.keys(CLS).indexOf(PETS[a].cls)-Object.keys(CLS).indexOf(PETS[b].cls),cls:(a,b)=>Object.keys(CLS).indexOf(PETS[a].cls)-Object.keys(CLS).indexOf(PETS[b].cls)||Object.keys(FAM).indexOf(PETS[a].fam)-Object.keys(FAM).indexOf(PETS[b].fam)}[F.sort];if(so)list.sort(so);
   const pill=(act,on,txt)=>`<button class="pill sm ${on?'on':''}" data-act="${act}">${txt}</button>`;
   const ttl=CTX&&CTX.kind==='lair'?BOSSES[CTX.bk].ic+' '+BOSSES[CTX.bk].n+' · '+LAIR_T[CTX.tier].ic:'Твоя стая';
-  const nf=F.el.length+F.fam.length+F.role.length,rg=TEAM.length===5?rateGrade():null;
+  const nf=F.el.length+F.fam.length+F.role.length,rg=TN===5&&TEAM.length===5?rateGrade():null;
   let h=`<div class="top"><button class="pill sm" data-act="m-menu">‹ Меню</button><div class="title">${ttl}</div><span class="modes"></span></div>
-  <div class="tbar"><div class="tm">${[0,1,2,3,4].map(k=>{const i=TEAM[k];return i==null?`<span class="ts empty"></span>`:`<button class="ts" data-view="${i}" style="border-color:${rarC(PETS[i])}"><span class="em">${petIc(PETS[i],1)}</span>${FAM[PETS[i].fam]?`<span class="fmb">${FAM[PETS[i].fam].ic}</span><span class="clb">${CLS[PETS[i].cls].ic}</span>`:''}<span class="tx" data-qt="${i}">✕</span></button>`}).join('')}</div>
-  <div class="tside"><button class="pill sm" data-act="deck" ${TEAM.length?'':'disabled'}>🃏 Колода</button><button class="pill sm" data-act="fxs">💫 Эффекты</button>${rg?`<button class="pill sm" data-act="deck" style="color:${rg.c}">${rg.n}</button>`:`<span class="m" style="font-size:12px">${TEAM.length}/5</span>`}</div></div>
+  <div class="tbar"><div class="tm">${[...Array(TN).keys()].map(k=>{const i=TEAM[k];return i==null?`<span class="ts empty"></span>`:`<button class="ts" data-view="${i}" style="border-color:${rarC(PETS[i])}"><span class="em">${petIc(PETS[i],1)}</span>${FAM[PETS[i].fam]?`<span class="fmb">${FAM[PETS[i].fam].ic}</span><span class="clb">${CLS[PETS[i].cls].ic}</span>`:''}<span class="tx" data-qt="${i}">✕</span></button>`}).join('')}</div>
+  <div class="tside"><button class="pill sm" data-act="deck" ${TEAM.length?'':'disabled'}>🃏 Колода</button><button class="pill sm" data-act="fxs">💫 Эффекты</button>${rg?`<button class="pill sm" data-act="deck" style="color:${rg.c}">${rg.n}</button>`:`<span class="m" style="font-size:12px">${TEAM.length}/${TN}</span>`}</div></div>
   
   <div class="flt fl1"><button class="pill sm ${nf||F.sort!=='def'?'on':''}" data-act="fopen">⚙ Фильтры${nf?' · '+nf:''}</button>${nf?pill('fclr',false,'✕ Сбросить'):''}<span class="m" style="font-size:11px;margin-left:auto">${list.length===pool.length?'Все '+pool.length:list.length+' из '+pool.length}${F.sort!=='def'?' · по '+SORTN[F.sort]:''}</span></div>
-  <div class="pk">${list.length?list.map(i=>{const q=PETS[i],on=TEAM.includes(i),full=TEAM.length>=5&&!on;return`<div class="pt ${on?'on':''}" data-view="${i}" data-r="${q.rar}" style="--qc:${rarC(q)}">${FAM[q.fam]?`<span class="fmb" title="${FAM[q.fam].n}">${FAM[q.fam].ic}</span><span class="clb" title="${CLS[q.cls].n}">${CLS[q.cls].ic}</span>`:''}<button class="qt ${on?'on':''}" data-qt="${i}" ${full?'disabled':''}>${on?'✓':'+'}</button><span class="pt-av">${qArt(q,metaMode()&&!sandbox()?mp(q.n).q:0,1)}${metaMode()&&!sandbox()?`<span class="lvb" style="background:${qC(mp(q.n).q)}">${mp(q.n).lv}</span>`:''}</span><span class="pnm" style="font-size:${q.n.length>12?10.5:q.n.length>9?11.5:12.5}px">${q.n}</span><span class="pels">${petEls(q).map(e=>EI(e,1)).join('')}</span></div>`}).join(''):'<div class="m">Никого не нашлось, сбрось фильтр.</div>'}</div>
+  <div class="pk">${list.length?list.map(i=>{const q=PETS[i],on=TEAM.includes(i),full=TEAM.length>=TN&&!on;return`<div class="pt ${on?'on':''}" data-view="${i}" data-r="${q.rar}" style="--qc:${rarC(q)}">${FAM[q.fam]?`<span class="fmb" title="${FAM[q.fam].n}">${FAM[q.fam].ic}</span><span class="clb" title="${CLS[q.cls].n}">${CLS[q.cls].ic}</span>`:''}<button class="qt ${on?'on':''}" data-qt="${i}" ${full?'disabled':''}>${on?'✓':'+'}</button><span class="pt-av">${qArt(q,metaMode()&&!sandbox()?mp(q.n).q:0,1)}${metaMode()&&!sandbox()?`<span class="lvb" style="background:${qC(mp(q.n).q)}">${mp(q.n).lv}</span>`:''}</span><span class="pnm" style="font-size:${q.n.length>12?10.5:q.n.length>9?11.5:12.5}px">${q.n}</span><span class="pels">${petEls(q).map(e=>EI(e,1)).join('')}</span></div>`}).join(''):'<div class="m">Никого не нашлось, сбрось фильтр.</div>'}</div>
   <div class="m" style="font-size:11px;text-align:center;margin-top:6px">Тап по пету: что он умеет. «+»: сразу в стаю.</div>
-  <div class="acts stk">${CTX?'':`<button class="btn" data-act="opp">${VS==='boss'?'🗿 Босс':'Соперник: '+{auto:'авто',easy:'лёгкий',medium:'средний',hard:'сложный',master:'мастер',smart:'стратег'}[AI]}</button>`}<button class="btn main" data-act="to-place" ${TEAM.length<5?'disabled':''}>${TEAM.length<5?'Ещё '+(5-TEAM.length):'Расставить'}</button></div>`;
+  <div class="acts stk">${CTX?'':`<button class="btn" data-act="opp">${VS==='boss'?'🗿 Босс':'Соперник: '+{auto:'авто',easy:'лёгкий',medium:'средний',hard:'сложный',master:'мастер',smart:'стратег'}[AI]}</button>`}<button class="btn main" data-act="to-place" ${TEAM.length<TN?'disabled':''}>${TEAM.length<TN?'Ещё '+(TN-TEAM.length):'Расставить'}</button></div>`;
   if(ui.pv!=null&&ui.psheet)h+=petSheet(ui.pv);
   if(ui.deck)h+=deckSheet();
   if(ui.fxs)h+=fxSheet();
@@ -1989,13 +1989,13 @@ function renderPlace(){
   <div class="legend">${TEAM.map(i=>PETS[i]).map(p=>`<span>${petIc(p,1)} <b>${AUB[p.au]} ${AUS[p.au]}</b></span>`).join('')}</div>
   <div class="acts stk"><button class="btn" data-act="to-pick">Назад</button><button class="btn" data-act="place-rand">Случайно</button><button class="btn" data-act="place-smart">Умно</button><button class="btn main" data-act="start">В бой</button></div>`);
 }
-function resetPlace(){PLACE=START.map(x=>[...x])}
+function resetPlace(){PLACE=START.slice(0,TN).map(x=>[...x])}
 function phaseClick(e){
   const a=e.target.closest('[data-qt],[data-act],[data-view],[data-pick],[data-pcell]');if(!a)return;
-  const tog=v=>{if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<5)TEAM.push(v)};
+  const tog=v=>{if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN)TEAM.push(v)};
   if(a.dataset.qt!=null){if(!a.disabled)tog(+a.dataset.qt);return render()}
   if(a.dataset.view!=null){ui.pv=+a.dataset.view;ui.psheet=true;return render()}
-  if(a.dataset.pick!=null){const v=+a.dataset.pick;ui.pv=v;if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<5)TEAM.push(v);return render()}
+  if(a.dataset.pick!=null){const v=+a.dataset.pick;ui.pv=v;if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN)TEAM.push(v);return render()}
   if(a.dataset.pcell){const[r,c]=a.dataset.pcell.split(',').map(Number),i=PLACE.findIndex(x=>x[0]===r&&x[1]===c);
     if(ui.ps==null){if(i>=0)ui.ps=i}else{if(i>=0&&i!==ui.ps)PLACE[i]=PLACE[ui.ps];if(i!==ui.ps)PLACE[ui.ps]=[r,c];ui.ps=null}
     return render()}
@@ -2016,11 +2016,11 @@ function phaseClick(e){
   else if(/^f[efrs]-/.test(act)){const k={e:'el',f:'fam',r:'role',s:'sort'}[act[1]],v=act.slice(3),bx=document.querySelector('.fbox'),st=bx?bx.scrollTop:0;
     if(k==='sort')ui.flt.sort=v;else{const l=ui.flt[k];ui.flt[k]=l.includes(v)?l.filter(x=>x!==v):[...l,v]}
     render();const nb=document.querySelector('.fbox');if(nb)nb.scrollTop=st}
-  else if(act==='pick-toggle'){const v=ui.pv??TEAM[0];if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<5)TEAM.push(v);render()}
-  else if(act==='to-place'&&TEAM.length===5){G.phase='place';if(!PLACE)resetPlace();ui.ps=null;render()}
+  else if(act==='pick-toggle'){const v=ui.pv??TEAM[0];if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN)TEAM.push(v);render()}
+  else if(act==='to-place'&&TEAM.length===TN){G.phase='place';if(!PLACE)resetPlace();ui.ps=null;render()}
   else if(act==='to-pick'){G.phase='pick';render()}
-  else if(act==='place-smart'){const sp=smartPlace(TEAM.map(i=>PETS[i]),TEAM.length);PLACE=sp.concat(START.filter(x=>!sp.some(y=>y[0]===x[0]&&y[1]===x[1]))).slice(0,5);ui.ps=null;render()}
-  else if(act==='place-rand'){PLACE=shuffle([...Array(ROWS*COLS).keys()]).slice(0,5).map(k=>[Math.floor(k/COLS),k%COLS]);ui.ps=null;render()}
+  else if(act==='place-smart'){const sp=smartPlace(TEAM.map(i=>PETS[i]),TEAM.length);PLACE=sp.concat(START.filter(x=>!sp.some(y=>y[0]===x[0]&&y[1]===x[1]))).slice(0,TN);ui.ps=null;render()}
+  else if(act==='place-rand'){PLACE=shuffle([...Array(ROWS*COLS).keys()]).slice(0,TN).map(k=>[Math.floor(k/COLS),k%COLS]);ui.ps=null;render()}
   else if(act==='start'){
     newGame()}
 }
@@ -3183,10 +3183,10 @@ function modeClick(act){
   if(metaClick(act))return true;
   if(runClick(act))return true;
   if(hintClick(act)||masterClick(act)||achClick(act)||autoClick(act))return true;
-  if(act==='m-menu'){CTX=null;NEXT=null;G={phase:'menu'};resetPlace();render();return true}
-  if(act==='m-quick'){CTX=null;NEXT=null;G={phase:'pick'};resetPlace();
+  if(act==='m-menu'){setTN(5);CTX=null;NEXT=null;G={phase:'menu'};resetPlace();render();return true}
+  if(act==='m-quick'||act==='m-quick4'){setTN(act==='m-quick4'?4:5);CTX=null;NEXT=null;G={phase:'pick'};resetPlace();
     // the last quick-fight pack and placement come back (playtest: it started from 0/5 every time)
-    TEAM=(META.lastQ||[]).filter(i=>PETS[i]&&(!metaMode()||mp(PETS[i].n).un)).slice(0,5);if(META.lastQP&&TEAM.length===(META.lastQ||[]).length)PLACE=META.lastQP.map(x=>[...x]);ui.pv=null;ui.psheet=false;render();return true}
+    const lq=META[TN===5?'lastQ':'lastQ'+TN]||[],lp=META[TN===5?'lastQP':'lastQP'+TN];TEAM=lq.filter(i=>PETS[i]&&(!metaMode()||mp(PETS[i].n).un)).slice(0,TN);if(lp&&TEAM.length===lq.length)PLACE=lp.map(x=>[...x]);ui.pv=null;ui.psheet=false;render();return true}
   if(act==='m-lib'){G={phase:'lib'};ui.lp=null;render();return true}
   return false;
 }
@@ -3381,6 +3381,7 @@ function renderMenu(){
   ${mi('m-rank','🏆','Лига',`${LEAGUES[lgOf(rk().pts)].ic} ${LEAGUES[lgOf(rk().pts)].n}, ${plN(rk().pts,'очко','очка','очков',1)}. Бои против всё более сильных ботов.`)}
   ${mi('m-lair','👑','Логова боссов',`Боссов: ${Object.keys(BOSSES).length}, у каждого три сложности. Звёзд: ${Object.keys(BOSSES).reduce((a,k)=>a+lairOf(k).t,0)} из ${Object.keys(BOSSES).length*3}.`)}
   ${mi('m-quick','⚔️','Быстрый бой','Против бота твоего уровня или босса.')}
+  ${mi('m-quick4','4️⃣','Бой четвёрок','Быстрый бой: у тебя и соперника по 4 существа, поле 3×4.')}
   ${mi('m-puz','🧩','Задачи',`Победи за один ход. Решено ${Object.keys(pzs().done).length} из ${PUZ.length}.`)}
   ${mi('m-codex','📖','Кодекс',`Открыто ${cdxCount()} из ${cdxTotal()}: боссы, элиты, талисманы, события.`)}
   ${mi('m-ach','🏅','Достижения'+(achReady()?` <span class="qdot">${achReady()}</span>`:''),`Получено ${ACH.filter(a=>META.ach&&META.ach[a.k]).length} из ${ACH.length}. Награды камнями.`)}
@@ -5262,21 +5263,19 @@ function fsToggle(){const d=document,e=d.documentElement;
     const r=req.call(e,{navigationUI:'hide'});if(r&&r.catch)r.catch(()=>msg('Браузер не дал включить весь экран.'))}
   catch(_){msg('Браузер не дал включить весь экран.')}}
 document.addEventListener('click',ev=>{const b=ev.target.closest&&ev.target.closest('[data-act="fs"]');if(!b)return;ev.stopPropagation();ev.preventDefault();fsToggle()},true);
-/* ---------- 0.37.0 Anton (thread «Варианты экрана боя»): ten battle-screen layouts to try, switched in the menu
+/* ---------- 0.37.0 Anton (thread «Варианты экрана боя»): battle-screen layouts to try, switched in the menu
    (main menu «Вид экрана боя» and the battle «Опции» window). Only the look and the controls change: card size, where things sit,
    how a card is read and played. Rules, bots and balance are untouched. «Как сейчас» stays the default.
    The battle screen markup is reshaped here just before it is drawn (setApp), so the rest of the code keeps working as is. ---------- */
+// 0.38.0 Anton: the battle screen never scrolls, hand cards a bit larger and in ONE row; «Лупа» is not a variant any more but how every card behaves.
+// So the variants with several rows of cards (Крупная рука, Список, Сетка карт) and «Лупа» left the list (their code below stays unused).
 const LAYS=[
  {k:'base',ic:'▦',n:'Как сейчас',d:'Обычный экран: мини-карты, тап открывает руку.'},
- {k:'big',ic:'🔠',n:'Крупная рука',d:'Те же мини-карты, но вдвое крупнее, в два ряда. Цифры и значки читаются, за верх и низ легко схватить.'},
- {k:'peek',ic:'🔍',n:'Лупа',d:'Подержи палец на карте: над рукой появится крупная карта с полным текстом. Отпустил — закрылась, потянул — играешь.'},
  {k:'tap',ic:'👆',n:'Тап вместо перетаскивания',d:'Тап по карте: под рукой панель с полным текстом, цели на поле подсвечены. Тапни цель или нажми «Сыграть». Поле не закрывается.'},
  {k:'fan',ic:'🃏',n:'Веер',d:'Крупные карты внахлёст. Тап поднимает карту целиком, второй тап открывает её окно. Тянуть можно любую.'},
- {k:'list',ic:'☰',n:'Список',d:'Рука строками: слева ▲ с названием и текстом, справа ▼. Всё читается сразу. Тап по половине выбирает её.'},
  {k:'focus',ic:'🎯',n:'Карта в фокусе',d:'Одна карта крупно с полным текстом, под ней значки остальных. Тап по значку переносит карту в фокус.'},
  {k:'drawer',ic:'🗂',n:'Нижняя шторка',d:'Тап по руке открывает низкую шторку с крупными картами в ряд, поле остаётся видно. Карту тянешь прямо из шторки.'},
  {k:'thumb',ic:'🤚',n:'Одной рукой',d:'Все кнопки внизу под большим пальцем, сверху только поле. «В бой» самая крупная.'},
- {k:'grid',ic:'▤',n:'Сетка карт',d:'Все карты руки сразу с текстом, по три в ряд, без окон. Тап по половине выбирает её.'},
  {k:'plan',ic:'⏩',n:'План полосой',d:'Сыгранная карта уходит из руки в полосу «Ход» и встаёт по порядку срабатывания.'},
 ];
 const LAYK=new Set(LAYS.map(l=>l.k));
@@ -5398,7 +5397,7 @@ const _setAppLay=setApp;
 setApp=function(h){
   const ph=typeof G!=='undefined'&&G?G.phase:null,on=layOn();
   if(on)document.body.dataset.lay=LAY;else delete document.body.dataset.lay;
-  if(!on&&ph!=='menu'&&ph!=='battle'&&!ui.layPick)return _setAppLay(h);
+  if(!on&&ph!=='menu'&&ph!=='battle'&&!ui.layPick){layFit(false);return _setAppLay(h)}
   const f=layFrag(h);
   try{
     if(on)layTx(f);
@@ -5408,7 +5407,24 @@ setApp=function(h){
   }catch(e){console.error(e)}
   morphKids(app,[...f.childNodes],4);
   // a board patched only through its cells' classes loses its perspective fit (no new nodes for the fit watcher): refit it here
-  if(ph==='battle'&&typeof fitBoard==='function')for(const b of document.querySelectorAll('.board'))if(!b.dataset.fit){b.dataset.fit=1;fitBoard();break}};
+  if(ph==='battle'&&typeof fitBoard==='function')for(const b of document.querySelectorAll('.board'))if(!b.dataset.fit){b.dataset.fit=1;fitBoard();break}
+  layFit(ph==='battle')};
+
+/* ----- 0.38.0: the battle screen fits the phone screen and never scrolls -----
+   Larger hand cards when there is room; when there is not: normal cards, then a smaller board, then tighter gaps. */
+function layOver(){const r=app.getBoundingClientRect(),pb=parseFloat(getComputedStyle(document.body).paddingBottom)||0;return Math.ceil(r.bottom+pb-innerHeight)}
+function layFit(on){const B=document.body;
+  if(!on){if(B.dataset.bfit){delete B.dataset.bfit;delete B.dataset.hcl;delete B.dataset.tight;B.style.removeProperty('--bw')}return}
+  B.dataset.bfit=1;delete B.dataset.tight;
+  const bd=app.querySelector('.board'),refit=()=>{if(bd&&typeof fitBoard==='function')fitBoard()};
+  // shrink the board (down to minW % of the width) until the screen fits; true when it does
+  const squeeze=minW=>{let o=layOver();if(o<=0)return true;if(!bd)return false;const h=bd.getBoundingClientRect().height;if(!(h>0))return false;
+    const w=Math.floor(100*(h-o-2)/h);B.style.setProperty('--bw',Math.max(minW,w)+'%');refit();return w>=minW&&layOver()<=0};
+  // larger cards first: 150 px, then 126 px, then the usual size; the board gives way down to 78 % before the cards shrink
+  for(const t of ['l','m',''])
+    {if(t)B.dataset.hcl=t;else delete B.dataset.hcl;B.style.removeProperty('--bw');refit();if(squeeze(78))return}
+  B.dataset.tight=1;B.style.removeProperty('--bw');refit();squeeze(55)}
+addEventListener('resize',()=>{if(typeof G!=='undefined'&&G&&G.phase==='battle')requestAnimationFrame(()=>layFit(true))});
 
 /* ----- input ----- */
 document.addEventListener('click',e=>{
@@ -5442,11 +5458,11 @@ document.addEventListener('click',e=>{
 const peekEl=document.createElement('div');peekEl.className='lpeek';peekEl.hidden=true;document.body.appendChild(peekEl);
 let pk=null;
 function peekHide(){if(pk&&pk.t)clearTimeout(pk.t);peekEl.hidden=true;const was=pk&&pk.on;pk=null;return was}
-document.addEventListener('pointerdown',e=>{if(!layOn()||LAY!=='peek'||ui.busy)return;const c=e.target.closest&&e.target.closest('.hand.mini [data-card]');if(!c)return;
+document.addEventListener('pointerdown',e=>{if(typeof G==='undefined'||!G||G.phase!=='battle'||!G.P||ui.busy)return;const c=e.target.closest&&e.target.closest('.hand [data-card]');if(!c)return;
   const card=layCard(c.dataset.card);if(!card)return;peekHide();
-  pk={x:e.clientX,y:e.clientY,id:e.pointerId,t:setTimeout(()=>{if(!pk)return;const h=app.querySelector('.hand.mini');const top=h?h.getBoundingClientRect().top:innerHeight*.6;
+  pk={x:e.clientX,y:e.clientY,id:e.pointerId,t:setTimeout(()=>{if(!pk)return;const h=c.closest('.hand')||app.querySelector('.hand');const top=h?h.getBoundingClientRect().top:innerHeight*.6;
     peekEl.innerHTML=cardHtml(card).replace(/ data-card="[^"]*"/,'').replace('<button','<div').replace(/<\/button>\s*$/,'</div>');
-    peekEl.style.bottom=Math.max(8,innerHeight-top+8)+'px';peekEl.hidden=false;pk.on=true;try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}},260)}},true);
+    peekEl.hidden=false;peekEl.style.bottom=Math.max(8,Math.min(innerHeight-top+8,innerHeight-peekEl.offsetHeight*1.45-8))+'px';pk.on=true;try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}},260)}},true);
 document.addEventListener('pointermove',e=>{if(pk&&e.pointerId===pk.id&&Math.hypot(e.clientX-pk.x,e.clientY-pk.y)>=10)peekHide()},true);
 document.addEventListener('pointerup',e=>{if(pk&&e.pointerId===pk.id&&peekHide())suppress=Date.now()},true);
 document.addEventListener('pointercancel',()=>peekHide(),true);
@@ -5498,7 +5514,10 @@ body .lyghost{display:block!important;overflow:visible;padding:0;contain:none}bo
 /* лупа */
 .lpeek{position:fixed;left:50%;width:150px;transform:translateX(-50%) scale(1.45);transform-origin:50% 100%;z-index:45;pointer-events:none;filter:drop-shadow(0 10px 24px #000c)}
 .lpeek>.card{width:150px;margin:0}
-body[data-lay=peek] .hand.mini>.card{-webkit-touch-callout:none}
+body .hand .card{-webkit-touch-callout:none}
+.lpeek{isolation:isolate}
+.lpeek>.card{opacity:1!important;filter:none!important;background-color:#1A2535!important;box-shadow:0 0 0 1px #0008}
+.lpeek>.card::before{opacity:1!important}
 
 /* широкая карта: ▲ слева, полоса стихий за сброс посередине, ▼ справа */
 .card.lw{display:grid!important;grid-template-columns:minmax(0,1.25fr) auto minmax(0,1fr);gap:0;padding:0!important;height:auto!important;min-height:48px;border-radius:10px;overflow:hidden;text-align:left;
@@ -5603,7 +5622,37 @@ body[data-lay=thumb] .acts .btn.main{min-height:58px;font-size:18px}
 .lplan .hand.mini.lpl{display:flex!important;gap:5px;min-height:108px;padding:7px 4px 1px;overflow-x:auto}
 .lplan .hand.mini.lpl>.card{flex:0 0 calc((100% - 20px)/5.4)!important;opacity:1!important}
 
+/* 0.38.0 no scrolling in battle */
+html:has(body[data-bfit]){overflow:hidden;overscroll-behavior:none;height:100%}
+body[data-bfit]{box-sizing:border-box;margin:0;height:100dvh;overflow:hidden;overscroll-behavior:none;padding-block:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-bottom))}
+body[data-bfit] #app{min-height:100%}
+body[data-bfit] .board{width:var(--bw,100%);margin-inline:auto}
+body[data-bfit][data-tight] #app{gap:5px}
+body[data-bfit][data-tight] .lplan .hand.mini.lpl{min-height:0;padding-top:5px}
+body[data-bfit][data-tight] .lplan .hand.mini.lpl>.card{zoom:.72}
+body[data-bfit][data-lay=thumb] #app{min-height:100%}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl)>.card.mini.zc.hv{height:150px!important;grid-template-rows:18px 24px 17px 19px 17px 24px 18px!important;gap:1.5px!important;padding:3px 4px!important}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc.hv .zu,body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc.hv .zv{font-size:12.5px}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc.hv .zm{font-size:19px}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc.hv .zt{font-size:14px}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc .zpet .cri{width:22px;height:22px}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc .zcost .rr{width:15px;height:15px}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc.hv .zz svg.zg{width:22px;height:auto}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc.hv .zdn{font-size:14px}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc.hv .ei.gn{width:13px;height:13px}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .badge{width:22px;height:22px;font-size:12px}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl)>.card.mini.zc.hv{height:127px!important;grid-template-rows:15px 20px 14px 16px 14px 20px 15px!important;gap:1.5px!important;padding:3px 4px!important}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc.hv .zu,body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc.hv .zv{font-size:11.5px}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc.hv .zm{font-size:16.5px}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc.hv .zt{font-size:12.5px}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc .zpet .cri{width:19px;height:19px}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc .zcost .rr{width:13px;height:13px}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc.hv .zz svg.zg{width:19px;height:auto}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc.hv .zdn{font-size:12.5px}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc.hv .ei.gn{width:12px;height:12px}
 `;document.body.appendChild(st)}
+/* mode «Бой четвёрок» (0.38.1): quick fight with 4 creatures a side on a 3-deep, 4-wide field; everything else counts creatures as usual */
+function setTN(n){TN=n;COLS=n===4?4:5;ROWS=3}
 // perspective field: the tilted board keeps its flat layout height, so pull it up by the difference to reclaim the freed space
 function fitBoard(){for(const b of document.querySelectorAll('.board')){b.style.marginTop='';const lh=b.offsetHeight,vh=b.getBoundingClientRect().height;b.style.marginTop=(-(lh-vh)+4)+'px'}}
 if(typeof MutationObserver!=='undefined')new MutationObserver(()=>{for(const b of document.querySelectorAll('.board'))if(!b.dataset.fit){b.dataset.fit=1;fitBoard();break}}).observe(document.body,{childList:true,subtree:true});

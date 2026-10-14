@@ -1,4 +1,4 @@
-const ROWS=3,COLS=5,START=[[1,1],[0,2],[2,1],[1,3],[2,3]];
+let ROWS=3,COLS=5,TN=5;const START=[[1,1],[0,2],[2,1],[1,3],[2,3]];
 const MAXPLAY=99,CAP=10;
 // 0.32.0 growth: all hp-type numbers ×3 (SC). K is the runtime unit of flat effects (auras, burn, storm), = old 2 × SC.
 // Сила: a creature number (20 at level 1), cards deal % of it; base card numbers are written for Сила 20.
@@ -174,9 +174,9 @@ function smartPlace(defs,n){
   return best}
 function newGame(){
   ui.bst=false;for(const k in lastPos)delete lastPos[k];
-  const bt=shuffle(petPool()).slice(0,5),cells=shuffle([...Array(ROWS*COLS).keys()]).slice(0,5).map(k=>[Math.floor(k/COLS),k%COLS]);
+  const bt=shuffle(petPool()).slice(0,TN),cells=shuffle([...Array(ROWS*COLS).keys()]).slice(0,TN).map(k=>[Math.floor(k/COLS),k%COLS]);
   const nx=NEXT;NEXT=null;let eTeam=bt,eAI=AI,boss=VS==='boss'&&!CTX||!!(CTX&&CTX.kind==='lair');
-  if(nx){eTeam=nx.enemy||nx.enemyIdx||bt;eAI=nx.ai||AI;if(eTeam.length!==5)cells.length=eTeam.length;while(cells.length<eTeam.length){const k=Math.floor(Math.random()*ROWS*COLS),rc=[Math.floor(k/COLS),k%COLS];if(!cells.some(x=>x[0]===rc[0]&&x[1]===rc[1]))cells.push(rc)}}
+  if(nx){eTeam=nx.enemy||nx.enemyIdx||bt;eAI=nx.ai||AI;if(eTeam.length!==TN)cells.length=eTeam.length;while(cells.length<eTeam.length){const k=Math.floor(Math.random()*ROWS*COLS),rc=[Math.floor(k/COLS),k%COLS];if(!cells.some(x=>x[0]===rc[0]&&x[1]===rc[1]))cells.push(rc)}}
   if(eAI==='hard'||eAI==='smart'||eAI==='master'||HK.smartAll||eAI==='auto'&&autoLv()>=5){const dd=eTeam.map(x=>typeof x==='object'?x:PETS[x]);const sp=smartPlace(dd,eTeam.length);cells.length=0;cells.push(...sp)}
   const useM=metaMode()&&!sandbox();if(useM&&!nx&&!boss&&!CTX)eTeam=mirrorTeam(eTeam);
   const isRun=CTX&&CTX.kind==='run'&&META.run;if(isRun)META.run.place=(PLACE||START).map(x=>[...x]);
@@ -188,7 +188,7 @@ function newGame(){
   if(isRun){runBattleStart(nx);anyPlan(G.B,G.P);render()}
   if(G.B.bk)cdxMark('boss',G.B.bk);if(G.emod)cdxMark('el',G.emod);
   if(!SIMU&&CTX&&CTX.kind==='rank'){rk().pend=1;saveMeta()}
-  if(!SIMU&&!CTX&&!sandbox()&&Array.isArray(TEAM)&&TEAM.every(x=>typeof x==='number')){META.lastQ=TEAM.slice();META.lastQP=(PLACE||START).map(x=>[...x]);saveMeta()}
+  if(!SIMU&&!CTX&&!sandbox()&&Array.isArray(TEAM)&&TEAM.every(x=>typeof x==='number')){META[TN===5?'lastQ':'lastQ'+TN]=TEAM.slice();META[TN===5?'lastQP':'lastQP'+TN]=(PLACE||START).map(x=>[...x]);saveMeta()}
   ui.bIntro=!SIMU&&G.B.bk&&!(CTX&&CTX.kind==='puz')?G.B.bk:null;
   if(!SIMU)ui.auto=!!META.autoOn&&!(CTX&&CTX.kind==='puz');// Auto stays on from fight to fight until the player turns it off
 }

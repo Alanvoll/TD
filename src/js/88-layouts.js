@@ -1,18 +1,16 @@
-/* ---------- 0.37.0 Anton (thread «Варианты экрана боя»): ten battle-screen layouts to try, switched in the menu
+/* ---------- 0.37.0 Anton (thread «Варианты экрана боя»): battle-screen layouts to try, switched in the menu
    (main menu «Вид экрана боя» and the battle «Опции» window). Only the look and the controls change: card size, where things sit,
    how a card is read and played. Rules, bots and balance are untouched. «Как сейчас» stays the default.
    The battle screen markup is reshaped here just before it is drawn (setApp), so the rest of the code keeps working as is. ---------- */
+// 0.38.0 Anton: the battle screen never scrolls, hand cards a bit larger and in ONE row; «Лупа» is not a variant any more but how every card behaves.
+// So the variants with several rows of cards (Крупная рука, Список, Сетка карт) and «Лупа» left the list (their code below stays unused).
 const LAYS=[
  {k:'base',ic:'▦',n:'Как сейчас',d:'Обычный экран: мини-карты, тап открывает руку.'},
- {k:'big',ic:'🔠',n:'Крупная рука',d:'Те же мини-карты, но вдвое крупнее, в два ряда. Цифры и значки читаются, за верх и низ легко схватить.'},
- {k:'peek',ic:'🔍',n:'Лупа',d:'Подержи палец на карте: над рукой появится крупная карта с полным текстом. Отпустил — закрылась, потянул — играешь.'},
  {k:'tap',ic:'👆',n:'Тап вместо перетаскивания',d:'Тап по карте: под рукой панель с полным текстом, цели на поле подсвечены. Тапни цель или нажми «Сыграть». Поле не закрывается.'},
  {k:'fan',ic:'🃏',n:'Веер',d:'Крупные карты внахлёст. Тап поднимает карту целиком, второй тап открывает её окно. Тянуть можно любую.'},
- {k:'list',ic:'☰',n:'Список',d:'Рука строками: слева ▲ с названием и текстом, справа ▼. Всё читается сразу. Тап по половине выбирает её.'},
  {k:'focus',ic:'🎯',n:'Карта в фокусе',d:'Одна карта крупно с полным текстом, под ней значки остальных. Тап по значку переносит карту в фокус.'},
  {k:'drawer',ic:'🗂',n:'Нижняя шторка',d:'Тап по руке открывает низкую шторку с крупными картами в ряд, поле остаётся видно. Карту тянешь прямо из шторки.'},
  {k:'thumb',ic:'🤚',n:'Одной рукой',d:'Все кнопки внизу под большим пальцем, сверху только поле. «В бой» самая крупная.'},
- {k:'grid',ic:'▤',n:'Сетка карт',d:'Все карты руки сразу с текстом, по три в ряд, без окон. Тап по половине выбирает её.'},
  {k:'plan',ic:'⏩',n:'План полосой',d:'Сыгранная карта уходит из руки в полосу «Ход» и встаёт по порядку срабатывания.'},
 ];
 const LAYK=new Set(LAYS.map(l=>l.k));
@@ -134,7 +132,7 @@ const _setAppLay=setApp;
 setApp=function(h){
   const ph=typeof G!=='undefined'&&G?G.phase:null,on=layOn();
   if(on)document.body.dataset.lay=LAY;else delete document.body.dataset.lay;
-  if(!on&&ph!=='menu'&&ph!=='battle'&&!ui.layPick)return _setAppLay(h);
+  if(!on&&ph!=='menu'&&ph!=='battle'&&!ui.layPick){layFit(false);return _setAppLay(h)}
   const f=layFrag(h);
   try{
     if(on)layTx(f);
@@ -144,7 +142,24 @@ setApp=function(h){
   }catch(e){console.error(e)}
   morphKids(app,[...f.childNodes],4);
   // a board patched only through its cells' classes loses its perspective fit (no new nodes for the fit watcher): refit it here
-  if(ph==='battle'&&typeof fitBoard==='function')for(const b of document.querySelectorAll('.board'))if(!b.dataset.fit){b.dataset.fit=1;fitBoard();break}};
+  if(ph==='battle'&&typeof fitBoard==='function')for(const b of document.querySelectorAll('.board'))if(!b.dataset.fit){b.dataset.fit=1;fitBoard();break}
+  layFit(ph==='battle')};
+
+/* ----- 0.38.0: the battle screen fits the phone screen and never scrolls -----
+   Larger hand cards when there is room; when there is not: normal cards, then a smaller board, then tighter gaps. */
+function layOver(){const r=app.getBoundingClientRect(),pb=parseFloat(getComputedStyle(document.body).paddingBottom)||0;return Math.ceil(r.bottom+pb-innerHeight)}
+function layFit(on){const B=document.body;
+  if(!on){if(B.dataset.bfit){delete B.dataset.bfit;delete B.dataset.hcl;delete B.dataset.tight;B.style.removeProperty('--bw')}return}
+  B.dataset.bfit=1;delete B.dataset.tight;
+  const bd=app.querySelector('.board'),refit=()=>{if(bd&&typeof fitBoard==='function')fitBoard()};
+  // shrink the board (down to minW % of the width) until the screen fits; true when it does
+  const squeeze=minW=>{let o=layOver();if(o<=0)return true;if(!bd)return false;const h=bd.getBoundingClientRect().height;if(!(h>0))return false;
+    const w=Math.floor(100*(h-o-2)/h);B.style.setProperty('--bw',Math.max(minW,w)+'%');refit();return w>=minW&&layOver()<=0};
+  // larger cards first: 150 px, then 126 px, then the usual size; the board gives way down to 78 % before the cards shrink
+  for(const t of ['l','m',''])
+    {if(t)B.dataset.hcl=t;else delete B.dataset.hcl;B.style.removeProperty('--bw');refit();if(squeeze(78))return}
+  B.dataset.tight=1;B.style.removeProperty('--bw');refit();squeeze(55)}
+addEventListener('resize',()=>{if(typeof G!=='undefined'&&G&&G.phase==='battle')requestAnimationFrame(()=>layFit(true))});
 
 /* ----- input ----- */
 document.addEventListener('click',e=>{
@@ -178,11 +193,11 @@ document.addEventListener('click',e=>{
 const peekEl=document.createElement('div');peekEl.className='lpeek';peekEl.hidden=true;document.body.appendChild(peekEl);
 let pk=null;
 function peekHide(){if(pk&&pk.t)clearTimeout(pk.t);peekEl.hidden=true;const was=pk&&pk.on;pk=null;return was}
-document.addEventListener('pointerdown',e=>{if(!layOn()||LAY!=='peek'||ui.busy)return;const c=e.target.closest&&e.target.closest('.hand.mini [data-card]');if(!c)return;
+document.addEventListener('pointerdown',e=>{if(typeof G==='undefined'||!G||G.phase!=='battle'||!G.P||ui.busy)return;const c=e.target.closest&&e.target.closest('.hand [data-card]');if(!c)return;
   const card=layCard(c.dataset.card);if(!card)return;peekHide();
-  pk={x:e.clientX,y:e.clientY,id:e.pointerId,t:setTimeout(()=>{if(!pk)return;const h=app.querySelector('.hand.mini');const top=h?h.getBoundingClientRect().top:innerHeight*.6;
+  pk={x:e.clientX,y:e.clientY,id:e.pointerId,t:setTimeout(()=>{if(!pk)return;const h=c.closest('.hand')||app.querySelector('.hand');const top=h?h.getBoundingClientRect().top:innerHeight*.6;
     peekEl.innerHTML=cardHtml(card).replace(/ data-card="[^"]*"/,'').replace('<button','<div').replace(/<\/button>\s*$/,'</div>');
-    peekEl.style.bottom=Math.max(8,innerHeight-top+8)+'px';peekEl.hidden=false;pk.on=true;try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}},260)}},true);
+    peekEl.hidden=false;peekEl.style.bottom=Math.max(8,Math.min(innerHeight-top+8,innerHeight-peekEl.offsetHeight*1.45-8))+'px';pk.on=true;try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}},260)}},true);
 document.addEventListener('pointermove',e=>{if(pk&&e.pointerId===pk.id&&Math.hypot(e.clientX-pk.x,e.clientY-pk.y)>=10)peekHide()},true);
 document.addEventListener('pointerup',e=>{if(pk&&e.pointerId===pk.id&&peekHide())suppress=Date.now()},true);
 document.addEventListener('pointercancel',()=>peekHide(),true);
@@ -234,7 +249,10 @@ body .lyghost{display:block!important;overflow:visible;padding:0;contain:none}bo
 /* лупа */
 .lpeek{position:fixed;left:50%;width:150px;transform:translateX(-50%) scale(1.45);transform-origin:50% 100%;z-index:45;pointer-events:none;filter:drop-shadow(0 10px 24px #000c)}
 .lpeek>.card{width:150px;margin:0}
-body[data-lay=peek] .hand.mini>.card{-webkit-touch-callout:none}
+body .hand .card{-webkit-touch-callout:none}
+.lpeek{isolation:isolate}
+.lpeek>.card{opacity:1!important;filter:none!important;background-color:#1A2535!important;box-shadow:0 0 0 1px #0008}
+.lpeek>.card::before{opacity:1!important}
 
 /* широкая карта: ▲ слева, полоса стихий за сброс посередине, ▼ справа */
 .card.lw{display:grid!important;grid-template-columns:minmax(0,1.25fr) auto minmax(0,1fr);gap:0;padding:0!important;height:auto!important;min-height:48px;border-radius:10px;overflow:hidden;text-align:left;
@@ -339,4 +357,32 @@ body[data-lay=thumb] .acts .btn.main{min-height:58px;font-size:18px}
 .lplan .hand.mini.lpl{display:flex!important;gap:5px;min-height:108px;padding:7px 4px 1px;overflow-x:auto}
 .lplan .hand.mini.lpl>.card{flex:0 0 calc((100% - 20px)/5.4)!important;opacity:1!important}
 
+/* 0.38.0 no scrolling in battle */
+html:has(body[data-bfit]){overflow:hidden;overscroll-behavior:none;height:100%}
+body[data-bfit]{box-sizing:border-box;margin:0;height:100dvh;overflow:hidden;overscroll-behavior:none;padding-block:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-bottom))}
+body[data-bfit] #app{min-height:100%}
+body[data-bfit] .board{width:var(--bw,100%);margin-inline:auto}
+body[data-bfit][data-tight] #app{gap:5px}
+body[data-bfit][data-tight] .lplan .hand.mini.lpl{min-height:0;padding-top:5px}
+body[data-bfit][data-tight] .lplan .hand.mini.lpl>.card{zoom:.72}
+body[data-bfit][data-lay=thumb] #app{min-height:100%}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl)>.card.mini.zc.hv{height:150px!important;grid-template-rows:18px 24px 17px 19px 17px 24px 18px!important;gap:1.5px!important;padding:3px 4px!important}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc.hv .zu,body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc.hv .zv{font-size:12.5px}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc.hv .zm{font-size:19px}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc.hv .zt{font-size:14px}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc .zpet .cri{width:22px;height:22px}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc .zcost .rr{width:15px;height:15px}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc.hv .zz svg.zg{width:22px;height:auto}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc.hv .zdn{font-size:14px}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .zc.hv .ei.gn{width:13px;height:13px}
+body[data-bfit][data-hcl=l] .hand.mini:not(.lpl) .badge{width:22px;height:22px;font-size:12px}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl)>.card.mini.zc.hv{height:127px!important;grid-template-rows:15px 20px 14px 16px 14px 20px 15px!important;gap:1.5px!important;padding:3px 4px!important}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc.hv .zu,body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc.hv .zv{font-size:11.5px}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc.hv .zm{font-size:16.5px}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc.hv .zt{font-size:12.5px}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc .zpet .cri{width:19px;height:19px}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc .zcost .rr{width:13px;height:13px}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc.hv .zz svg.zg{width:19px;height:auto}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc.hv .zdn{font-size:12.5px}
+body[data-bfit][data-hcl=m] .hand.mini:not(.lpl) .zc.hv .ei.gn{width:12px;height:12px}
 `;document.body.appendChild(st)}

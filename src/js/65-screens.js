@@ -24,10 +24,10 @@ function modeClick(act){
   if(metaClick(act))return true;
   if(runClick(act))return true;
   if(hintClick(act)||masterClick(act)||achClick(act)||autoClick(act))return true;
-  if(act==='m-menu'){CTX=null;NEXT=null;G={phase:'menu'};resetPlace();render();return true}
-  if(act==='m-quick'){CTX=null;NEXT=null;G={phase:'pick'};resetPlace();
+  if(act==='m-menu'){setTN(5);CTX=null;NEXT=null;G={phase:'menu'};resetPlace();render();return true}
+  if(act==='m-quick'||act==='m-quick4'){setTN(act==='m-quick4'?4:5);CTX=null;NEXT=null;G={phase:'pick'};resetPlace();
     // the last quick-fight pack and placement come back (playtest: it started from 0/5 every time)
-    TEAM=(META.lastQ||[]).filter(i=>PETS[i]&&(!metaMode()||mp(PETS[i].n).un)).slice(0,5);if(META.lastQP&&TEAM.length===(META.lastQ||[]).length)PLACE=META.lastQP.map(x=>[...x]);ui.pv=null;ui.psheet=false;render();return true}
+    const lq=META[TN===5?'lastQ':'lastQ'+TN]||[],lp=META[TN===5?'lastQP':'lastQP'+TN];TEAM=lq.filter(i=>PETS[i]&&(!metaMode()||mp(PETS[i].n).un)).slice(0,TN);if(lp&&TEAM.length===lq.length)PLACE=lp.map(x=>[...x]);ui.pv=null;ui.psheet=false;render();return true}
   if(act==='m-lib'){G={phase:'lib'};ui.lp=null;render();return true}
   return false;
 }

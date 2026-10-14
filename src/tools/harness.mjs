@@ -12,7 +12,7 @@ export function load(file,extra=''){
     document:{createElement:el,getElementById:()=>el(),querySelector:()=>null,querySelectorAll:()=>[],addEventListener(){},head:el(),body:el(),hidden:false,elementFromPoint:()=>null},
     localStorage:{getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)},
     performance:{now:()=>Date.now()},URL:{createObjectURL:()=>''},Blob:function(){},Image:function(){return el()},atob:s=>Buffer.from(s,'base64').toString('binary'),
-    setInterval:()=>0,setTimeout:(f)=>0,clearTimeout(){},requestAnimationFrame:()=>0,innerHeight:800,innerWidth:400,navigator:{vibrate(){}},location:{search:'',hash:''},
+    setInterval:()=>0,setTimeout:(f)=>0,clearTimeout(){},requestAnimationFrame:()=>0,innerHeight:800,innerWidth:400,addEventListener(){},removeEventListener(){},navigator:{vibrate(){}},location:{search:'',hash:''},
   };
   ctx.globalThis=ctx;ctx.window=ctx;
   vm.createContext(ctx);

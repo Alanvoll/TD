@@ -188,6 +188,7 @@ function renderMenu(){
   ${mi('m-rank','🏆','Лига',`${LEAGUES[lgOf(rk().pts)].ic} ${LEAGUES[lgOf(rk().pts)].n}, ${plN(rk().pts,'очко','очка','очков',1)}. Бои против всё более сильных ботов.`)}
   ${mi('m-lair','👑','Логова боссов',`Боссов: ${Object.keys(BOSSES).length}, у каждого три сложности. Звёзд: ${Object.keys(BOSSES).reduce((a,k)=>a+lairOf(k).t,0)} из ${Object.keys(BOSSES).length*3}.`)}
   ${mi('m-quick','⚔️','Быстрый бой','Против бота твоего уровня или босса.')}
+  ${mi('m-quick4','4️⃣','Бой четвёрок','Быстрый бой: у тебя и соперника по 4 существа, поле 3×4.')}
   ${mi('m-puz','🧩','Задачи',`Победи за один ход. Решено ${Object.keys(pzs().done).length} из ${PUZ.length}.`)}
   ${mi('m-codex','📖','Кодекс',`Открыто ${cdxCount()} из ${cdxTotal()}: боссы, элиты, талисманы, события.`)}
   ${mi('m-ach','🏅','Достижения'+(achReady()?` <span class="qdot">${achReady()}</span>`:''),`Получено ${ACH.filter(a=>META.ach&&META.ach[a.k]).length} из ${ACH.length}. Награды камнями.`)}

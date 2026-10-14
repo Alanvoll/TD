@@ -136,7 +136,7 @@ function teamSums(){const g=z0(),c=z0();for(const i of TEAM){const p=PETS[i];for
 // v29: team rating fitted on 60k bot-vs-bot battles (logistic model: pets + family tiers)
 function rateScore(team){let s=RATE70.b||0;const c={};for(const i of team){s+=RATE70.p[PETS[i].n]||0;const k=PETS[i].cls;c[k]=(c[k]||0)+1}for(const k in RATE70.c)if(c[k])s+=RATE70.c[k];for(const k in RATE70.c3||{})if(c[k]>=3)s+=RATE70.c3[k];return{s,c}}
 function teamRating(){
-  if(TEAM.length<5)return`<div class="m">Оценка стаи появится, когда выберешь всех пятерых.</div>`;
+  if(TN!==5)return'';if(TEAM.length<5)return`<div class="m">Оценка стаи появится, когда выберешь всех пятерых.</div>`;
   const {n,c}=rateGrade(),s=rateScore(TEAM).s,win=Math.round(100/(1+Math.exp(-s)));
   const why=[],cl=new Set(TEAM.map(i=>PETS[i].cls));
   for(const k of ['guard','healer'])if(!cl.has(k))why.push('нет ни одного '+(k==='guard'?'Стража':'Целителя'));
@@ -153,7 +153,7 @@ function rateGrade(){const {s}=rateScore(TEAM),q=RATE70.q;let g=0;while(g<4&&s>q
 let RATE70={"p":{"Медведь":0.061,"Волк":0.002,"Олень":-0.021,"Лиса":0.047,"Сова":-0.058,"Дубовик":-0.002,"Колючник":0.069,"Лотосовик":-0.037,"Мухолов":0.06,"Солнечник":-0.082,"Жук-носорог":-0.009,"Богомол":-0.051,"Пчела":-0.02,"Комар":0.027,"Паук":0.026,"Единорог":-0.029,"Грифон":0.042,"Фея":-0.032,"Джинн":-0.032,"Русалка":0.047,"Скелет":0.064,"Зомби":0.053,"Призрак":0.054,"Вампир":-0.038,"Лич":-0.01,"Робот":0.002,"Мехскорпион":-0.025,"Ремонтник":0.006,"Мехзмей":-0.074,"Дрон":-0.01,"Голем":0.001,"Огневик":-0.016,"Водяной":-0.007,"Вихрик":-0.083,"Искрун":-0.038,"Цербер":0.056,"Бес":0.055,"Козлорог":0.006,"Тенекот":-0.046,"Демон хаоса":0.018,"Слизень":0.057,"Кальмар":-0.022,"Медуза":0.026,"Глазун":0.025,"Осьминог":-0.052,"Каменный дракон":0.008,"Дракончик":-0.003,"Златокрыл":-0.015,"Виверна":0.045,"Тёмный дракон":-0.045},"c":{"guard":0.134,"fighter":0.059,"healer":0.11,"agile":0.015,"sage":0.081},"c3":{"guard":-0.177,"fighter":-0.037,"healer":-0.08,"agile":-0.104,"sage":-0.04},"b":-0.254,"q":[-0.142,-0.027,0.077,0.179]};
 const statLine=p=>[`⚔ Сила ${Math.round(silaOf(p))}: от неё считаются числа его карт`,p.leg&&LEGT[p.cls]?`👑 Черта: ${LEGT[p.cls]}`:'',p.sp?`⏱ Инициатива его карт ${p.sp>0?'−':'+'}${Math.abs(p.sp)*INI_STEP}: они срабатывают ${p.sp>0?'раньше':'позже'}`:''].filter(Boolean).join('. ');
 function petSheet(v){
-  const p=PETS[v],inT=TEAM.includes(v),full=TEAM.length>=5&&!inT,C=CLS[p.cls],F=FAM[p.fam],st=statLine(p);
+  const p=PETS[v],inT=TEAM.includes(v),full=TEAM.length>=TN&&!inT,C=CLS[p.cls],F=FAM[p.fam],st=statLine(p);
   return`<div class="over" data-act="ps-close"><div class="box psheet">
   <div class="psh"><span class="pbig">${petLive(p)}</span><div><h2>${p.n}</h2><div class="m"><b style="color:${rarC(p)}">${GRADE[p.rar].n}</b>${metaMode()&&!sandbox()?' · ур. '+mp(p.n).lv:''} · ${metaMode()&&!sandbox()?myDef(v).hp:p.hp} хп · ${petEls(p).map(e=>EI(e,1)).join('')} · ${C.ic} ${C.n} · ${F.ic} ${F.n}</div></div></div>
   <div class="fxr ps"><span class="fxi">${F.ic}</span><span><b>${F.n}</b><br><span class="m">${F.t[0][0].toUpperCase()+F.t[0].slice(1)}.</span></span></div>
@@ -198,15 +198,15 @@ function renderPick(){
   const so={q:(a,b)=>PETS[b].rar-PETS[a].rar||PETS[a].n.localeCompare(PETS[b].n,'ru'),name:(a,b)=>PETS[a].n.localeCompare(PETS[b].n,'ru'),hp:(a,b)=>PETS[b].hp-PETS[a].hp,el:(a,b)=>ELS.indexOf(petEls(PETS[a])[0])-ELS.indexOf(petEls(PETS[b])[0])||PETS[a].n.localeCompare(PETS[b].n,'ru'),fam:(a,b)=>Object.keys(FAM).indexOf(PETS[a].fam)-Object.keys(FAM).indexOf(PETS[b].fam)||Object.keys(CLS).indexOf(PETS[a].cls)-Object.keys(CLS).indexOf(PETS[b].cls),cls:(a,b)=>Object.keys(CLS).indexOf(PETS[a].cls)-Object.keys(CLS).indexOf(PETS[b].cls)||Object.keys(FAM).indexOf(PETS[a].fam)-Object.keys(FAM).indexOf(PETS[b].fam)}[F.sort];if(so)list.sort(so);
   const pill=(act,on,txt)=>`<button class="pill sm ${on?'on':''}" data-act="${act}">${txt}</button>`;
   const ttl=CTX&&CTX.kind==='lair'?BOSSES[CTX.bk].ic+' '+BOSSES[CTX.bk].n+' · '+LAIR_T[CTX.tier].ic:'Твоя стая';
-  const nf=F.el.length+F.fam.length+F.role.length,rg=TEAM.length===5?rateGrade():null;
+  const nf=F.el.length+F.fam.length+F.role.length,rg=TN===5&&TEAM.length===5?rateGrade():null;
   let h=`<div class="top"><button class="pill sm" data-act="m-menu">‹ Меню</button><div class="title">${ttl}</div><span class="modes"></span></div>
-  <div class="tbar"><div class="tm">${[0,1,2,3,4].map(k=>{const i=TEAM[k];return i==null?`<span class="ts empty"></span>`:`<button class="ts" data-view="${i}" style="border-color:${rarC(PETS[i])}"><span class="em">${petIc(PETS[i],1)}</span>${FAM[PETS[i].fam]?`<span class="fmb">${FAM[PETS[i].fam].ic}</span><span class="clb">${CLS[PETS[i].cls].ic}</span>`:''}<span class="tx" data-qt="${i}">✕</span></button>`}).join('')}</div>
-  <div class="tside"><button class="pill sm" data-act="deck" ${TEAM.length?'':'disabled'}>🃏 Колода</button><button class="pill sm" data-act="fxs">💫 Эффекты</button>${rg?`<button class="pill sm" data-act="deck" style="color:${rg.c}">${rg.n}</button>`:`<span class="m" style="font-size:12px">${TEAM.length}/5</span>`}</div></div>
+  <div class="tbar"><div class="tm">${[...Array(TN).keys()].map(k=>{const i=TEAM[k];return i==null?`<span class="ts empty"></span>`:`<button class="ts" data-view="${i}" style="border-color:${rarC(PETS[i])}"><span class="em">${petIc(PETS[i],1)}</span>${FAM[PETS[i].fam]?`<span class="fmb">${FAM[PETS[i].fam].ic}</span><span class="clb">${CLS[PETS[i].cls].ic}</span>`:''}<span class="tx" data-qt="${i}">✕</span></button>`}).join('')}</div>
+  <div class="tside"><button class="pill sm" data-act="deck" ${TEAM.length?'':'disabled'}>🃏 Колода</button><button class="pill sm" data-act="fxs">💫 Эффекты</button>${rg?`<button class="pill sm" data-act="deck" style="color:${rg.c}">${rg.n}</button>`:`<span class="m" style="font-size:12px">${TEAM.length}/${TN}</span>`}</div></div>
   
   <div class="flt fl1"><button class="pill sm ${nf||F.sort!=='def'?'on':''}" data-act="fopen">⚙ Фильтры${nf?' · '+nf:''}</button>${nf?pill('fclr',false,'✕ Сбросить'):''}<span class="m" style="font-size:11px;margin-left:auto">${list.length===pool.length?'Все '+pool.length:list.length+' из '+pool.length}${F.sort!=='def'?' · по '+SORTN[F.sort]:''}</span></div>
-  <div class="pk">${list.length?list.map(i=>{const q=PETS[i],on=TEAM.includes(i),full=TEAM.length>=5&&!on;return`<div class="pt ${on?'on':''}" data-view="${i}" data-r="${q.rar}" style="--qc:${rarC(q)}">${FAM[q.fam]?`<span class="fmb" title="${FAM[q.fam].n}">${FAM[q.fam].ic}</span><span class="clb" title="${CLS[q.cls].n}">${CLS[q.cls].ic}</span>`:''}<button class="qt ${on?'on':''}" data-qt="${i}" ${full?'disabled':''}>${on?'✓':'+'}</button><span class="pt-av">${qArt(q,metaMode()&&!sandbox()?mp(q.n).q:0,1)}${metaMode()&&!sandbox()?`<span class="lvb" style="background:${qC(mp(q.n).q)}">${mp(q.n).lv}</span>`:''}</span><span class="pnm" style="font-size:${q.n.length>12?10.5:q.n.length>9?11.5:12.5}px">${q.n}</span><span class="pels">${petEls(q).map(e=>EI(e,1)).join('')}</span></div>`}).join(''):'<div class="m">Никого не нашлось, сбрось фильтр.</div>'}</div>
+  <div class="pk">${list.length?list.map(i=>{const q=PETS[i],on=TEAM.includes(i),full=TEAM.length>=TN&&!on;return`<div class="pt ${on?'on':''}" data-view="${i}" data-r="${q.rar}" style="--qc:${rarC(q)}">${FAM[q.fam]?`<span class="fmb" title="${FAM[q.fam].n}">${FAM[q.fam].ic}</span><span class="clb" title="${CLS[q.cls].n}">${CLS[q.cls].ic}</span>`:''}<button class="qt ${on?'on':''}" data-qt="${i}" ${full?'disabled':''}>${on?'✓':'+'}</button><span class="pt-av">${qArt(q,metaMode()&&!sandbox()?mp(q.n).q:0,1)}${metaMode()&&!sandbox()?`<span class="lvb" style="background:${qC(mp(q.n).q)}">${mp(q.n).lv}</span>`:''}</span><span class="pnm" style="font-size:${q.n.length>12?10.5:q.n.length>9?11.5:12.5}px">${q.n}</span><span class="pels">${petEls(q).map(e=>EI(e,1)).join('')}</span></div>`}).join(''):'<div class="m">Никого не нашлось, сбрось фильтр.</div>'}</div>
   <div class="m" style="font-size:11px;text-align:center;margin-top:6px">Тап по пету: что он умеет. «+»: сразу в стаю.</div>
-  <div class="acts stk">${CTX?'':`<button class="btn" data-act="opp">${VS==='boss'?'🗿 Босс':'Соперник: '+{auto:'авто',easy:'лёгкий',medium:'средний',hard:'сложный',master:'мастер',smart:'стратег'}[AI]}</button>`}<button class="btn main" data-act="to-place" ${TEAM.length<5?'disabled':''}>${TEAM.length<5?'Ещё '+(5-TEAM.length):'Расставить'}</button></div>`;
+  <div class="acts stk">${CTX?'':`<button class="btn" data-act="opp">${VS==='boss'?'🗿 Босс':'Соперник: '+{auto:'авто',easy:'лёгкий',medium:'средний',hard:'сложный',master:'мастер',smart:'стратег'}[AI]}</button>`}<button class="btn main" data-act="to-place" ${TEAM.length<TN?'disabled':''}>${TEAM.length<TN?'Ещё '+(TN-TEAM.length):'Расставить'}</button></div>`;
   if(ui.pv!=null&&ui.psheet)h+=petSheet(ui.pv);
   if(ui.deck)h+=deckSheet();
   if(ui.fxs)h+=fxSheet();
@@ -227,13 +227,13 @@ function renderPlace(){
   <div class="legend">${TEAM.map(i=>PETS[i]).map(p=>`<span>${petIc(p,1)} <b>${AUB[p.au]} ${AUS[p.au]}</b></span>`).join('')}</div>
   <div class="acts stk"><button class="btn" data-act="to-pick">Назад</button><button class="btn" data-act="place-rand">Случайно</button><button class="btn" data-act="place-smart">Умно</button><button class="btn main" data-act="start">В бой</button></div>`);
 }
-function resetPlace(){PLACE=START.map(x=>[...x])}
+function resetPlace(){PLACE=START.slice(0,TN).map(x=>[...x])}
 function phaseClick(e){
   const a=e.target.closest('[data-qt],[data-act],[data-view],[data-pick],[data-pcell]');if(!a)return;
-  const tog=v=>{if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<5)TEAM.push(v)};
+  const tog=v=>{if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN)TEAM.push(v)};
   if(a.dataset.qt!=null){if(!a.disabled)tog(+a.dataset.qt);return render()}
   if(a.dataset.view!=null){ui.pv=+a.dataset.view;ui.psheet=true;return render()}
-  if(a.dataset.pick!=null){const v=+a.dataset.pick;ui.pv=v;if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<5)TEAM.push(v);return render()}
+  if(a.dataset.pick!=null){const v=+a.dataset.pick;ui.pv=v;if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN)TEAM.push(v);return render()}
   if(a.dataset.pcell){const[r,c]=a.dataset.pcell.split(',').map(Number),i=PLACE.findIndex(x=>x[0]===r&&x[1]===c);
     if(ui.ps==null){if(i>=0)ui.ps=i}else{if(i>=0&&i!==ui.ps)PLACE[i]=PLACE[ui.ps];if(i!==ui.ps)PLACE[ui.ps]=[r,c];ui.ps=null}
     return render()}
@@ -254,11 +254,11 @@ function phaseClick(e){
   else if(/^f[efrs]-/.test(act)){const k={e:'el',f:'fam',r:'role',s:'sort'}[act[1]],v=act.slice(3),bx=document.querySelector('.fbox'),st=bx?bx.scrollTop:0;
     if(k==='sort')ui.flt.sort=v;else{const l=ui.flt[k];ui.flt[k]=l.includes(v)?l.filter(x=>x!==v):[...l,v]}
     render();const nb=document.querySelector('.fbox');if(nb)nb.scrollTop=st}
-  else if(act==='pick-toggle'){const v=ui.pv??TEAM[0];if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<5)TEAM.push(v);render()}
-  else if(act==='to-place'&&TEAM.length===5){G.phase='place';if(!PLACE)resetPlace();ui.ps=null;render()}
+  else if(act==='pick-toggle'){const v=ui.pv??TEAM[0];if(TEAM.includes(v))TEAM=TEAM.filter(x=>x!==v);else if(TEAM.length<TN)TEAM.push(v);render()}
+  else if(act==='to-place'&&TEAM.length===TN){G.phase='place';if(!PLACE)resetPlace();ui.ps=null;render()}
   else if(act==='to-pick'){G.phase='pick';render()}
-  else if(act==='place-smart'){const sp=smartPlace(TEAM.map(i=>PETS[i]),TEAM.length);PLACE=sp.concat(START.filter(x=>!sp.some(y=>y[0]===x[0]&&y[1]===x[1]))).slice(0,5);ui.ps=null;render()}
-  else if(act==='place-rand'){PLACE=shuffle([...Array(ROWS*COLS).keys()]).slice(0,5).map(k=>[Math.floor(k/COLS),k%COLS]);ui.ps=null;render()}
+  else if(act==='place-smart'){const sp=smartPlace(TEAM.map(i=>PETS[i]),TEAM.length);PLACE=sp.concat(START.filter(x=>!sp.some(y=>y[0]===x[0]&&y[1]===x[1]))).slice(0,TN);ui.ps=null;render()}
+  else if(act==='place-rand'){PLACE=shuffle([...Array(ROWS*COLS).keys()]).slice(0,TN).map(k=>[Math.floor(k/COLS),k%COLS]);ui.ps=null;render()}
   else if(act==='start'){
     newGame()}
 }
