@@ -421,3 +421,4 @@ body .top .lmenu-b{background:#1A2133;box-shadow:inset 0 0 0 1px #3D4659}
 .st-i{background:#1E2537;box-shadow:inset 0 0 0 1px #2F3850;justify-content:center;min-height:96px;box-sizing:border-box}
 .st-i small{line-height:1.2;color:#8B96B0}
 .qst>span.m{min-width:64px;text-align:right}
+.qst .xpb.sm>i{max-width:100%}
