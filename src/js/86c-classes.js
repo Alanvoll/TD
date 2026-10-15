@@ -6,7 +6,7 @@
    Мудрец: when his ▲ hits an enemy, that enemy's cards still to come this turn go 20 later (once per turn per enemy).
    No numbers were tuned (no balancing in this pass). Summons and bosses keep the old neighbour auras. ---------- */
 const CLS_AU={guard:'cguard',fighter:'cfight',healer:'cheal',agile:'cagile',sage:'csage'},CLS_AUS=new Set(Object.values(CLS_AU));
-const NAPMAX=3,CARE=1.5,SAGE_SLOW=1;// Боец: stacks of +K; Целитель: heal in K; Мудрец: initiative steps (×20)
+const NAPMAX=3,CARE=1.5,SAGE_SLOW=0.5;// Боец: stacks of +K; Целитель: heal in K; Мудрец: initiative steps (×20)
 Object.assign(AURA,{
   cguard:'одиночные удары врага по своим петам позади него в его столбце достаются ему. Удары по ряду и площади он не ловит',
   cfight:`каждый ход подряд, когда он сыграл верх ▲ с ударом, его удары сильнее на ${K} (до +${NAPMAX*K}). Ход без удара сверху сбрасывает разгон`,
