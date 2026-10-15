@@ -444,3 +444,6 @@ html:has(#app .lby),html:has(#app .lby) body{overflow:hidden}
 body:has(#app .lby){margin:0}
 /* playtest r2: on the run map the header with ❤ and 🪙 stays on screen while the map scrolls */
 body:has(#app>.rmap) #app>.top{position:sticky;top:0;z-index:6;background:linear-gradient(180deg,#0B1020 82%,rgba(11,16,32,0));padding-bottom:4px}
+/* UI r29: messages are solid and, on screens with a pinned header, appear just under it instead of over the title */
+.toast{background:#141B2C}
+body:has(#app>.rmap) .toast{top:60px}
