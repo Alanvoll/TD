@@ -1,7 +1,7 @@
 /* ---------- Ночь (2026-10-15): screen tweaks for the night look; the look itself is night.css ----------
    Tall phones had ~200 px of empty screen under the battle buttons: the board now takes the spare height
    (its tiles grow taller, up to 1.3× the usual) so the screen is filled and still never scrolls. */
-if(typeof layFit==='function'){const lf0=layFit;layFit=function(on){const r=lf0(on);if(!on||typeof document==='undefined')return r;
+if(typeof layFit==='function'){const lf0=layFit;layFit=function(on){if(on&&typeof app!=='undefined'){const d=app.querySelector(':scope>.detail');if(d)d.classList.add('nt-tip')}const r=lf0(on);if(!on||typeof document==='undefined')return r;
   const B=document.body,gs=[...app.querySelectorAll('.board .grid.field')];if(!gs.length)return r;
   const set=a=>{for(const g of gs){g.style.setProperty('--asp',a);g.style.setProperty('--pz',Math.min(1.15,a/.9).toFixed(2))}if(typeof fitBoard==='function')fitBoard()};
   // measure with the hand's auto margin off, so the spare height shows up as negative overflow
@@ -53,5 +53,5 @@ if(typeof render==='function'){const rn0=render;render=function(){const r=rn0.ap
 
 /* battle: the tip line («Тапни клетку врага…») no longer pushes the buttons off the screen — it floats over the top edge of the hand */
 function ntTip(){try{if(typeof G==='undefined'||!G||G.phase!=='battle'||!document.body.dataset.bfit)return;const d=app.querySelector(':scope>.detail'),h=app.querySelector(':scope>.hand');
-  if(!d)return;d.classList.add('nt-tip');const a=app.getBoundingClientRect(),y=h?h.getBoundingClientRect().top:a.bottom-200;d.style.top=Math.max(0,y-a.top-d.offsetHeight*.5)+'px'}catch(e){}}
+  if(!d)return;d.classList.add('nt-tip');const a=app.getBoundingClientRect(),y=h?h.getBoundingClientRect().top:a.bottom-200;d.style.top=Math.max(0,y-a.top-d.offsetHeight-4)+'px'}catch(e){}}
 if(typeof render==='function'){const rn1=render;render=function(){const r=rn1.apply(this,arguments);ntTip();return r}}

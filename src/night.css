@@ -281,7 +281,7 @@ body[data-bfit] .board .grid.field.enemyg{position:relative}
 /* status badges (shield, speed) were as big as the creature on small phones */
 .board .grid.field:not([style*="--pz"]) .cell .ovr{zoom:.8;right:-8px}
 /* HP over the head of the top row needs room inside the field's rim */
-body[data-bfit] .board .grid.field{padding-top:16px}
+body[data-bfit] .board .grid.field{padding-top:22px}
 /* round 2 (UX critic): adding the first creature made the list jump ~80px down, the next tap landed on the grid.
    The slot row, the hint and the «Умно / Случайно» row keep their height from the start */
 .tbar .tm .ts{min-height:46px}
