@@ -206,7 +206,7 @@ body.lby-on{padding:0;box-sizing:border-box}
 .lair-more{min-height:32px;display:flex;align-items:center;color:var(--nt-t2);font-size:12.5px}
 .lair.cl{box-shadow:inset 0 0 0 1.5px #B48A3E88,0 2px 0 var(--nt-stone-sh)}
 .feat{background:#0E1525;box-shadow:inset 0 1px 3px #0008;color:var(--nt-t2);font-size:12px}
-.rush{box-shadow:inset 0 0 0 1.5px #B48A3E,0 2px 0 var(--nt-stone-sh),0 6px 14px rgba(0,0,0,.3)!important}
+.rush{box-shadow:inset 0 0 0 1px #3D4659,inset 0 2px 0 rgba(255,215,122,.5),0 2px 0 var(--nt-stone-sh),0 6px 14px rgba(0,0,0,.3)!important}
 /* stats on the achievements screen */
 .st-i{border:0;background:linear-gradient(180deg,#34415C 0%,#263147 55%,#1A2234 100%);box-shadow:inset 0 1px 0 var(--nt-stone-edge),inset 0 -3px 0 rgba(0,0,0,.3),0 3px 0 var(--nt-stone-sh)}
 .st-i b{font:700 16px var(--display)}.st-i small{font-size:11px;color:var(--nt-t2)}
@@ -399,3 +399,14 @@ body .top .lmenu-b{background:#1A2133;box-shadow:inset 0 0 0 1px #3D4659}
 /* UI r22 minor: four two-digit stocks of the opponent fit one row at 360 */
 @media (max-width:380px){.sb-opp .pool .chip{padding:0 3px}.sb-opp .pool .chip .ei{width:13px;height:13px;background-size:contain}.sb-opp .pool{gap:2px}}
 @media (max-width:380px){.sb-opp:has(.pool .chip:nth-child(4)) .side-name{display:none}.sb-opp:has(.pool .chip:nth-child(4)) .pool{margin-left:auto}}
+/* ===== artists r5 (build 164) ===== */
+/* shop: prices are secondary stone buttons; the window has no gold «main» competing four times */
+.shi .pill.on[data-act^="buy-"]{background:linear-gradient(180deg,#3A465F,#283247);color:#E6ECF8;box-shadow:inset 0 0 0 1px #4A5878,inset 0 1px 0 rgba(255,255,255,.12),0 2px 0 #0B111E;text-shadow:none;border:0}
+/* lairs: the chosen difficulty and the current league are moonlit, like every other chosen option */
+.lair .pill.sm.on[data-act^="la-"]{background:#2C3550;color:#DCE6FF;box-shadow:inset 0 0 0 2px #9DB8FF;text-shadow:none;border:0;min-height:44px}
+.lg-l.on.cur{background:#2C3550;color:#DCE6FF;box-shadow:inset 0 0 0 2px #9DB8FF;border-color:transparent;text-shadow:none}
+/* the weekly hunt card: stone edge with a thin gold light on top instead of a 2px gold frame */
+.lair.rush{border-color:#3D4659}
+/* creature window: the card in the deck is marked moonlit, gold stays for quality frames only */
+.lslc.on:not(.un){border-color:#9DB8FF;background:color-mix(in srgb,#9DB8FF 8%,transparent)}
+.lslc .lc-on{color:#9DB8FF}
