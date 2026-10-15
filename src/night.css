@@ -385,4 +385,4 @@ body .top .lmenu-b{background:#1A2133;box-shadow:inset 0 0 0 1px #3D4659}
 .over:has(>.box [data-act="wl-no"]),.over:has(>.box>div[style*="44px"]){background:rgba(5,8,16,.86)}
 /* r19: codex tabs use the same moonlit «chosen» look as every other tab */
 .modes .pill.sm[data-act^="cx-"].on,.cdx .modes .pill.sm.on{background:#2C3550;color:#DCE6FF;box-shadow:inset 0 0 0 2px #9DB8FF;text-shadow:none;border:0}
-.modes .pill.sm[data-act^="cx-"].on .m{color:#9DB8FF}
+.modes .pill.sm[data-act^="cx-"].on .m{color:#9DB8FF!important}
