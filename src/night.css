@@ -410,3 +410,14 @@ body .top .lmenu-b{background:#1A2133;box-shadow:inset 0 0 0 1px #3D4659}
 /* creature window: the card in the deck is marked moonlit, gold stays for quality frames only */
 .lslc.on:not(.un){border-color:#9DB8FF;background:color-mix(in srgb,#9DB8FF 8%,transparent)}
 .lslc .lc-on{color:#9DB8FF}
+/* ===== leftovers from artists r3/r5 (build 165) ===== */
+/* quests and achievements: thin progress bar, the count sits above it on the right */
+.qst .xpb.sm{height:6px;margin-top:20px;overflow:visible;border-radius:3px;background:#11162A;box-shadow:inset 0 0 0 1px #2B3347}
+.qst .xpb.sm>i{border-radius:3px;background:linear-gradient(90deg,#7F9CFF,#9DB8FF);box-shadow:none}
+.qst .xpb.sm span{position:absolute;right:0;top:-17px;font-size:11px;line-height:14px;font-weight:700;color:#8B96B0;text-shadow:none}
+/* current league card: moonlit rim, gold stays on «Найти соперника» */
+.lg-card{box-shadow:inset 0 0 0 1.5px #9DB8FF,inset 0 1px 0 #ffffff22,0 2px 0 var(--nt-stone-sh),0 8px 18px rgba(0,0,0,.35)!important}
+/* profile tiles do not press, so they are flat plates of one height */
+.st-i{background:#1E2537;box-shadow:inset 0 0 0 1px #2F3850;justify-content:center;min-height:96px;box-sizing:border-box}
+.st-i small{line-height:1.2;color:#8B96B0}
+.qst>span.m{min-width:64px;text-align:right}
