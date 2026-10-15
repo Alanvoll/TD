@@ -463,3 +463,12 @@ body:has(#app>.rmap) .toast{top:60px}
 @media (min-width:400px){.st-g{grid-template-columns:repeat(4,1fr)}}
 @media (max-width:399px){.st-g>.st-i:last-child:nth-child(3n+2){grid-column:span 2}}
 .over>.box .acts:has([data-act="m-close"]){padding-top:30px;background:linear-gradient(to top,#151D2E calc(100% - 30px),rgba(21,29,46,.85) calc(100% - 14px),rgba(21,29,46,0))}
+/* night 170 (artists r6): main tab underline moon, avatar on stone ring; result rows one height, exp in light text; weekly hunt button full width; settings pair on one line */
+.lby-nav button.on::after{background:#9DB8FF}
+.lby-av{box-shadow:inset 0 1px 0 #ffffff2a,0 0 0 2px #1A2133,0 0 0 3.5px #3D4659,0 3px 6px #000a}
+.over>.box .rwr{min-height:50px;box-sizing:border-box;display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:10px;font-size:14px;margin-top:5px}
+.over>.box .rwr:not(.new){background:linear-gradient(180deg,#2B3650,#1C2639);box-shadow:inset 0 1px 0 #ffffff1a,0 2px 0 var(--nt-stone-sh)}
+.rwp>.m:nth-of-type(1){color:#E8ECF4;font-weight:800}
+.lair.rush .btn.main[data-act="rush-go"]{display:flex;width:100%;box-sizing:border-box;justify-content:center;align-items:center;min-height:50px}
+.over .box .modes>.btn[data-act="rules"],.over .box .modes>.btn[data-act="to-menu"]{white-space:nowrap;padding-left:8px;padding-right:8px;font-size:14px}
+@media (max-width:380px){.over .box .modes>.btn[data-act="rules"],.over .box .modes>.btn[data-act="to-menu"]{font-size:13px}}
