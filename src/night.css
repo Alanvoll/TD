@@ -425,3 +425,13 @@ body .top .lmenu-b{background:#1A2133;box-shadow:inset 0 0 0 1px #3D4659}
 /* codex: the four tabs sit in an even 2×2 grid on every phone instead of a ragged 3+1 */
 .modes:has(>[data-act^="cx-"]){display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .modes>.pill.sm[data-act^="cx-"]{width:100%;margin:0;justify-content:center}
+/* playtest r2: a run faction's rule is a compact two-line strip under the «☰ Меню» row (not over it), so the battle still fits the screen */
+body[data-bfit] #app>.top,body[data-bfit] #app>.sb-opp{order:-1}
+body[data-bfit] #app>.fbar{order:0;margin:0 0 4px;box-sizing:border-box;padding:3px 8px;font-size:11px;line-height:1.25;background:#1E2537;border:0;border-radius:8px;box-shadow:inset 3px 0 0 #8A6BB8,inset 0 0 0 1px #2F3850}
+/* playtest r2: one-time tips stay inside the screen, their «Понятно» is finger-sized, and they wait while a window is open */
+.hint1{width:auto;left:16px;right:16px;transform:none;max-width:none;box-sizing:border-box;border-color:#3D4659;background:#1E2537f7;box-shadow:inset 3px 0 0 #9DB8FF,0 8px 24px rgba(0,0,0,.5)}
+.hint1 .pill{min-height:44px;min-width:96px;padding:0 16px}
+body:has(#app .over) .hint1{display:none!important}
+/* playtest r2: on a 360 phone five team slots no longer squeeze into 29px; the side buttons get narrower instead */
+@media (max-width:380px){.tbar{overflow-x:clip}.tside{flex:0 0 104px;max-width:104px}.tside .pill.sm{padding:0 6px;font-size:12px;min-height:40px;white-space:nowrap}.tbar .tm{gap:4px}.tbar .tm .ts{min-height:0;flex:1 1 0}}
+@media (max-width:380px){.tbar .ts .tx{width:16px;height:16px;line-height:16px;font-size:9px;top:-5px;right:-3px}}
