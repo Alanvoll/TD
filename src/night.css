@@ -322,3 +322,8 @@ body[data-bfit] .board .grid.field.enemyg{padding-top:30px}
 .shi .pill:disabled{opacity:.7}
 /* shop: the price is the buy button, so it gets a full finger size */
 .shi .pill[data-act^="buy-"]{min-height:44px;min-width:72px;padding:0 12px;font-size:14px}
+/* artists round 3, run map: the pack's health is a calm green bar; the decoration (trees, stumps) steps back behind the path */
+.rhp i{background:linear-gradient(90deg,#2F8C3E,#3AA84A)}
+.rdeco{opacity:.3}
+/* creature window: the level bar takes its own full row on every phone size */
+.lsheet .stt .xpb{flex:1 1 100%}
