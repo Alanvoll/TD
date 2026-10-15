@@ -53,7 +53,9 @@ if(typeof render==='function'){const rn0=render;render=function(){const r=rn0.ap
 
 /* battle: the tip line («Тапни клетку врага…») no longer pushes the buttons off the screen — it floats over the top edge of the hand */
 function ntTip(){try{if(typeof G==='undefined'||!G||G.phase!=='battle'||!document.body.dataset.bfit)return;const d=app.querySelector(':scope>.detail'),h=app.querySelector(':scope>.hand');
-  if(!d)return;d.classList.add('nt-tip');const a=app.getBoundingClientRect(),y=h?h.getBoundingClientRect().top:a.bottom-200;d.style.top=Math.max(0,y-a.top-d.offsetHeight-2)+'px'}catch(e){}}
+  if(!d)return;d.classList.add('nt-tip');const a=app.getBoundingClientRect(),y=h?h.getBoundingClientRect().top:a.bottom-200;/* a prompt that asks to tap a cell (step, target) must not cover the field: it lies over the top of the hand instead, which is not used meanwhile */
+  const onHand=!!(ui.stepE||ui.sel||d.querySelector('[data-act="st-skip"]'));
+  d.style.top=(onHand?Math.max(0,y-a.top+6):Math.max(0,y-a.top-d.offsetHeight-2))+'px'}catch(e){}}
 if(typeof render==='function'){const rn1=render;let ntTap=0;if(typeof document!=='undefined')document.addEventListener('pointerdown',()=>{ntTap=Date.now()},true);
   render=function(){const pk=Date.now()-ntTap<1500&&document.querySelector('#app .pk'),y0=pk&&pk.getBoundingClientRect().top;const r=rn1.apply(this,arguments);ntTip();
     /* team pick: rows above the list grow when the first creature is added; scroll by the same amount so the list stays under the finger */

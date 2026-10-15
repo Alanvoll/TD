@@ -55,7 +55,7 @@ function render(){if(SIMU)return;
   if(G&&(G.phase!=='battle'||G.over))ui.auto=false;
   if(ui.bIntro&&G&&G.phase==='battle'&&!G.over&&G.turn<=1&&!ui.busy&&!ui.auto&&G.B&&G.B.bk===ui.bIntro&&BOSSES[ui.bIntro])app.insertAdjacentHTML('beforeend',bossIntroHtml(ui.bIntro));
   if(G&&G.phase==='menu'&&!META.welcome&&!(META.stats&&META.stats.battles))
-  app.insertAdjacentHTML('beforeend',`<div class="over"><div class="box" style="text-align:center"><div style="font-size:44px">🐾</div><h2>Добро пожаловать в «Бой стаи»</h2><div class="m" style="font-size:13px;margin:6px 0 10px">Начни с 🧭 Забега. Правила боя всегда под кнопкой «Помощь» над полем.</div><div class="acts"><button class="btn main" data-act="wl-no">Начать</button></div></div></div>`);
+  app.insertAdjacentHTML('beforeend',`<div class="over"><div class="box" style="text-align:center"><div style="font-size:44px">🐾</div><h2>Добро пожаловать в «Бой стаи»</h2><div class="m" style="font-size:13px;margin:6px 0 10px">Начни с 🧭 Забега. Правила боя всегда в бою: «☰ Меню» → «Помощь».</div><div class="acts"><button class="btn main" data-act="wl-no">Начать</button></div></div></div>`);
   if(CTX&&CTX.kind==='puz'&&G&&G.phase==='battle'&&!G.over)app.insertAdjacentHTML('afterbegin',`<div class="pzbar"><span>🧩 <b>Задача ${CTX.i+1}</b>: победи за этот ход. Враги не ходят.</span><button class="pill sm" data-act="pz-reset">↺ Сброс</button></div>`);
   {const k=G.phase+'|'+(CTX&&CTX.kind||'');if(k!==renderK){renderK=k;try{window.scrollTo(0,0)}catch(e){}}}
   if(G.over&&typeof fxl!=='undefined')fxl.querySelectorAll('.ban,.fx-out').forEach(e=>e.remove());
