@@ -282,15 +282,11 @@ body[data-bfit] .board .grid.field.enemyg{position:relative}
 .board .grid.field:not([style*="--pz"]) .cell .ovr{zoom:.8;right:-8px}
 /* HP over the head of the top row needs room inside the field's rim */
 body[data-bfit] .board .grid.field{padding-top:22px}
-/* round 2 (UX critic): adding the first creature made the list jump ~80px down, the next tap landed on the grid.
-   The slot row, the hint and the «Умно / Случайно» row keep their height from the start */
+/* round 2 (UX critic): adding the first creature made the list jump ~80px down; 93-night.js now scrolls the page by the same amount, so the list stays under the finger */
 .tbar .tm .ts{min-height:46px}
-.pkw .pkhd{min-height:30px}
-.pkw:not(:has(.pkb)){margin-bottom:49px}
 /* small buttons the UX critic measured below a comfortable finger size */
 .qst .pill.on[data-act^="ac-"]{min-height:44px;min-width:84px}
 .detail .pill.sm[data-act="st-skip"]{min-height:44px;padding:0 14px}
 .cdx .modes .pill.sm,.modes .pill.sm[data-act^="cx-"]{min-height:36px}
 .pill.sm[data-act="r-quit"]{min-height:40px;padding:0 14px}
-.tbar .tside:not(:has(.tels)){padding-bottom:22px}
 body[data-bfit] .board .grid.field.enemyg{padding-top:30px}
