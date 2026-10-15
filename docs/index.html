@@ -758,7 +758,7 @@ body[data-bfit][data-hcl=m] .hand.mini.lfan .zc.hv .zcost .rr{width:11px!importa
 <div id="app"></div>
 
 <script>
-const VER='0.41.9',BUILD=170;
+const VER='0.41.10',BUILD=171;
 /* ART-BEGIN: creatures drawn in code (SVG + CSS idle animation), one file per family */
 const ARTS={};function ART_ADD(o){Object.assign(ARTS,o)}
 ART_ADD({
@@ -4674,7 +4674,7 @@ function renderScreen(){syncRar();
   if(ui.rules)h+=`<div class="over" data-act="rules-close"><div class="box"><h2>Как играть</h2><ul>
   <li><b>У каждой стороны 5 петов</b> на своей сетке 3×5. Верхний ряд твоей сетки и нижний ряд сетки соперника это фронт.</li>
   <li><b>Колода</b>: 15 карт петов, по 3 от каждого. Каждый ход рука добирается до числа живых петов + 1.</li>
-  <li><b>👣 Шаг</b> есть на некоторых картах, сверху ▲ или снизу ▼: у каждого пета хотя бы один шаг сверху и один снизу. Шагает пет этой карты, по схеме, нарисованной на карте (зелёная рамка). Если значок шага стоит перед эффектом, пет сначала шагает, потом действует; если после, то наоборот. Когда сыграешь такую половину, подсветятся клетки: тапни нужную, перетащи пета или нажми «Без шага». Если на клетке свой пет, они меняются местами.</li>
+  <li><b>👣 Шаг</b> есть на некоторых картах, сверху ▲ или снизу ▼: у каждого пета хотя бы один шаг сверху и один снизу. Шагает пет этой карты, по схеме, нарисованной на карте (зелёная рамка). Если значок шага стоит перед эффектом, пет сначала шагает, потом действует; если после, то наоборот. Когда сыграешь такую половину, подсветятся клетки: тапни нужную или перетащи пета. Не нужен шаг — просто играй дальше. Тап по пету отменяет выбранный шаг. Если на клетке свой пет, они меняются местами.</li>
   <li><b>Мини-карта в руке</b>: карта одинаковая сверху и снизу: верхняя часть ▲ (цена, цель и сила, ⏱), нижняя часть ▼ (то же для низа, цена в самом низу). Полоса посередине: стихии, которые карта даст, если её не сыграть. Цена: сплошные значки, стихии сброса: значки в кружке. Чем меньше ⏱, тем раньше срабатывает. Тап по карте открывает её целиком.</li>
   <li><b>У каждой карты два действия.</b> Схвати карту за верх, чтобы сыграть ▲, и брось на цель. Схвати за низ и брось на поле или под руку, чтобы сыграть ▼: низ делает своё действие сам, цель выбирать не нужно. Низ стоит 1 стихию карты, как и верх. Без перетаскивания: тапни карту, нажми «▲ Сыграть верх» или «▼ Сыграть низ». С карты играется одно действие. Несыгранные карты в конце хода уходят в сброс и дают стихии из полосы посередине на следующий ход, несыгранные стихии копятся до 10. <b>Приток:</b> каждый ход стая сама даёт +1 к той своей стихии, которой у тебя меньше всего; при равенстве по порядку стихий. Куда он придёт, видно заранее рядом со стихиями: «приток →».</li>
   <li><b>Погибший пет</b> забирает из колоды свои карты. <b>Буря</b> начинается с 12-го хода или раньше, когда у кого-то осталось 2 пета: в конце хода все петы теряют здоровье, с каждым ходом больше, а лечение вдвое слабее.</li>
@@ -5505,7 +5505,7 @@ function layTx(f){
   if(L==='big'&&hand){const n=hand.children.length;hand.classList.remove('scr');hand.classList.add('lybig');hand.style.setProperty('--cols',Math.max(2,Math.ceil(n/2)))}
   if(L==='fan'&&hand){const els=[...hand.children],n=els.length,m=(n-1)/2;
     hand.classList.add('lfan');hand.style.setProperty('--ov',n>1?`calc((100% - 46px - ${n}*var(--fw))/${n-1})`:'0px');
-    els.forEach((e,i)=>{const up=e.dataset.card===ui.lfan;e.style.setProperty('--r',(up?0:(i-m)*2.5)+'deg');e.style.setProperty('--y',(up?-22:Math.abs(i-m)*Math.abs(i-m)*1.6)+'px');e.style.setProperty('--s',up?1.3:1);e.style.zIndex=up?30:i+1;if(up)e.classList.add('lup');layPlayed(e,up)})}
+    els.forEach((e,i)=>{const up=e.dataset.card===ui.lfan&&!['pl','burned','plu','pld'].some(x=>e.classList.contains(x));e.style.setProperty('--r',(up?0:(i-m)*2.5)+'deg');e.style.setProperty('--y',(up?-22:Math.abs(i-m)*Math.abs(i-m)*1.6)+'px');e.style.setProperty('--s',up?1.3:1);e.style.zIndex=up?30:i+1;if(up)e.classList.add('lup');layPlayed(e,up)})}
   if((L==='list'||L==='grid')&&hand){const cs=cardsOf();hand.classList.remove('scr');hand.classList.add(L==='list'?'lwl':'lgr');
     hand.innerHTML=cs.map(c=>L==='list'?wideCard(c):cardHtml(c)).join('');
     // grid: the creature icon moves next to the name, the big art row goes, so three cards fit in a row and two rows on screen
@@ -5547,8 +5547,10 @@ function layTx(f){
 /* 0.39.6 Anton: a played card must look played — it sinks lower, goes grey, and a stamp on the played half says ▲/▼ and its number */
 function layPlayed(e,up){const k=e.classList;if(!['pl','burned','plu','pld'].some(x=>k.contains(x)))return;
   const dn=k.contains('burned')||k.contains('pld'),b=e.querySelector('.badge'),no=b?b.textContent.replace(/[▲▼]/g,''):'';
-  e.classList.add('lpd');if(!up){e.style.setProperty('--y',(parseFloat(e.style.getPropertyValue('--y'))||0)+12+'px');e.style.setProperty('--s',.92)}
-  const st=document.createElement('div');st.className='lpst '+(dn?'d':'u');st.innerHTML=`<b>${dn?'▼':'▲'}${no}</b><span>сыграна</span>`;e.appendChild(st)}
+  // 0.41.10 Anton: a played card is never raised; it shrinks toward its bottom edge (so it never covers the buttons), and a small button takes the play back
+  e.classList.add('lpd');e.style.setProperty('--s',.8);
+  const st=document.createElement('div');st.className='lpst '+(dn?'d':'u');st.innerHTML=`<b>${dn?'▼':'▲'}${no}</b><span>сыграна</span>`;e.appendChild(st);
+  const ub=document.createElement('span');ub.className='lpun';ub.setAttribute('role','button');ub.setAttribute('aria-label','Отменить ход этой картой');ub.innerHTML='<b>↺</b><span>отмена</span>';e.appendChild(ub)}
 
 /* ----- the switcher ----- */
 function layPickHtml(){return`<div class="over lay-over" data-act="lay-close"><div class="box"><div class="boxhd"><h2>Вид экрана боя</h2><button class="xb" data-act="lay-close" aria-label="Закрыть">✕</button></div>
@@ -5603,8 +5605,14 @@ function layTurn(f){if(!layTurnTxt)return;const t=layFrag(`<span class="lturn">$
 /* ----- 0.38.0: the battle screen fits the phone screen and never scrolls -----
    Larger hand cards when there is room; when there is not: normal cards, then a smaller board, then tighter gaps. */
 function layOver(){const r=app.getBoundingClientRect(),pb=parseFloat(getComputedStyle(document.body).paddingBottom)||0;return Math.ceil(r.bottom+pb-innerHeight)}
+// 0.41.10: the fit is searched again only when the screen size or the set of rows changed (or it no longer fits);
+// otherwise every draw kept re-measuring the whole screen a dozen times, which made the battle lag on short phones
+let layFitK='',layFitN=0;
 function layFit(on){const B=document.body;
-  if(!on){if(B.dataset.bfit){delete B.dataset.bfit;delete B.dataset.hcl;delete B.dataset.tight;B.style.removeProperty('--bw')}return}
+  if(!on){layFitK='';if(B.dataset.bfit){delete B.dataset.bfit;delete B.dataset.hcl;delete B.dataset.tight;B.style.removeProperty('--bw')}return}
+  const hd=app.querySelector('.hand.mini'),k=[innerWidth,innerHeight,typeof TN!=='undefined'?TN:5,LAY,hd?hd.children.length:0,[...app.children].map(e=>e.className).filter(c=>!/^(over|toast|detail)\b|\bnt-tip\b/.test(c)).join('|')].join('/');
+  if(k===layFitK&&B.dataset.bfit&&layOver()<=0)return;
+  layFitK=k;layFitN++;{const hz=app.querySelector('.hand.mini');if(hz)hz.style.zoom=''}
   B.dataset.bfit=1;delete B.dataset.tight;B.dataset.tn=typeof TN!=='undefined'?TN:5;
   const bd=app.querySelector('.board'),refit=()=>{if(bd&&typeof fitBoard==='function')fitBoard()};
   // shrink the board (down to minW % of the width) until the screen fits; true when it does
@@ -5718,11 +5726,16 @@ body[data-lay=fan] .hand.mini.lfan>.card.burned{filter:brightness(.55) saturate(
 body[data-lay=fan] .hand.mini.lfan>.card.pl{filter:brightness(.7)}
 body[data-lay=fan] .hand.mini.lfan>.card.lup{filter:none}
 body[data-lay=fan] .hand.mini.lfan>.card.lpd{filter:none;border-color:#5B6577!important;border-style:dashed!important;background:#151B26!important}
-body[data-lay=fan] .hand.mini.lfan>.card.lpd>*:not(.lpst){filter:grayscale(1) brightness(.42)}
+body[data-lay=fan] .hand.mini.lfan>.card.lpd>*:not(.lpst):not(.lpun){filter:grayscale(1) brightness(.42)}
 body[data-lay=fan] .hand.mini.lfan>.card.lpd>.badge{display:none}
 body[data-lay=fan] .hand.mini.lfan>.card.lpd.lup>*:not(.lpst){filter:grayscale(.6) brightness(.7)}
+.lpun{position:absolute;left:2px;top:3px;z-index:6;width:44px;height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-radius:10px;background:#2A3550;border:1.5px solid #9FB2D6;color:#EAF0FF;line-height:1}
+.lpun b{font-size:22px;font-weight:800}.lpun span{font-size:10px;font-weight:700}
+body[data-lay=fan] .hand.mini.lfan>.card.lpd>.lpun{filter:none}
+body[data-lay=fan] .hand.mini.lfan>.card.lpd{transform-origin:0 100%}
+body[data-lay=fan] .hand.mini.lfan>.card.lpd .lpst{left:2px;width:44px}body[data-lay=fan] .hand.mini.lfan>.card.lpd .lpst.u{top:64px}body[data-lay=fan] .hand.mini.lfan>.card.lpd .lpst.d{top:64px;bottom:auto}
 .lpst{position:absolute;left:3px;width:46px;z-index:5;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 0 3px;border-radius:9px;background:#0E1420ee;border:2px solid var(--gold);box-shadow:0 2px 8px #000c;pointer-events:none;color:var(--gold);line-height:1}
-.lpst.u{top:12%}.lpst.d{bottom:24%;border-color:#4FC79A;color:#8FE3BF}
+.lpst.u{top:54px}.lpst.d{bottom:24%;border-color:#4FC79A;color:#8FE3BF}
 .lpst b{font-size:17px;font-weight:800}.lpst span{font-size:9px;font-weight:700;letter-spacing:.2px}
 
 body .lyghost{display:block!important;overflow:visible;padding:0;contain:none}body .lyghost>.card{width:64px;height:100px!important}
@@ -6399,21 +6412,18 @@ if(typeof document!=='undefined'&&document.addEventListener){let lt=null,big=nul
   for(const ev of['pointerup','pointercancel','pointerleave'])document.addEventListener(ev,hide,true);
   document.addEventListener('click',e=>{if(eat&&e.target.closest&&e.target.closest('.lsheet')){eat=false;e.stopPropagation();e.preventDefault()}},true);
   document.addEventListener('contextmenu',e=>{if(e.target.closest&&e.target.closest('.lsheet .lslc'))e.preventDefault()},true)}
-/* ---------- Ночь (2026-10-15): screen tweaks for the night look; the look itself is night.css ----------
-   Tall phones had ~200 px of empty screen under the battle buttons: the board now takes the spare height
-   (its tiles grow taller, up to 1.3× the usual) so the screen is filled and still never scrolls. */
-if(typeof layFit==='function'){const lf0=layFit;layFit=function(on){if(on&&typeof app!=='undefined'){const d=app.querySelector(':scope>.detail');if(d)d.classList.add('nt-tip')}const r=lf0(on);if(!on||typeof document==='undefined')return r;
-  const B=document.body,gs=[...app.querySelectorAll('.board .grid.field')];if(!gs.length)return r;
-  const set=a=>{for(const g of gs){g.style.setProperty('--asp',a);g.style.setProperty('--pz',Math.min(1.15,a/.9).toFixed(2))}if(typeof fitBoard==='function')fitBoard()};
-  // measure with the hand's auto margin off, so the spare height shows up as negative overflow
-  B.classList.add('nt-meas');const ov=()=>{app.style.minHeight='0';const o=layOver();app.style.minHeight='';return o};
-  // a board squeezed narrower than the screen first gets its width back
-  let bw=parseFloat(B.style.getPropertyValue('--bw'))||100;
-  while(bw<100&&ov()<-6){const n=Math.min(100,bw+2);B.style.setProperty('--bw',n+'%');if(typeof fitBoard==='function')fitBoard();if(ov()>0){B.style.setProperty('--bw',bw+'%');if(typeof fitBoard==='function')fitBoard();break}bw=n}
-  let a=.9;if(bw>=100&&ov()<-24)while(a<1.6){const n=+(a+.05).toFixed(2);set(n);if(ov()>0){set(a);break}a=n}
-  // still spare height (board already at its tallest): the hand cards grow a little, up to 1.2×
-  const hd=app.querySelector('.hand.mini:not(.lpl)');if(hd){hd.style.zoom='';let z=1;if(ov()<-20)while(z<1.2){const n=+(z+.04).toFixed(2);hd.style.zoom=n;if(ov()>0){hd.style.zoom=z>1?z:'';break}z=n}}
-  B.classList.remove('nt-meas');return r}}
+/* ---------- Ночь (2026-10-15): screen tweaks for the night look; the look itself is night.css ---------- */
+// 0.41.10 Anton: the battle tiles are no longer stretched to fill tall phones (that fill also re-measured the screen 20+ times per draw and made the battle lag)
+// Spare height on tall phones: only the hand cards grow a little (up to 1.2×), measured once per new fit
+if(typeof layFit==='function'){const lf0=layFit;layFit=function(on){if(on&&typeof app!=='undefined'){const d=app.querySelector(':scope>.detail');if(d)d.classList.add('nt-tip')}
+  const n0=layFitN,r=lf0(on);if(!on)return r;
+  if(layFitN!==n0)ntGrow();else{const hd=app.querySelector(':scope>.hand.mini:not(.lpl)'),ba=app.querySelector(':scope>.bact');
+    // the first fit can run before the screen settles; a large empty gap above the buttons later still lets the hand grow
+    if(hd&&ba&&!hd.style.zoom&&ba.getBoundingClientRect().top-hd.getBoundingClientRect().bottom>40)ntGrow()}return r}}
+function ntGrow(){const hd=app.querySelector('.hand.mini:not(.lpl)');if(!hd)return;const B=document.body;B.classList.add('nt-meas');app.style.minHeight='0';
+  const sp=-layOver();if(sp>20){const h=hd.getBoundingClientRect().height,z=Math.floor(Math.min(1.2,1+(sp-8)/h)*100)/100;hd.style.zoom=z;
+    if(layOver()>0)hd.style.zoom=z>1.04?+((1+z)/2).toFixed(2):'';if(layOver()>0)hd.style.zoom=''}
+  app.style.minHeight='';B.classList.remove('nt-meas')}
 
 /* main screen: the night scene redrawn in the colours of the battle reference (deep blue, pale moon, castle on the hill,
    graves and dead trees, a stone yard where the pack stands). One static picture, nothing moves. */
@@ -6461,6 +6471,40 @@ if(typeof render==='function'){const rn1=render;let ntTap=0;if(typeof document!=
   render=function(){const pk=Date.now()-ntTap<1500&&document.querySelector('#app .pk'),y0=pk&&pk.getBoundingClientRect().top;const r=rn1.apply(this,arguments);ntTip();
     /* team pick: rows above the list grow when the first creature is added; scroll by the same amount so the list stays under the finger */
     if(pk){const p2=document.querySelector('#app .pk');if(p2){const d=p2.getBoundingClientRect().top-y0;if(d)scrollBy(0,d)}}return r}}
+/* ---------- 0.41.10 Anton (thread «Бой: клетки, карты и тормоза»): no plate about the creature's step.
+   After a half with a step is played, the step cells still light up: tap one (or drag the creature) to step.
+   Anything else simply leaves the creature where it is. A tap on a creature whose step is chosen takes that step back. ---------- */
+{const d0=detailHtml;detailHtml=function(){if(ui.stepE&&!ui.busy)return'';return d0()}}
+// a press anywhere but a lit step cell or the stepping creature: no step this time, and the press does what it does
+document.addEventListener('pointerdown',e=>{const E=ui.stepE;if(!E||typeof G==='undefined'||!G||G.phase!=='battle'||ui.busy)return;
+  const cl=e.target.closest&&e.target.closest('[data-cell]');
+  if(cl&&cl.dataset.cell){const[sd,r,c]=cl.dataset.cell.split(',');const p=sd==='p'&&petAt(G.P,+r,+c);
+    if(sd==='p'&&(cl.classList.contains('dest')||(p&&p.id===E.card.pet)))return}
+  if(ui.hop)E.sdir2=null;else E.sdir=null;ui.hop=0;ui.stepE=null;ui.mover=null;
+  requestAnimationFrame(()=>{if(typeof G!=='undefined'&&G&&G.phase==='battle')render()})},true);
+// tap on your creature with a chosen step: the latest step (or Ловкач hop) of that creature is taken back and its cells light up again
+{const t0=tapCell;tapCell=function(side,r,c){
+  if(side==='p'&&!ui.stepE&&!ui.sel&&!ui.mover&&!ui.busy&&G&&!G.over&&HV()){const p=petAt(G.P,r,c);
+    const e=p&&[...G.P.plan].reverse().find(x=>x.card&&x.card.pet===p.id&&(x.sdir||x.sdir2));
+    if(e){if(e.sdir2)delete e.sdir2;else delete e.sdir;ui.info=null;ui.msg=null;return render()}}
+  return t0(side,r,c)}}
+// a chosen step shows as the creature's faded figure on the cell it will step to; a tap there takes the step back too
+{const g0=ghostMarks;ghostMarks=function(){const g=g0(),S=G.P;if(!HV())return g;
+  S.plan.forEach((e,i)=>{if(!e.card||!e.card.pet||!(e.sdir||e.sdir2))return;const p=pet(S,e.card.pet);if(!p||!p.alive)return;
+    const[r,c]=projPos({...S,plan:S.plan.slice(0,i+1)},p.id);if(r===p.r&&c===p.c)return;g[r+'-'+c]={n:p.n,ic:p.ic,e,stp:1}});return g}}
+// (the step figure carries no label)
+{const h0=gridHtml;gridHtml=function(S,side){let h=h0(S,side);if(side!=='p'||!HV())return h;
+  for(const g of Object.values(ghostMarks()))if(g.stp)h=h.split(`<span class="pn" style="color:var(--ally)">${g.n}</span>`).join('');return h}}
+{const t0=tapCell;tapCell=function(side,r,c){
+  if(side==='p'&&!ui.stepE&&!ui.sel&&!ui.mover&&!ui.busy&&G&&!G.over&&HV()){const gh=ghostMarks()[r+'-'+c];
+    if(gh&&gh.e){const e=gh.e;if(e.sdir2)delete e.sdir2;else delete e.sdir;ui.info=null;ui.msg=null;return render()}}
+  return t0(side,r,c)}}
+if(typeof document!=='undefined'&&document.head)document.head.insertAdjacentHTML('beforeend','<style>.grid .cell.ghostc .sil.pl{opacity:.75}.grid .cell.ghostc{outline:2px dashed #8CF09A;outline-offset:-3px}</style>');
+// a tap on the creature while its Ловкач hop is being offered takes back the step itself (the hop goes with it)
+{const t0=tapCell;tapCell=function(side,r,c){const E=ui.stepE;
+  if(side==='p'&&E&&ui.hop&&!ui.busy&&G&&!G.over){const p=petAt(G.P,r,c);
+    if(p&&p.id===E.card.pet){delete E.sdir;delete E.sdir2;ui.hop=0;ui.stepE=null;ui.mover=null;ui.info=null;ui.msg=null;return render()}}
+  return t0(side,r,c)}}
 // perspective field: the tilted board keeps its flat layout height, so pull it up by the difference to reclaim the freed space
 function fitBoard(){for(const b of document.querySelectorAll('.board')){b.style.marginTop='';const lh=b.offsetHeight,vh=b.getBoundingClientRect().height;b.style.marginTop=(-(lh-vh)+4)+'px'}}
 if(typeof MutationObserver!=='undefined')new MutationObserver(()=>{for(const b of document.querySelectorAll('.board'))if(!b.dataset.fit){b.dataset.fit=1;fitBoard();break}}).observe(document.body,{childList:true,subtree:true});

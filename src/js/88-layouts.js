@@ -85,7 +85,7 @@ function layTx(f){
   if(L==='big'&&hand){const n=hand.children.length;hand.classList.remove('scr');hand.classList.add('lybig');hand.style.setProperty('--cols',Math.max(2,Math.ceil(n/2)))}
   if(L==='fan'&&hand){const els=[...hand.children],n=els.length,m=(n-1)/2;
     hand.classList.add('lfan');hand.style.setProperty('--ov',n>1?`calc((100% - 46px - ${n}*var(--fw))/${n-1})`:'0px');
-    els.forEach((e,i)=>{const up=e.dataset.card===ui.lfan;e.style.setProperty('--r',(up?0:(i-m)*2.5)+'deg');e.style.setProperty('--y',(up?-22:Math.abs(i-m)*Math.abs(i-m)*1.6)+'px');e.style.setProperty('--s',up?1.3:1);e.style.zIndex=up?30:i+1;if(up)e.classList.add('lup');layPlayed(e,up)})}
+    els.forEach((e,i)=>{const up=e.dataset.card===ui.lfan&&!['pl','burned','plu','pld'].some(x=>e.classList.contains(x));e.style.setProperty('--r',(up?0:(i-m)*2.5)+'deg');e.style.setProperty('--y',(up?-22:Math.abs(i-m)*Math.abs(i-m)*1.6)+'px');e.style.setProperty('--s',up?1.3:1);e.style.zIndex=up?30:i+1;if(up)e.classList.add('lup');layPlayed(e,up)})}
   if((L==='list'||L==='grid')&&hand){const cs=cardsOf();hand.classList.remove('scr');hand.classList.add(L==='list'?'lwl':'lgr');
     hand.innerHTML=cs.map(c=>L==='list'?wideCard(c):cardHtml(c)).join('');
     // grid: the creature icon moves next to the name, the big art row goes, so three cards fit in a row and two rows on screen
@@ -127,8 +127,10 @@ function layTx(f){
 /* 0.39.6 Anton: a played card must look played — it sinks lower, goes grey, and a stamp on the played half says ▲/▼ and its number */
 function layPlayed(e,up){const k=e.classList;if(!['pl','burned','plu','pld'].some(x=>k.contains(x)))return;
   const dn=k.contains('burned')||k.contains('pld'),b=e.querySelector('.badge'),no=b?b.textContent.replace(/[▲▼]/g,''):'';
-  e.classList.add('lpd');if(!up){e.style.setProperty('--y',(parseFloat(e.style.getPropertyValue('--y'))||0)+12+'px');e.style.setProperty('--s',.92)}
-  const st=document.createElement('div');st.className='lpst '+(dn?'d':'u');st.innerHTML=`<b>${dn?'▼':'▲'}${no}</b><span>сыграна</span>`;e.appendChild(st)}
+  // 0.41.10 Anton: a played card is never raised; it shrinks toward its bottom edge (so it never covers the buttons), and a small button takes the play back
+  e.classList.add('lpd');e.style.setProperty('--s',.8);
+  const st=document.createElement('div');st.className='lpst '+(dn?'d':'u');st.innerHTML=`<b>${dn?'▼':'▲'}${no}</b><span>сыграна</span>`;e.appendChild(st);
+  const ub=document.createElement('span');ub.className='lpun';ub.setAttribute('role','button');ub.setAttribute('aria-label','Отменить ход этой картой');ub.innerHTML='<b>↺</b><span>отмена</span>';e.appendChild(ub)}
 
 /* ----- the switcher ----- */
 function layPickHtml(){return`<div class="over lay-over" data-act="lay-close"><div class="box"><div class="boxhd"><h2>Вид экрана боя</h2><button class="xb" data-act="lay-close" aria-label="Закрыть">✕</button></div>
@@ -183,8 +185,14 @@ function layTurn(f){if(!layTurnTxt)return;const t=layFrag(`<span class="lturn">$
 /* ----- 0.38.0: the battle screen fits the phone screen and never scrolls -----
    Larger hand cards when there is room; when there is not: normal cards, then a smaller board, then tighter gaps. */
 function layOver(){const r=app.getBoundingClientRect(),pb=parseFloat(getComputedStyle(document.body).paddingBottom)||0;return Math.ceil(r.bottom+pb-innerHeight)}
+// 0.41.10: the fit is searched again only when the screen size or the set of rows changed (or it no longer fits);
+// otherwise every draw kept re-measuring the whole screen a dozen times, which made the battle lag on short phones
+let layFitK='',layFitN=0;
 function layFit(on){const B=document.body;
-  if(!on){if(B.dataset.bfit){delete B.dataset.bfit;delete B.dataset.hcl;delete B.dataset.tight;B.style.removeProperty('--bw')}return}
+  if(!on){layFitK='';if(B.dataset.bfit){delete B.dataset.bfit;delete B.dataset.hcl;delete B.dataset.tight;B.style.removeProperty('--bw')}return}
+  const hd=app.querySelector('.hand.mini'),k=[innerWidth,innerHeight,typeof TN!=='undefined'?TN:5,LAY,hd?hd.children.length:0,[...app.children].map(e=>e.className).filter(c=>!/^(over|toast|detail)\b|\bnt-tip\b/.test(c)).join('|')].join('/');
+  if(k===layFitK&&B.dataset.bfit&&layOver()<=0)return;
+  layFitK=k;layFitN++;{const hz=app.querySelector('.hand.mini');if(hz)hz.style.zoom=''}
   B.dataset.bfit=1;delete B.dataset.tight;B.dataset.tn=typeof TN!=='undefined'?TN:5;
   const bd=app.querySelector('.board'),refit=()=>{if(bd&&typeof fitBoard==='function')fitBoard()};
   // shrink the board (down to minW % of the width) until the screen fits; true when it does
@@ -298,11 +306,16 @@ body[data-lay=fan] .hand.mini.lfan>.card.burned{filter:brightness(.55) saturate(
 body[data-lay=fan] .hand.mini.lfan>.card.pl{filter:brightness(.7)}
 body[data-lay=fan] .hand.mini.lfan>.card.lup{filter:none}
 body[data-lay=fan] .hand.mini.lfan>.card.lpd{filter:none;border-color:#5B6577!important;border-style:dashed!important;background:#151B26!important}
-body[data-lay=fan] .hand.mini.lfan>.card.lpd>*:not(.lpst){filter:grayscale(1) brightness(.42)}
+body[data-lay=fan] .hand.mini.lfan>.card.lpd>*:not(.lpst):not(.lpun){filter:grayscale(1) brightness(.42)}
 body[data-lay=fan] .hand.mini.lfan>.card.lpd>.badge{display:none}
 body[data-lay=fan] .hand.mini.lfan>.card.lpd.lup>*:not(.lpst){filter:grayscale(.6) brightness(.7)}
+.lpun{position:absolute;left:2px;top:3px;z-index:6;width:44px;height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-radius:10px;background:#2A3550;border:1.5px solid #9FB2D6;color:#EAF0FF;line-height:1}
+.lpun b{font-size:22px;font-weight:800}.lpun span{font-size:10px;font-weight:700}
+body[data-lay=fan] .hand.mini.lfan>.card.lpd>.lpun{filter:none}
+body[data-lay=fan] .hand.mini.lfan>.card.lpd{transform-origin:0 100%}
+body[data-lay=fan] .hand.mini.lfan>.card.lpd .lpst{left:2px;width:44px}body[data-lay=fan] .hand.mini.lfan>.card.lpd .lpst.u{top:64px}body[data-lay=fan] .hand.mini.lfan>.card.lpd .lpst.d{top:64px;bottom:auto}
 .lpst{position:absolute;left:3px;width:46px;z-index:5;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 0 3px;border-radius:9px;background:#0E1420ee;border:2px solid var(--gold);box-shadow:0 2px 8px #000c;pointer-events:none;color:var(--gold);line-height:1}
-.lpst.u{top:12%}.lpst.d{bottom:24%;border-color:#4FC79A;color:#8FE3BF}
+.lpst.u{top:54px}.lpst.d{bottom:24%;border-color:#4FC79A;color:#8FE3BF}
 .lpst b{font-size:17px;font-weight:800}.lpst span{font-size:9px;font-weight:700;letter-spacing:.2px}
 
 body .lyghost{display:block!important;overflow:visible;padding:0;contain:none}body .lyghost>.card{width:64px;height:100px!important}

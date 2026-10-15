@@ -1,18 +1,15 @@
-/* ---------- Ночь (2026-10-15): screen tweaks for the night look; the look itself is night.css ----------
-   Tall phones had ~200 px of empty screen under the battle buttons: the board now takes the spare height
-   (its tiles grow taller, up to 1.3× the usual) so the screen is filled and still never scrolls. */
-if(typeof layFit==='function'){const lf0=layFit;layFit=function(on){if(on&&typeof app!=='undefined'){const d=app.querySelector(':scope>.detail');if(d)d.classList.add('nt-tip')}const r=lf0(on);if(!on||typeof document==='undefined')return r;
-  const B=document.body,gs=[...app.querySelectorAll('.board .grid.field')];if(!gs.length)return r;
-  const set=a=>{for(const g of gs){g.style.setProperty('--asp',a);g.style.setProperty('--pz',Math.min(1.15,a/.9).toFixed(2))}if(typeof fitBoard==='function')fitBoard()};
-  // measure with the hand's auto margin off, so the spare height shows up as negative overflow
-  B.classList.add('nt-meas');const ov=()=>{app.style.minHeight='0';const o=layOver();app.style.minHeight='';return o};
-  // a board squeezed narrower than the screen first gets its width back
-  let bw=parseFloat(B.style.getPropertyValue('--bw'))||100;
-  while(bw<100&&ov()<-6){const n=Math.min(100,bw+2);B.style.setProperty('--bw',n+'%');if(typeof fitBoard==='function')fitBoard();if(ov()>0){B.style.setProperty('--bw',bw+'%');if(typeof fitBoard==='function')fitBoard();break}bw=n}
-  let a=.9;if(bw>=100&&ov()<-24)while(a<1.6){const n=+(a+.05).toFixed(2);set(n);if(ov()>0){set(a);break}a=n}
-  // still spare height (board already at its tallest): the hand cards grow a little, up to 1.2×
-  const hd=app.querySelector('.hand.mini:not(.lpl)');if(hd){hd.style.zoom='';let z=1;if(ov()<-20)while(z<1.2){const n=+(z+.04).toFixed(2);hd.style.zoom=n;if(ov()>0){hd.style.zoom=z>1?z:'';break}z=n}}
-  B.classList.remove('nt-meas');return r}}
+/* ---------- Ночь (2026-10-15): screen tweaks for the night look; the look itself is night.css ---------- */
+// 0.41.10 Anton: the battle tiles are no longer stretched to fill tall phones (that fill also re-measured the screen 20+ times per draw and made the battle lag)
+// Spare height on tall phones: only the hand cards grow a little (up to 1.2×), measured once per new fit
+if(typeof layFit==='function'){const lf0=layFit;layFit=function(on){if(on&&typeof app!=='undefined'){const d=app.querySelector(':scope>.detail');if(d)d.classList.add('nt-tip')}
+  const n0=layFitN,r=lf0(on);if(!on)return r;
+  if(layFitN!==n0)ntGrow();else{const hd=app.querySelector(':scope>.hand.mini:not(.lpl)'),ba=app.querySelector(':scope>.bact');
+    // the first fit can run before the screen settles; a large empty gap above the buttons later still lets the hand grow
+    if(hd&&ba&&!hd.style.zoom&&ba.getBoundingClientRect().top-hd.getBoundingClientRect().bottom>40)ntGrow()}return r}}
+function ntGrow(){const hd=app.querySelector('.hand.mini:not(.lpl)');if(!hd)return;const B=document.body;B.classList.add('nt-meas');app.style.minHeight='0';
+  const sp=-layOver();if(sp>20){const h=hd.getBoundingClientRect().height,z=Math.floor(Math.min(1.2,1+(sp-8)/h)*100)/100;hd.style.zoom=z;
+    if(layOver()>0)hd.style.zoom=z>1.04?+((1+z)/2).toFixed(2):'';if(layOver()>0)hd.style.zoom=''}
+  app.style.minHeight='';B.classList.remove('nt-meas')}
 
 /* main screen: the night scene redrawn in the colours of the battle reference (deep blue, pale moon, castle on the hill,
    graves and dead trees, a stone yard where the pack stands). One static picture, nothing moves. */
