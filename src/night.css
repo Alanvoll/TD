@@ -327,3 +327,6 @@ body[data-bfit] .board .grid.field.enemyg{padding-top:30px}
 .rdeco{opacity:.3}
 /* creature window: the level bar takes its own full row on every phone size */
 .lsheet .stt .xpb{flex:1 1 100%}
+/* lairs: the panel is a container (its header and difficulty buttons are what you tap), so it is flat like the other lists */
+.lair{background:#1E2537;box-shadow:inset 0 0 0 1px #2F3850}
+.lair.cl{box-shadow:inset 0 0 0 1.5px #B48A3E88}
