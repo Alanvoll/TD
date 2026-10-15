@@ -436,3 +436,5 @@ body:has(#app .over) .hint1{display:none!important}
 @media (max-width:380px){.tbar{overflow-x:clip}.tside{flex:0 0 104px;max-width:104px}.tside .pill.sm{padding:0 6px;font-size:12px;min-height:40px;white-space:nowrap}.tbar .tm{gap:4px}.tbar .tm .ts{min-height:0;flex:1 1 0}}
 @media (max-width:380px){.tbar .ts .tx{width:16px;height:16px;line-height:16px;font-size:9px;top:-5px;right:-3px}}
 @media (max-width:380px){.tbar .ts .tx{top:-4px;right:-1px}}
+/* UX r18: the library tip no longer covers «Фильтры» and «Лавка»; it waits at the bottom over the grid */
+.hint1.hint1.h-lib{top:auto;bottom:calc(16px + env(safe-area-inset-bottom,0px))}
