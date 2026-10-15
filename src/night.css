@@ -472,5 +472,3 @@ body:has(#app>.rmap) .toast{top:60px}
 .lair.rush .btn.main[data-act="rush-go"]{display:flex;width:100%;box-sizing:border-box;justify-content:center;align-items:center;min-height:50px}
 .over .box .modes>.btn[data-act="rules"],.over .box .modes>.btn[data-act="to-menu"]{white-space:nowrap;padding-left:8px;padding-right:8px;font-size:14px}
 @media (max-width:380px){.over .box .modes>.btn[data-act="rules"],.over .box .modes>.btn[data-act="to-menu"]{font-size:13px}}
-/* night 171: a played card that drops lower in the fan no longer covers the «Авто / Совет / ×1» row; the raised card (z 30) still sits on top */
-body[data-bfit] #app>.bact{position:relative;z-index:12}
