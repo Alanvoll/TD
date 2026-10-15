@@ -457,3 +457,9 @@ body:has(#app>.rmap) .toast{top:60px}
 .tside .tels{flex-wrap:wrap;font-size:11px!important;line-height:1.25;row-gap:0}
 .tside .tels .ei{width:13px;height:13px;background-size:contain}
 @media (max-width:380px){.tbar .tm .ts .cri{width:34px;height:34px}.tbar .tm .ts .em{line-height:0}}
+/* night 169: step icon on the text line, pick side buttons 44 on bigger phones, profile tiles fill their rows */
+.stline .shape.m5{vertical-align:middle;transform:none;margin:0 4px 0 6px}
+@media (min-width:381px){.tside .pill.sm{min-height:44px}}
+@media (min-width:400px){.st-g{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:399px){.st-g>.st-i:last-child:nth-child(3n+2){grid-column:span 2}}
+.over>.box .acts:has([data-act="m-close"]){padding-top:30px;background:linear-gradient(to top,#151D2E calc(100% - 30px),rgba(21,29,46,.85) calc(100% - 14px),rgba(21,29,46,0))}
