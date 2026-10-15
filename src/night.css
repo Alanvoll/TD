@@ -422,3 +422,6 @@ body .top .lmenu-b{background:#1A2133;box-shadow:inset 0 0 0 1px #3D4659}
 .st-i small{line-height:1.2;color:#8B96B0}
 .qst>span.m{min-width:64px;text-align:right}
 .qst .xpb.sm>i{max-width:100%}
+/* codex: the four tabs sit in an even 2×2 grid on every phone instead of a ragged 3+1 */
+.modes:has(>[data-act^="cx-"]){display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.modes>.pill.sm[data-act^="cx-"]{width:100%;margin:0;justify-content:center}
