@@ -26,7 +26,7 @@ if(typeof renderPick==='function'){const rp0=renderPick;renderPick=function(){pk
 /* ----- 2) library cards ----- */
 const SCN=`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 40' preserveAspectRatio='none'%3E%3Cpath d='M0 26 L10 20 L18 24 L28 14 L36 21 L46 17 L56 23 L66 12 L74 19 L84 15 L94 22 L104 16 L112 21 L120 18 V40 H0Z' fill='%23ffffff' fill-opacity='.07'/%3E%3Cpath d='M0 32 Q15 25 30 30 T60 29 T90 31 T120 28 V40 H0Z' fill='%23060b14' fill-opacity='.85'/%3E%3Cpath d='M14 31 v-5 a3 3 0 0 1 6 0 v5Z M98 30 v-6 a3.5 3.5 0 0 1 7 0 v6Z M52 30 h1.6 v-4 h1.8 v-1.6 h-1.8 v-2 h-1.6 v2 h-1.8 v1.6 h1.8Z' fill='%23060b14'/%3E%3C/svg%3E")`;
 libTile=function(i){const p=PETS[i],m=mp(p.n),need=m.un?QUP[m.q]:{fr:UNLOCK_FR},fp=need?Math.min(1,m.fr/need.fr):1,ready=m.un?canQUp(p.n):false;
-  const els=petEls(p),ec=ELC[els[0]]||'#5AA9F0',qc=m.un?qC(m.q):'#46526A',f=FAM[p.fam]||{ic:'',n:''};
+  const els=petEls(p),ec=(typeof FAM_SKY!=='undefined'&&FAM_SKY[p.fam]||['#5a6aa8'])[0],qc=m.un?qC(m.q):'#46526A',f=FAM[p.fam]||{ic:'',n:''};
   const nmS=p.n.length>11?'font-size:11px':p.n.length>8?'font-size:12px':'';
   return`<button class="lcd ${m.un?'':'lock'} ${ready?'rdy':''}" data-act="lib-${i}" style="--qc:${qc};--ec:${ec}">
   <span class="lcd-sc">${typeof libBg==='function'?libBg(i):''}</span>
