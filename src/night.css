@@ -359,6 +359,27 @@ body[data-bfit] .board .grid.field.enemyg{padding-top:30px}
 .psheet h2 .m::before{content:'· '}
 .over>.box .acts:has([data-act="m-close"])>[data-act="m-close"]{grid-column:1/-1}
 /* r17 minor: the step pattern in the card help no longer pushes lines apart; it sits at the end of the first line, one line tall */
-.stline .shape.m5{vertical-align:-3px;margin:0 2px;zoom:.75}
+.stline .shape.m5{vertical-align:-1px;margin:0 4px;grid-template-columns:repeat(5,2px);gap:1px}.stline .shape.m5 i{width:2px;height:2px}
 /* r12 minor: the last help line clears the fade above the pinned «Понятно» */
 .hintbox>.btn.main[data-act="hint-close"]{margin-top:22px;box-shadow:inset 0 0 0 1px #4A5878,0 0 0 18px #151D2E,0 -16px 12px #151D2E}
+/* ===== artists r4 (build 160) ===== */
+/* window titles: calm light text, gold stays for the one main button */
+.over>.box>h2:first-child{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#E8ECF4;filter:none;text-shadow:0 2px 0 #000a;font-size:22px}
+.over>.box>h2:first-child .m{color:#8B96B0;font-size:15px}
+/* a chosen option inside a window is moonlit, not gold: effects tab, «Живые», card variant */
+.hintbox .ztabs .pill.on,.over .box .pill.on[data-act="live-on"],.over .box .pill.on[data-act="live-off"],.dkl .pslot .pill.on,.pslot .pill.on{background:#2C3550;color:#DCE6FF;box-shadow:inset 0 0 0 2px #9DB8FF;text-shadow:none;border:0}
+/* effect rows: one neutral plate, good and bad told apart by the stripe only */
+.fxr.ng,.fxr.ps{background:#1E2537;padding:8px 10px;margin-top:8px}
+.fxr.ng{box-shadow:inset 3px 0 0 #D94545,inset 0 0 0 1px #2F3850}
+.fxr.ps{box-shadow:inset 3px 0 0 #4CC35A,inset 0 0 0 1px #2F3850}
+/* card help target field: stone cells, a calm red target */
+.mgrid i{background:#1E2537;box-shadow:inset 0 0 0 1px #2F3850}
+.mgrid i.b{background:#D94545;box-shadow:none}
+.mgrid i.bf{background:#6E3340;box-shadow:none}
+/* main screen: round buttons without the gold ring */
+.lby-rbi{box-shadow:inset 0 1px 0 #ffffff26,inset 0 -3px 6px #0008,0 0 0 1.5px #3D4659,0 4px 0 1px #070A12,0 8px 14px #000a}
+/* battle: «☰ Меню» flat like the list headers, side buttons with a thinner lip */
+body .top .lmenu-b{background:#1A2133;box-shadow:inset 0 0 0 1px #3D4659}
+.bact>.pill{box-shadow:inset 0 0 0 1.5px #4C5878,inset 0 1px 0 rgba(255,255,255,.12),0 2px 0 #0B0F1A}
+/* welcome: the main screen behind no longer shows through */
+.over:has(>.box [data-act="wl-no"]),.over:has(>.box>div[style*="44px"]){background:rgba(5,8,16,.86)}
