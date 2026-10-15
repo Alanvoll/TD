@@ -358,3 +358,7 @@ body[data-bfit] .board .grid.field.enemyg{padding-top:30px}
 .hintbox>.btn.main[data-act="hint-close"]{position:sticky;bottom:0;z-index:2;background:linear-gradient(180deg,#3A465F,#283247);color:#E6ECF8;box-shadow:inset 0 0 0 1px #4A5878,0 0 0 18px #151D2E,0 -34px 18px #151D2E;text-shadow:none}
 .psheet h2 .m::before{content:'· '}
 .over>.box .acts:has([data-act="m-close"])>[data-act="m-close"]{grid-column:1/-1}
+/* r17 minor: the step pattern in the card help no longer pushes lines apart; it sits at the end of the first line, one line tall */
+.stline .shape.m5{vertical-align:-3px;margin:0 2px;zoom:.75}
+/* r12 minor: the last help line clears the fade above the pinned «Понятно» */
+.hintbox>.btn.main[data-act="hint-close"]{margin-top:22px;box-shadow:inset 0 0 0 1px #4A5878,0 0 0 18px #151D2E,0 -16px 12px #151D2E}
