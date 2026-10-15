@@ -163,10 +163,10 @@ if(typeof lsTabs==='function'){lsTabs=function(bx){const kids=[...bx.children],q
   const gr=document.createElement('div');gr.className='ls-gr';if(qrow)gr.appendChild(qrow);
   for(const u of ups){const b=u.querySelector('button'),a=b&&b.dataset.act||'';
     if(!b){const t=document.createElement('div');t.className='ls-max';t.innerHTML=u.innerHTML;gr.appendChild(t);continue}
-    if(a.startsWith('qup-')){const qc=QUP[m.q],need=QNEED[m.q],ms=u.querySelectorAll('.m');
+    if(a.startsWith('qup-')){const qc=QUP[m.q],ms=u.querySelectorAll('.m');
       if(ms[0])ms[0].textContent=ms[0].textContent.replace(/\s*Нужен \d+ уровень\./,'');
       const c=(ok,t)=>`<span class="ls-c ${ok?'ok':'no'}">${ok?'✓ ':''}${t}</span>`;
-      if(ms[1]&&qc)ms[1].innerHTML=c(m.lv>=need,'ур. '+m.lv+'/'+need)+c(m.fr>=qc.fr,'🧩 '+m.fr+'/'+qc.fr)+c(META.stones>=qc.st,'💎 '+META.stones+'/'+qc.st);
+      if(ms[1]&&qc)ms[1].innerHTML=c(m.fr>=qc.fr,'🧩 '+m.fr+'/'+qc.fr)+c(META.stones>=qc.st,'💎 '+META.stones+'/'+qc.st);
       if(!b.disabled)b.classList.add('main');else b.classList.remove('main');
       if(qrow&&qrow.parentNode===gr){const r=document.createElement('div');r.className='ls-qr';gr.replaceChild(r,qrow);r.append(qrow,b);u.classList.add('ls-qtx')}}
     if(a.startsWith('frx-')){const done=typeof frxDone==='function'&&frxDone(p.n),L=u.firstElementChild;

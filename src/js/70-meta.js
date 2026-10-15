@@ -1,5 +1,5 @@
 /* ---------- 0.9.0: meta game. Library, 5 qualities, levels up to 20, alt cards per slot, quests, shop, cheats ---------- */
-// quality no longer caps the level (Anton 2026-10-13): every creature levels to MAXLV; QNEED is the level needed to raise quality
+// quality and level are independent (Anton 2026-10-15): quality no longer caps the level, level no longer gates quality; QNEED is only used by the test cheat
 const MAXLV=25,QNEED=[5,10,15,20],QUP=[{fr:10,st:10},{fr:20,st:30},{fr:40,st:80},{fr:80,st:200}],UNLOCK_FR=10;
 const xpNeed=lv=>3+2*lv;
 const mp=n=>META.pets[n];
@@ -29,7 +29,7 @@ function addXp(n,v,log){const m=mp(n);if(!m.un)return 0;m.xp+=v;let up=0;
 function giveFr(n,v,log){const m=mp(n);m.fr+=v;if(log)log.push({k:'fr',n,v});
   if(!m.un&&m.fr>=UNLOCK_FR){m.un=true;m.fr-=UNLOCK_FR;if(log)log.push({k:'new',n})}}
 function giveSt(v,log){META.stones+=v;if(log&&v)log.push({k:'st',v})}
-const canQUp=n=>{const m=mp(n),c=QUP[m.q];return m.un&&c&&m.lv>=QNEED[m.q]&&m.fr>=c.fr&&META.stones>=c.st};
+const canQUp=n=>{const m=mp(n),c=QUP[m.q];return m.un&&c&&m.fr>=c.fr&&META.stones>=c.st};
 function qUp(n){const m=mp(n),c=QUP[m.q];if(!canQUp(n))return false;m.fr-=c.fr;META.stones-=c.st;m.q++;addXp(n,0);saveMeta();return true}
 const QN=['Обычный','Необычный','Редкий','Эпический','Легендарный'];
 const qC=q=>GRADE[q||0].c;
@@ -125,8 +125,8 @@ function libSheet(i){const p=PETS[i],m=mp(p.n),F=FAM[p.fam],C=CLS[p.cls],d=myDef
   <div class="fxr ps"><span class="fxi">${F.ic}</span><span><b>${F.n}</b><br><span class="m">${F.t[0][0].toUpperCase()+F.t[0].slice(1)}.</span></span></div>
   <div class="fxr ps"><span class="fxi">${C.ic}</span><span><b>${C.n}</b><br><span class="m">${AURA[p.au][0].toUpperCase()+AURA[p.au].slice(1)}.</span></span></div>
   <h3 style="margin:8px 0 2px">Карты</h3><div class="m" style="font-size:11px">В каждой ячейке одна из двух карт. Вторая открывается качеством: в 1-й ячейке на Необычном, во 2-й на Редком, в 3-й на Эпическом. Тапни, чтобы выбрать.</div>${slots}
-  ${m.un?(qc?`<div class="qup"><div><b>Качество → <span style="color:${qC(m.q+1)}">${QN[m.q+1]}</span></b><div class="m" style="font-size:11px">${m.q<3?'Вторая карта в ячейке '+(m.q+1):'Черта Легендарного: '+LEGT[p.cls]}, новый облик.${m.lv<need?' Нужен '+need+' уровень.':''}</div><div class="m" style="font-size:12px">🧩 ${m.fr}/${qc.fr} · 💎 ${META.stones}/${qc.st}</div></div><button class="btn main" data-act="qup-${i}" ${canQUp(p.n)?'':'disabled'}>Поднять</button></div>`:`<div class="qup"><b style="color:${qC(4)}">Высшее качество</b></div>`):''}${frxHtml(p,i)}
-  <div class="m" style="font-size:11px">Уровень: +1,5% здоровья и Силы за уровень, до 25-го. Качество открывает вторые карты и черту Легендарного, уровень качество не ограничивает, но для повышения нужен минимальный уровень: 5, 10, 15 и 20.${m.q>=4?' <b>Черта:</b> '+LEGT[p.cls]+'.':''}</div>
+  ${m.un?(qc?`<div class="qup"><div><b>Качество → <span style="color:${qC(m.q+1)}">${QN[m.q+1]}</span></b><div class="m" style="font-size:11px">${m.q<3?'Вторая карта в ячейке '+(m.q+1):'Черта Легендарного: '+LEGT[p.cls]}, новый облик.</div><div class="m" style="font-size:12px">🧩 ${m.fr}/${qc.fr} · 💎 ${META.stones}/${qc.st}</div></div><button class="btn main" data-act="qup-${i}" ${canQUp(p.n)?'':'disabled'}>Поднять</button></div>`:`<div class="qup"><b style="color:${qC(4)}">Высшее качество</b></div>`):''}${frxHtml(p,i)}
+  <div class="m" style="font-size:11px">Уровень: +1,5% здоровья и Силы за уровень, до 25-го. Качество открывает вторые карты и черту Легендарного, уровень и качество поднимаются независимо друг от друга.${m.q>=4?' <b>Черта:</b> '+LEGT[p.cls]+'.':''}</div>
   <div class="acts"><button class="btn main" data-act="lp-x">Закрыть</button></div></div></div>`}
 function shopSheet(){const of=shopToday();
   return`<div class="over" data-act="sh-close"><div class="box"><h2>Лавка <span class="m">💎 ${META.stones}</span></h2><div class="m" style="font-size:12px">Осколки за камни. Товары меняются каждый день.</div>
@@ -153,7 +153,7 @@ function cheat(k){const all=PETS.map(p=>p.n);
   if(k==='fr')for(const n of all)giveFr(n,50);
   if(k==='un')for(const n of all)mp(n).un=true;
   if(k==='lv')for(const n of all){const m=mp(n);if(m.un){m.lv=Math.max(m.lv,QNEED[m.q]||MAXLV);m.xp=0}}
-  if(k==='q')for(const n of all){const m=mp(n);if(m.un&&m.q<4){m.lv=Math.max(m.lv,QNEED[m.q]);m.q++}}
+  if(k==='q')for(const n of all){const m=mp(n);if(m.un&&m.q<4)m.q++}
   if(k==='max')for(const n of all){const m=mp(n);m.un=true;m.q=4;m.lv=25;m.xp=0}
   if(k==='alt')for(const n of all){const m=mp(n);if(m.un&&m.q<3){m.q=3;m.lv=Math.max(m.lv,15)}}
   if(k==='qr')for(const q of questsToday())q.p=QDEF[q.k].g;
