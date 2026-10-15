@@ -438,3 +438,4 @@ body:has(#app .over) .hint1{display:none!important}
 @media (max-width:380px){.tbar .ts .tx{top:-4px;right:-1px}}
 /* UX r18: the library tip no longer covers «Фильтры» and «Лавка»; it waits at the bottom over the grid */
 .hint1.hint1.h-lib{top:auto;bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+body:has(.hint1.h-lib) #app{padding-bottom:170px}
