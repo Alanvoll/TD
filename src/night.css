@@ -304,3 +304,21 @@ body[data-bfit] .board .grid.field.enemyg{padding-top:30px}
 .lsheet .xpb i{background:linear-gradient(90deg,#1C2A4A,#2C4A8A);box-shadow:none}
 .lsheet .xpb{box-shadow:inset 0 0 0 1px #5B8CFF}
 .lsheet .xpb span{color:#9DB8FF}
+/* artists round 3: list screens as one family */
+/* the back button reads lighter than the screen's actions: flat stone, no lip, the same 44px finger target */
+.top>.pill.sm[data-act="m-menu"]{background:#1A2133;box-shadow:inset 0 0 0 1px #3D4659;font-weight:600}
+.top>.m{background:#0E1322;box-shadow:inset 0 0 0 1px #2B3347;font-weight:700}
+/* rows you only read are flat; rows and tiles you tap keep the stone lip */
+.qst,.cdx,.rev,.rhist,.rtal,.rintro,.qup{background:#1E2537;box-shadow:inset 0 0 0 1px #2F3850}
+.qlist{gap:8px}
+/* achievement icons get the same round well as codex and lair rows */
+.ach-ic{width:48px;height:48px;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:26px;border-radius:50%;
+  background:radial-gradient(circle at 50% 40%,#2A3552,#141A29 70%);box-shadow:0 0 0 1.5px #3D4659,inset 0 2px 4px rgba(0,0,0,.5)}
+/* a «Забрать» that is not ready yet is an empty slot, not a grey hole */
+.qst .pill:disabled{opacity:1;background:transparent;box-shadow:none;color:#6B7590;border:1.5px dashed #3D4659}
+/* windows: a denser veil so the screen behind does not compete; one thin edge */
+.over{background:rgba(5,8,16,.8)}
+/* shop: prices you cannot pay yet stay readable */
+.shi .pill:disabled{opacity:.7}
+/* shop: the price is the buy button, so it gets a full finger size */
+.shi .pill[data-act^="buy-"]{min-height:44px;min-width:72px;padding:0 12px;font-size:14px}
