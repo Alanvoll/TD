@@ -330,3 +330,10 @@ body[data-bfit] .board .grid.field.enemyg{padding-top:30px}
 /* lairs: the panel is a container (its header and difficulty buttons are what you tap), so it is flat like the other lists */
 .lair{background:#1E2537;box-shadow:inset 0 0 0 1px #2F3850}
 .lair.cl{box-shadow:inset 0 0 0 1.5px #B48A3E88}
+/* playtest r1 */
+/* run setup: the daily run's «Начать» is a side offer; the gold button is the player's own «В путь» */
+.rdaily .btn.main{background:linear-gradient(180deg,#2C3550,#1C2338);color:#FFD77A;box-shadow:inset 0 0 0 1.5px #B48A3E,inset 0 1px 0 rgba(255,255,255,.1),0 3px 0 #0B0F1A;text-shadow:none}
+/* team slots: the remove cross gets a bigger finger area without growing */
+.ts .tx::after{content:'';position:absolute;inset:-10px -10px -2px -10px}
+/* battle setup in a run: «В бой» stays on one line */
+.acts.stk .btn{white-space:nowrap}
