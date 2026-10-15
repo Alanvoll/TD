@@ -204,6 +204,8 @@ document.addEventListener('click',e=>{
   // a pick in the «Меню» list closes the list; the button's own action still runs
   if(ui.lmenu&&e.target.closest&&e.target.closest('.lmenu-pop [data-act]')){ui.lmenu=false;requestAnimationFrame(()=>render())}
   const a=e.target.closest&&e.target.closest('[data-act^="lay-"]');
+  // night 159: a pick inside the list sits under the list's backdrop (lay-menu-x); let it through to its own action instead of eating it here
+  if(a&&a.dataset.act==='lay-menu-x'&&e.target!==a)return;
   if(a){const act=a.dataset.act;e.stopPropagation();e.preventDefault();
     if(act==='lay-open'){ui.set=false;ui.layPick=true;return render()}
     if(act==='lay-menu'){ui.lmenu=!ui.lmenu;return render()}
