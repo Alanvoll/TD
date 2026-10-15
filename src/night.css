@@ -243,8 +243,8 @@ body.lby-on{padding:0;box-sizing:border-box}
 .rwp .rwa{width:40px;height:40px;flex:none}.rwp .rwa .qa{width:40px;height:40px}
 .rwp>.m:nth-of-type(1){font-weight:700;color:var(--nt-gold-hi);font-size:13px;flex:none}
 .rwp>.m:nth-of-type(2){font-size:12px;color:var(--nt-t2)}
-body[data-bfit] #app>.detail.nt-tip{position:absolute;left:8px;right:8px;z-index:8;margin:0;padding:10px 12px;border-radius:12px;font-size:14px;line-height:1.3;
-  background:rgba(12,18,32,.96);box-shadow:inset 0 0 0 1.5px #FFB0A688,0 8px 20px #000c}
+body[data-bfit] #app>.detail.nt-tip{position:absolute;left:0;right:0;z-index:8;margin:0;box-sizing:border-box;outline:6px solid #070B16;outline-offset:0;padding:10px 12px;border-radius:12px;font-size:14px;line-height:1.3;
+  background:#0C1220;min-height:0;height:auto;max-height:none;display:block;box-shadow:inset 0 0 0 1.5px #FFB0A688,0 8px 20px #000c}
 /* battle buttons stay pinned to the bottom, also while the turn plays and the hand is gone */
 body[data-bfit]:not(.nt-meas) #app>.hand{margin-top:0}
 body[data-bfit]:not(.nt-meas) #app>.bact{margin-top:auto}
@@ -281,15 +281,12 @@ body[data-bfit] .board .grid.field.enemyg{position:relative}
 /* status badges (shield, speed) were as big as the creature on small phones */
 .board .grid.field:not([style*="--pz"]) .cell .ovr{zoom:.8;right:-8px}
 /* HP over the head of the top row needs room inside the field's rim */
-body[data-bfit] .board .grid.field{padding-top:16px}
-/* round 2 (UX critic): adding the first creature made the list jump ~80px down, the next tap landed on the grid.
-   The slot row, the hint and the «Умно / Случайно» row keep their height from the start */
+body[data-bfit] .board .grid.field{padding-top:22px}
+/* round 2 (UX critic): adding the first creature made the list jump ~80px down; 93-night.js now scrolls the page by the same amount, so the list stays under the finger */
 .tbar .tm .ts{min-height:46px}
-.pkw .pkhd{min-height:30px}
-.pkw:not(:has(.pkb)){padding-bottom:49px}
 /* small buttons the UX critic measured below a comfortable finger size */
 .qst .pill.on[data-act^="ac-"]{min-height:44px;min-width:84px}
 .detail .pill.sm[data-act="st-skip"]{min-height:44px;padding:0 14px}
 .cdx .modes .pill.sm,.modes .pill.sm[data-act^="cx-"]{min-height:36px}
 .pill.sm[data-act="r-quit"]{min-height:40px;padding:0 14px}
-.tbar .tside:not(:has(.tels)){padding-bottom:22px}
+body[data-bfit] .board .grid.field.enemyg{padding-top:30px}

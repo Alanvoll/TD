@@ -42,12 +42,15 @@ function paintDrag(list){
   app.querySelectorAll('.cell.prev,.cell.prev2').forEach(x=>x.classList.remove('prev','prev2'));
   for(const[s,r,c,m]of list){const el=cellEl(s,r,c);if(el)el.classList.add(m?'prev2':'prev')}
 }
+// 2026-10-15: a grab on the «не хватает» label (it sits on the card, outside both halves) used to count as ▲; use the label's half, else the card's lower half
+function grabDn(c,e){for(const o of c.querySelectorAll('.lxo')){const b=o.getBoundingClientRect();if(e.clientX>=b.left&&e.clientX<=b.right&&e.clientY>=b.top&&e.clientY<=b.bottom)return o.classList.contains('d')}
+  const b=c.getBoundingClientRect();return e.clientY>b.top+b.height*.55}
 app.addEventListener('pointerdown',e=>{if(ui.busy&&G&&G.phase==='battle'&&!ui.skip){ui.skip=true;fxRate()}
   if(ui.busy||G.over||(!HV()&&e.target.closest('[data-burnc]')))return;
   const base={x:e.clientX,y:e.clientY,on:false,id:e.pointerId};
   const c=e.target.closest('[data-card]');
   // 0.34: grabbing the lower part of a card (▼ rows) plays its ▼ half
-  if(c){const hf=e.target.closest('[data-half]');drag={...base,uid:c.dataset.card,el:c,dn:HV()&&!!hf&&hf.dataset.half==='d'};return}
+  if(c){const hf=e.target.closest('[data-half]');drag={...base,uid:c.dataset.card,el:c,dn:HV()&&(hf?hf.dataset.half==='d':grabDn(c,e))};return}
   if(ui.stepE){const cl=e.target.closest('[data-cell]');if(!cl)return;const[sd,r,cc]=cl.dataset.cell.split(',');const p=sd==='p'&&petAt(G.P,+r,+cc);if(p&&p.id===ui.stepE.card.pet)drag={...base,petMove:p.id,stepE:1};return}
   const selStep=ui.sel&&G.P.hand.find(k=>k.uid===ui.sel&&STEP.has(T[k.t].area));
   const cl=e.target.closest('[data-cell]');if(!cl||(ui.sel&&!selStep))return;
