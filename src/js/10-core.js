@@ -138,7 +138,7 @@ function fxSheet(){
   if(G&&G.P&&G.phase!=='pick'){const row=(S,who)=>alive(S).filter(p=>petFx(p).length).map(p=>`<div class="fxnow"><span>${petIc(p,1)}</span><span class="m">${who}</span>${petFx(p).map(f=>`<span class="bd ${f.neg?'ng':'ps'}">${f.ic}${f.v}</span>`).join('')}</div>`).join('');
     const r=row(G.P,'твой')+row(G.B,'враг');if(r)now=`<h3>Сейчас в бою</h3>${r}`}
   return`<div class="over" data-act="fxs-close"><div class="box hintbox"><div style="display:flex;align-items:center;justify-content:space-between"><h2 style="margin:0">Эффекты</h2><button class="pill sm" data-act="fxs-close">✕</button></div>
-  <div class="m">Красные плохие, зелёные хорошие. Число у пета: сколько ходов эффект ещё действует, у щита: сколько урона он поглотит.</div>${now}<h3>Все эффекты</h3>${fxLegend()}</div></div>`;
+  <div class="m">Красные плохие, зелёные хорошие. Число у пета: сколько ходов эффект ещё действует, у щита: сколько урона он поглотит.</div>${now}<h3>Все эффекты</h3>${fxLegend()}<div class="acts"><button class="btn main" data-act="fxs-close">Закрыть</button></div></div></div>`;
 }
 const fxLine=f=>`<div class="fxr ${f.neg?'ng':'ps'}"><span class="fxi">${f.ic}</span><span><b>${f.n[0].toUpperCase()+f.n.slice(1)}</b> ${f.amt?f.v:'· ещё '+hz(f.v)}<br><span class="m">${STD[f.k]}</span></span></div>`;
 const TOUGH=2;const ccOn=p=>p.frozen>0||sv(p,'stun')>0;const ccBlock=p=>p.tough>0||ccOn(p);
@@ -190,7 +190,7 @@ function newGame(){
   if(!SIMU&&CTX&&CTX.kind==='rank'){rk().pend=1;saveMeta()}
   if(!SIMU&&!CTX&&!sandbox()&&Array.isArray(TEAM)&&TEAM.every(x=>typeof x==='number')){META[TN===5?'lastQ':'lastQ'+TN]=TEAM.slice();META[TN===5?'lastQP':'lastQP'+TN]=(PLACE||START).map(x=>[...x]);saveMeta()}
   ui.bIntro=!SIMU&&G.B.bk&&!(CTX&&CTX.kind==='puz')?G.B.bk:null;
-  if(!SIMU)ui.auto=!!META.autoOn&&!(CTX&&CTX.kind==='puz');// Auto stays on from fight to fight until the player turns it off
+  if(!SIMU)ui.auto=false;// 0.41.11 Anton: every fight starts without Auto (it used to carry over and switch itself on at the first tap)
 }
 const other=S=>S===G.P?G.B:G.P;
 const pet=(S,id)=>S.pets.find(p=>p.id===id);

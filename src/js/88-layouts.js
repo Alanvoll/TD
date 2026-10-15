@@ -5,7 +5,7 @@
 // 0.38.0 Anton: the battle screen never scrolls, hand cards a bit larger and in ONE row; «Лупа» is not a variant any more but how every card behaves.
 // So the variants with several rows of cards (Крупная рука, Список, Сетка карт) and «Лупа» left the list (their code below stays unused).
 const LAYS=[
- {k:'fan',ic:'🃏',n:'Веер (обычный)',d:'Карты веером с лёгким наклоном. Тап поднимает карту целиком, второй тап открывает её окно. Тянуть можно любую.'},
+ {k:'fan',ic:'🃏',n:'Веер (обычный)',d:'Карты веером с лёгким наклоном. Тап поднимает карту целиком, второй тап опускает её обратно, долгое нажатие показывает её крупно. Тянуть можно любую.'},
  {k:'base',ic:'▦',n:'Ровный ряд',d:'Как было раньше: карты ровным рядом, тап открывает руку.'},
  {k:'tap',ic:'👆',n:'Тап вместо перетаскивания',d:'Тап по карте: под рукой панель с полным текстом, цели на поле подсвечены. Тапни цель или нажми «Сыграть». Поле не закрывается.'},
  {k:'focus',ic:'🎯',n:'Карта в фокусе',d:'Одна карта крупно с полным текстом, под ней значки остальных. Тап по значку переносит карту в фокус.'},
@@ -133,7 +133,7 @@ function layPlayed(e,up){const k=e.classList;if(!['pl','burned','plu','pld'].som
   const ub=document.createElement('span');ub.className='lpun';ub.setAttribute('role','button');ub.setAttribute('aria-label','Отменить ход этой картой');ub.innerHTML='<b>↺</b><span>отмена</span>';e.appendChild(ub)}
 
 /* ----- the switcher ----- */
-function layPickHtml(){return`<div class="over lay-over" data-act="lay-close"><div class="box"><div class="boxhd"><h2>Вид экрана боя</h2><button class="xb" data-act="lay-close" aria-label="Закрыть">✕</button></div>
+function layPickHtml(){return`<div class="over lay-over" data-act="lay-close"><div class="box"><div class="boxhd"><h2>Вид экрана боя</h2></div>
   <div class="m" style="font-size:12px;margin-bottom:6px">Меняются только экран и управление, правила те же. Выбор запоминается. В задачах всегда обычный вид.</div>
   <div class="laylist">${LAYS.map(l=>`<button class="layi ${l.k===LAY?'on':''}" data-act="lay-set" data-lay="${l.k}"><span class="layic">${l.ic}</span><span><b>${l.n}${l.k===LAY?' ✓':''}</b><span class="m">${l.d}</span></span></button>`).join('')}</div>
   <button class="btn main" data-act="lay-close">Готово</button></div></div>`}
@@ -189,11 +189,11 @@ function layOver(){const r=app.getBoundingClientRect(),pb=parseFloat(getComputed
 // otherwise every draw kept re-measuring the whole screen a dozen times, which made the battle lag on short phones
 let layFitK='',layFitN=0;
 function layFit(on){const B=document.body;
-  if(!on){layFitK='';if(B.dataset.bfit){delete B.dataset.bfit;delete B.dataset.hcl;delete B.dataset.tight;B.style.removeProperty('--bw')}return}
+  if(!on){layFitK='';if(B.dataset.bfit){delete B.dataset.bfit;delete B.dataset.hcl;delete B.dataset.tight;B.style.removeProperty('--bw');B.style.removeProperty('--hz')}return}
   const hd=app.querySelector('.hand.mini'),k=[innerWidth,innerHeight,typeof TN!=='undefined'?TN:5,LAY,hd?hd.children.length:0,[...app.children].map(e=>e.className).filter(c=>!/^(over|toast|detail)\b|\bnt-tip\b/.test(c)).join('|')].join('/');
   if(k===layFitK&&B.dataset.bfit&&layOver()<=0)return;
   layFitK=k;layFitN++;{const hz=app.querySelector('.hand.mini');if(hz)hz.style.zoom=''}
-  B.dataset.bfit=1;delete B.dataset.tight;B.dataset.tn=typeof TN!=='undefined'?TN:5;
+  B.dataset.bfit=1;delete B.dataset.tight;B.style.removeProperty('--hz');B.dataset.tn=typeof TN!=='undefined'?TN:5;
   const bd=app.querySelector('.board'),refit=()=>{if(bd&&typeof fitBoard==='function')fitBoard()};
   // shrink the board (down to minW % of the width) until the screen fits; true when it does
   const squeeze=minW=>{let o=layOver();if(o<=0)return true;if(!bd)return false;const h=bd.getBoundingClientRect().height;if(!(h>0))return false;
@@ -202,6 +202,9 @@ function layFit(on){const B=document.body;
   // larger cards first: 150 px, then 126 px, then the usual size; the board gives way down to 78 % before the cards shrink
   // 0.38.6 Anton: the fan overlaps cards, so they can be bigger still: an extra 182 px size, and the board may give way a little more
   const fan=LAY==='fan'&&layOn(),minW=fan?66:78;
+  // 0.41.11 Anton: on a small phone the cards get smaller first and the board keeps its full width; it gives way only with the smallest cards
+  if(innerHeight<=700){delete B.dataset.hcl;B.style.removeProperty('--bw');for(const z of [1,.92,.85,.8]){if(z<1)B.style.setProperty('--hz',z);refit();if(layOver()<=0)return}
+    if(squeeze(minW))return;B.dataset.tight=1;B.style.removeProperty('--bw');refit();squeeze(55);return}
   for(const t of fan?['xl','l','m','']:['l','m',''])
     {if(t)B.dataset.hcl=t;else delete B.dataset.hcl;B.style.removeProperty('--bw');refit();if(squeeze(minW))return}
   B.dataset.tight=1;B.style.removeProperty('--bw');refit();squeeze(55)}
@@ -242,7 +245,9 @@ document.addEventListener('click',e=>{
     const pe=G.P.plan.find(x=>x.card===card);if(pe){unplan(card);layClear();return render()}return}
   if(LAY_HALFTAP.has(LAY)&&(c.closest('.lfoc')||c.closest('.lwl,.lgr'))){e.stopPropagation();const hf=e.target.closest('[data-half]');
     return halfTap(card,!!hf&&hf.dataset.half==='d')}
-  if(LAY==='fan'&&inHand){e.stopPropagation();if(ui.lfan!==card.uid){ui.lfan=card.uid;return render()}return tapCard(card.uid)}
+  // 0.41.11 Anton: a second tap on the raised card lowers it again (no card window any more: the long press shows the card big);
+  // a tap on another card while one waits for its target drops the first and picks the new one
+  if(LAY==='fan'&&inHand){e.stopPropagation();if(ui.lfan!==card.uid){if(ui.sel&&ui.sel!==card.uid){layClear();ui.mover=null}ui.lfan=card.uid;return render()}ui.lfan=null;if(ui.sel===card.uid)layClear();return render()}
 },true);
 
 // Лупа: hold a hand card still to see it big above the hand
@@ -253,7 +258,7 @@ document.addEventListener('pointerdown',e=>{if(typeof G==='undefined'||!G||G.pha
   const card=layCard(c.dataset.card);if(!card)return;peekHide();
   pk={x:e.clientX,y:e.clientY,id:e.pointerId,t:setTimeout(()=>{if(!pk)return;const h=c.closest('.hand')||app.querySelector('.hand');const top=h?h.getBoundingClientRect().top:innerHeight*.6;
     peekEl.innerHTML=cardHtml(card).replace(/ data-card="[^"]*"/,'').replace('<button','<div').replace(/<\/button>\s*$/,'</div>');if(peekEl.firstElementChild)layWhy(peekEl.firstElementChild,card);
-    peekEl.hidden=false;peekEl.style.bottom=Math.max(8,Math.min(innerHeight-top+8,innerHeight-peekEl.offsetHeight*1.45-8))+'px';pk.on=true;try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}},260)}},true);
+    peekEl.hidden=false;peekEl.style.bottom=Math.max(8,Math.min(innerHeight-top+8,innerHeight-peekEl.offsetHeight*1.65-8))+'px';pk.on=true;try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}},260)}},true);
 document.addEventListener('pointermove',e=>{if(pk&&e.pointerId===pk.id&&Math.hypot(e.clientX-pk.x,e.clientY-pk.y)>=10)peekHide()},true);
 document.addEventListener('pointerup',e=>{if(pk&&e.pointerId===pk.id&&peekHide())suppress=Date.now()},true);
 document.addEventListener('pointercancel',()=>peekHide(),true);
@@ -320,7 +325,7 @@ body[data-lay=fan] .hand.mini.lfan>.card.lpd .lpst{left:2px;width:44px}body[data
 
 body .lyghost{display:block!important;overflow:visible;padding:0;contain:none}body .lyghost>.card{width:64px;height:100px!important}
 /* лупа */
-.lpeek{position:fixed;left:50%;width:150px;transform:translateX(-50%) scale(1.45);transform-origin:50% 100%;z-index:45;pointer-events:none;filter:drop-shadow(0 10px 24px #000c)}
+.lpeek{position:fixed;left:50%;width:150px;transform:translateX(-50%) scale(1.65);transform-origin:50% 100%;z-index:45;pointer-events:none;filter:drop-shadow(0 10px 24px #000c)}
 .lpeek>.card{width:150px;margin:0}
 body .hand .card{-webkit-touch-callout:none}
 .lpeek{isolation:isolate}
@@ -486,7 +491,7 @@ body[data-bfit][data-hcl=xl] .hand.mini:not(.lpl) .badge{width:26px;height:26px;
 html:has(body[data-bfit]){overflow:hidden;overscroll-behavior:none;height:100%}
 body[data-bfit]{box-sizing:border-box;margin:0;height:100dvh;overflow:hidden;overscroll-behavior:none;padding-block:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-bottom))}
 body[data-bfit] #app{min-height:100%}
-body[data-bfit] .board{width:var(--bw,100%);margin-inline:auto}
+body[data-bfit] .board{width:var(--bw,100%);margin-inline:auto}body[data-bfit] .hand.mini:not(.lpl){zoom:var(--hz,1)}
 body[data-bfit][data-tight] #app{gap:5px}
 /* Anton 0.38.3: in «Бой четвёрок» the hand has fewer cards, so it sits in the middle */
 body[data-bfit][data-tn="4"] .hand.mini:not(.lpl){justify-content:center}

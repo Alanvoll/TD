@@ -26,9 +26,11 @@ function achTrack(){const s=META.stats;s.kills=(s.kills||0)+(G.kills||0);
   if(CTX&&CTX.kind==='run'&&G.over!=='win')s.battles++}
 const achState=a=>{const[c,g]=a.g();return{c:Math.min(c,g),g,done:c>=g,cl:!!(META.ach&&META.ach[a.k])}};
 const achReady=()=>ACH.filter(a=>{const s=achState(a);return s.done&&!s.cl}).length;
+// 0.41.11 Anton: achievements whose reward can be taken now stand at the top of the list
+const achRdy=a=>{const s=achState(a);return s.done&&!s.cl?1:0};
 function renderAch(){const n=ACH.filter(a=>META.ach&&META.ach[a.k]).length;
   setApp(`<div class="top"><button class="pill sm" data-act="m-menu">‹ Меню</button><div class="title">Достижения</div><span class="m">💎 ${META.stones}</span></div><div class="msec" style="margin-top:2px">Профиль</div>${statsHtml()}<div class="msec">Достижения</div>
-  <div class="m" style="font-size:12px;margin:-2px 0 6px">Получено ${n} из ${ACH.length}. За каждое дают камни 💎.</div><div class="qlist">${ACH.map(a=>{const s=achState(a);
+  <div class="m" style="font-size:12px;margin:-2px 0 6px">Получено ${n} из ${ACH.length}. За каждое дают камни 💎.</div><div class="qlist">${[...ACH].sort((a,b)=>achRdy(b)-achRdy(a)).map(a=>{const s=achState(a);
     return`<div class="qst ${s.cl?'cl':''}"><span class="ach-ic">${a.ic}</span><span style="flex:1"><b>${a.n}</b><div class="m" style="font-size:11px">${a.t}</div><div class="xpb sm"><i style="width:${100*s.c/s.g}%"></i><span>${s.c}/${s.g}</span></div></span><span class="m" style="font-size:11px">💎${a.st}</span>${s.cl?'<span class="m">✓</span>':(s.done?`<button class="pill on" data-act="ac-${a.k}">Забрать</button>`:'')}</div>`}).join('')}</div>`)}
 function achClick(act){
   if(act==='m-ach'){CTX=null;G={phase:'ach'};render();return true}

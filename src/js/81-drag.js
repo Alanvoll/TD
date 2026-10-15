@@ -84,9 +84,13 @@ document.addEventListener('pointermove',e=>{
       if(drag.viaPet){const vp=pet(S,drag.viaPet);src=app.querySelector(`[data-cell="p,${vp.r},${vp.c}"] .av`)}else src=drag.el||app.querySelector(`[data-card="${card.uid}"]`);
     }
     if(!src){drag=null;return}
-    const g=src.cloneNode(true);g.classList.add('ghost');g.style.width=src.offsetWidth+'px';g.style.height=src.offsetHeight+'px';document.body.appendChild(g);
+    const g=src.cloneNode(true);g.classList.add('ghost');g.style.width=src.offsetWidth+'px';g.style.height=src.offsetHeight+'px';
+    // 0.41.11 Anton: only the half being played follows the finger (▲ or ▼), not the whole card
+    const half=!drag.petMove&&!drag.viaPet&&HV()&&g.querySelector(':scope>[data-half]')?(drag.dn?'d':'u'):null;
+    if(half){const rh=[...src.children].filter(k=>k.dataset.half===half).map(k=>k.offsetHeight+'px').join(' ');for(const k of [...g.children])if(k.dataset.half!==half)k.remove();g.style.setProperty('grid-template-rows',rh,'important');g.classList.add('ghalf');g.style.height='auto';g.style.minHeight='0';g.style.aspectRatio='auto';g.style.rotate='none'}
+    document.body.appendChild(g);
     src.style.opacity='.3';
-    drag.on=true;document.body.classList.add('dragging');drag.g=g;drag.w=src.offsetWidth;drag.h=src.offsetHeight;hotEl.hidden=false;
+    drag.on=true;document.body.classList.add('dragging');drag.g=g;drag.w=src.offsetWidth;drag.h=half?g.offsetHeight:src.offsetHeight;hotEl.hidden=false;
     // 0.35.1 Anton: the aim ring sits just above the dragged card, the card stays under the finger
     drag.hot=Math.round(drag.h*.75/2+14);
     if(!drag.petMove&&HV()){if(drag.dn&&!drag.why){burnEl.innerHTML='▼ сюда: сыграть низ';burnEl.hidden=false}}

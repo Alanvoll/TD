@@ -6,7 +6,7 @@ if(typeof layFit==='function'){const lf0=layFit;layFit=function(on){if(on&&typeo
   if(layFitN!==n0)ntGrow();else{const hd=app.querySelector(':scope>.hand.mini:not(.lpl)'),ba=app.querySelector(':scope>.bact');
     // the first fit can run before the screen settles; a large empty gap above the buttons later still lets the hand grow
     if(hd&&ba&&!hd.style.zoom&&ba.getBoundingClientRect().top-hd.getBoundingClientRect().bottom>40)ntGrow()}return r}}
-function ntGrow(){const hd=app.querySelector('.hand.mini:not(.lpl)');if(!hd)return;const B=document.body;B.classList.add('nt-meas');app.style.minHeight='0';
+function ntGrow(){if(innerHeight<=700)return;const hd=app.querySelector('.hand.mini:not(.lpl)');if(!hd)return;const B=document.body;B.classList.add('nt-meas');app.style.minHeight='0';
   const sp=-layOver();if(sp>20){const h=hd.getBoundingClientRect().height,z=Math.floor(Math.min(1.2,1+(sp-8)/h)*100)/100;hd.style.zoom=z;
     if(layOver()>0)hd.style.zoom=z>1.04?+((1+z)/2).toFixed(2):'';if(layOver()>0)hd.style.zoom=''}
   app.style.minHeight='';B.classList.remove('nt-meas')}

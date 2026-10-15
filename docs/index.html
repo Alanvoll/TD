@@ -758,7 +758,7 @@ body[data-bfit][data-hcl=m] .hand.mini.lfan .zc.hv .zcost .rr{width:11px!importa
 <div id="app"></div>
 
 <script>
-const VER='0.41.10',BUILD=171;
+const VER='0.41.11',BUILD=172;
 /* ART-BEGIN: creatures drawn in code (SVG + CSS idle animation), one file per family */
 const ARTS={};function ART_ADD(o){Object.assign(ARTS,o)}
 ART_ADD({
@@ -1114,7 +1114,7 @@ function fxSheet(){
   if(G&&G.P&&G.phase!=='pick'){const row=(S,who)=>alive(S).filter(p=>petFx(p).length).map(p=>`<div class="fxnow"><span>${petIc(p,1)}</span><span class="m">${who}</span>${petFx(p).map(f=>`<span class="bd ${f.neg?'ng':'ps'}">${f.ic}${f.v}</span>`).join('')}</div>`).join('');
     const r=row(G.P,'твой')+row(G.B,'враг');if(r)now=`<h3>Сейчас в бою</h3>${r}`}
   return`<div class="over" data-act="fxs-close"><div class="box hintbox"><div style="display:flex;align-items:center;justify-content:space-between"><h2 style="margin:0">Эффекты</h2><button class="pill sm" data-act="fxs-close">✕</button></div>
-  <div class="m">Красные плохие, зелёные хорошие. Число у пета: сколько ходов эффект ещё действует, у щита: сколько урона он поглотит.</div>${now}<h3>Все эффекты</h3>${fxLegend()}</div></div>`;
+  <div class="m">Красные плохие, зелёные хорошие. Число у пета: сколько ходов эффект ещё действует, у щита: сколько урона он поглотит.</div>${now}<h3>Все эффекты</h3>${fxLegend()}<div class="acts"><button class="btn main" data-act="fxs-close">Закрыть</button></div></div></div>`;
 }
 const fxLine=f=>`<div class="fxr ${f.neg?'ng':'ps'}"><span class="fxi">${f.ic}</span><span><b>${f.n[0].toUpperCase()+f.n.slice(1)}</b> ${f.amt?f.v:'· ещё '+hz(f.v)}<br><span class="m">${STD[f.k]}</span></span></div>`;
 const TOUGH=2;const ccOn=p=>p.frozen>0||sv(p,'stun')>0;const ccBlock=p=>p.tough>0||ccOn(p);
@@ -1166,7 +1166,7 @@ function newGame(){
   if(!SIMU&&CTX&&CTX.kind==='rank'){rk().pend=1;saveMeta()}
   if(!SIMU&&!CTX&&!sandbox()&&Array.isArray(TEAM)&&TEAM.every(x=>typeof x==='number')){META[TN===5?'lastQ':'lastQ'+TN]=TEAM.slice();META[TN===5?'lastQP':'lastQP'+TN]=(PLACE||START).map(x=>[...x]);saveMeta()}
   ui.bIntro=!SIMU&&G.B.bk&&!(CTX&&CTX.kind==='puz')?G.B.bk:null;
-  if(!SIMU)ui.auto=!!META.autoOn&&!(CTX&&CTX.kind==='puz');// Auto stays on from fight to fight until the player turns it off
+  if(!SIMU)ui.auto=false;// 0.41.11 Anton: every fight starts without Auto (it used to carry over and switch itself on at the first tap)
 }
 const other=S=>S===G.P?G.B:G.P;
 const pet=(S,id)=>S.pets.find(p=>p.id===id);
@@ -1996,7 +1996,7 @@ function renderPick(){
   let h=`<div class="top"><button class="pill sm" data-act="m-menu">‹ Меню</button><div class="title">${ttl}</div><span class="modes"></span></div>
   <div class="tbar"><div class="tm">${[...Array(TN).keys()].map(k=>{const i=TEAM[k];return i==null?`<span class="ts empty"></span>`:`<button class="ts" data-view="${i}" style="border-color:${rarC(PETS[i])}"><span class="em">${petIc(PETS[i],1)}</span>${FAM[PETS[i].fam]?`<span class="fmb">${FAM[PETS[i].fam].ic}</span><span class="clb">${CLS[PETS[i].cls].ic}</span>`:''}<span class="tx" data-qt="${i}">✕</span></button>`}).join('')}</div>
   <div class="tside"><button class="pill sm" data-act="deck" ${TEAM.length?'':'disabled'}>🃏 Колода</button><button class="pill sm" data-act="fxs">💫 Эффекты</button>${rg?`<button class="pill sm" data-act="deck" style="color:${rg.c}">${rg.n}</button>`:`<span class="m" style="font-size:12px">${TEAM.length}/${TN}</span>`}${TEAM.length?`<span class="m tels" title="${CAP_MSG}" style="font-size:12px;display:inline-flex;align-items:center;gap:2px;${teamEls(TEAM).size>=EL_TEAM_MAX?'color:var(--gold)':''}">Стихии ${ELS.filter(e=>teamEls(TEAM).has(e)).map(e=>EI(e)).join('')} ${teamEls(TEAM).size}/${EL_TEAM_MAX}</span>`:''}</div></div>
-  
+  ${TEAM.length&&TEAM.length<TN&&teamEls(TEAM).size>=EL_TEAM_MAX?`<div class="capl">Стихий уже ${EL_TEAM_MAX} из ${EL_TEAM_MAX}: убери существо, чтобы взять другое.</div>`:''}
   <div class="flt fl1"><button class="pill sm ${nf||F.sort!=='def'?'on':''}" data-act="fopen">⚙ Фильтры${nf?' · '+nf:''}</button>${nf?pill('fclr',false,'✕ Сбросить'):''}<span class="m" style="font-size:11px;margin-left:auto">${list.length===pool.length?'Все '+pool.length:list.length+' из '+pool.length}${F.sort!=='def'?' · по '+SORTN[F.sort]:''}</span></div>
   <div class="pk">${list.length?list.map(i=>{const q=PETS[i],on=TEAM.includes(i),full=TEAM.length>=TN&&!on,capd=!on&&!full&&!teamElsOk([...TEAM,i]);return`<div class="pt ${on?'on':''}${capd?' capd':''}" data-view="${i}" data-r="${q.rar}" style="--qc:${rarC(q)}">${FAM[q.fam]?`<span class="fmb" title="${FAM[q.fam].n}">${FAM[q.fam].ic}</span><span class="clb" title="${CLS[q.cls].n}">${CLS[q.cls].ic}</span>`:''}<button class="qt ${on?'on':''}" data-qt="${i}" ${full?'disabled':''}>${on?'✓':capd?'🔒':'+'}</button><span class="pt-av">${qArt(q,metaMode()&&!sandbox()?mp(q.n).q:0,1)}${metaMode()&&!sandbox()?`<span class="lvb" style="background:${qC(mp(q.n).q)}">${mp(q.n).lv}</span>`:''}</span><span class="pnm" style="font-size:${q.n.length>12?10.5:q.n.length>9?11.5:12.5}px">${q.n}</span><span class="pels">${(()=>{const te=capd?teamEls(TEAM):null;return petEls(q).map(e=>te&&!te.has(e)?`<span class="elx">${EI(e,1)}</span>`:EI(e,1)).join('')})()}</span></div>`}).join(''):'<div class="m">Никого не нашлось, сбрось фильтр.</div>'}</div>
   <div class="m" style="font-size:11px;text-align:center;margin-top:6px">Тап по пету: что он умеет. «+»: сразу в стаю.</div>
@@ -3992,9 +3992,11 @@ function achTrack(){const s=META.stats;s.kills=(s.kills||0)+(G.kills||0);
   if(CTX&&CTX.kind==='run'&&G.over!=='win')s.battles++}
 const achState=a=>{const[c,g]=a.g();return{c:Math.min(c,g),g,done:c>=g,cl:!!(META.ach&&META.ach[a.k])}};
 const achReady=()=>ACH.filter(a=>{const s=achState(a);return s.done&&!s.cl}).length;
+// 0.41.11 Anton: achievements whose reward can be taken now stand at the top of the list
+const achRdy=a=>{const s=achState(a);return s.done&&!s.cl?1:0};
 function renderAch(){const n=ACH.filter(a=>META.ach&&META.ach[a.k]).length;
   setApp(`<div class="top"><button class="pill sm" data-act="m-menu">‹ Меню</button><div class="title">Достижения</div><span class="m">💎 ${META.stones}</span></div><div class="msec" style="margin-top:2px">Профиль</div>${statsHtml()}<div class="msec">Достижения</div>
-  <div class="m" style="font-size:12px;margin:-2px 0 6px">Получено ${n} из ${ACH.length}. За каждое дают камни 💎.</div><div class="qlist">${ACH.map(a=>{const s=achState(a);
+  <div class="m" style="font-size:12px;margin:-2px 0 6px">Получено ${n} из ${ACH.length}. За каждое дают камни 💎.</div><div class="qlist">${[...ACH].sort((a,b)=>achRdy(b)-achRdy(a)).map(a=>{const s=achState(a);
     return`<div class="qst ${s.cl?'cl':''}"><span class="ach-ic">${a.ic}</span><span style="flex:1"><b>${a.n}</b><div class="m" style="font-size:11px">${a.t}</div><div class="xpb sm"><i style="width:${100*s.c/s.g}%"></i><span>${s.c}/${s.g}</span></div></span><span class="m" style="font-size:11px">💎${a.st}</span>${s.cl?'<span class="m">✓</span>':(s.done?`<button class="pill on" data-act="ac-${a.k}">Забрать</button>`:'')}</div>`}).join('')}</div>`)}
 function achClick(act){
   if(act==='m-ach'){CTX=null;G={phase:'ach'};render();return true}
@@ -4092,7 +4094,7 @@ function decoHtml(R){if(!R.map.deco){const d=[];for(let i=0;i<14;i++)d.push([Mat
 
 /* 🤖 autoplay: the Мастер plays the player's turns (handy for testing and watching) */
 function autoClick(act){if(act==='autoplay')ui.bIntro=null;if(act==='bspd'){META.spd=spdNow()%3+1;saveMeta();toast('Скорость боя ×'+META.spd+'. Тап по экрану во время хода пропускает анимацию.');render();return true}
-if(act!=='autoplay'||!G||G.phase!=='battle')return false;ui.auto=!ui.auto;META.autoOn=ui.auto;saveMeta();toast(ui.auto?'🤖 Автобой: Мастер играет за тебя. Останется включённым и в следующих боях. Нажми 🤖 ещё раз, чтобы выключить.':'🤖 Автобой выключен.');render();return true}
+if(act!=='autoplay'||!G||G.phase!=='battle')return false;ui.auto=!ui.auto;META.autoOn=false;saveMeta();toast(ui.auto?'🤖 Автобой: Мастер играет за тебя до конца этого боя. Нажми 🤖 ещё раз, чтобы выключить.':'🤖 Автобой выключен.');render();return true}
 
 /* ---------- 0.14.0: «Логова боссов». Each boss has 3 tiers with a fixed strength; pick 5 from the collection and beat it.
    First clear of a tier pays stones and fragments; the best (fewest) turns are kept ---------- */
@@ -4659,7 +4661,7 @@ function renderScreen(){syncRar();
     h+=`<div class="over" data-act="bdeck-close"><div class="box"><h2>Колода босса · ${all.length}</h2><div class="m" style="font-size:12px">${B.bk?BOSSES[B.bk].n:'Голем'} не тратит стихии и играет ${maxPlay(B)} карты за ход из руки в ${HAND_BASE}. Здоровье ${B.pets[0].hp}/${B.pets[0].max}. ${B.bk?BOSSES[B.bk].rule:'Уязвимое место ✶ получает двойной урон и каждый ход перемещается. На половине здоровья голем впадает в ярость.'}</div>${Object.keys(cnt).map(k=>`<div class="pcard" style="--pc:var(--earth)"><div class="h"><span>${T[k].n} ×${cnt[k]} ${shapeIcon(T[k].area)}</span><span class="spdp">⏱ ${cardIni(k)}</span></div><div>${cardTxt(T[k])}</div></div>`).join('')}<button class="btn main" style="margin-top:8px" data-act="bdeck-close">Закрыть</button></div></div>`}
   if(ui.fxs)h+=fxSheet();
   if(ui.hint){const fams=S=>[...new Set(alive(S).map(p=>p.fam).filter(f=>FAM[f]))].map(f=>`${FAM[f].ic} <b>${FAM[f].n}</b>: ${FAM[f].t[0]}`).join('<br>')||'нет';
-    h+=`<div class="over" data-act="hint-close"><div class="box hintbox"><div class="boxhd"><h2>Подсказка</h2><button class="xb" data-act="hint-close" aria-label="Закрыть">✕</button></div>
+    h+=`<div class="over" data-act="hint-close"><div class="box hintbox"><div class="boxhd"><h2>Подсказка</h2></div>
     <h3>Как идёт ход</h3><div class="m">1. Рука добирается до числа живых петов + 1, со второго хода приходит ещё 1 стихия.<br>2. У каждой карты два действия: верх ▲ и низ ▼. С карты играешь одно из них: тяни карту за верх на цель или за низ на поле. Обе половины стоят стихий: низ ▼ стоит 1 стихию своей карты (если это не только шаг). Сама половина стихий не даёт.<br>3. Несыгранные карты в конце хода уходят в сброс и дают стихии, отмеченные полосой посередине карты.<br>4. «В бой»: карты обеих сторон срабатывают вперемешку по инициативе ⏱, у ▲ и ▼ она своя.<br>5. Лишние стихии остаются на следующий ход. Ближе к концу боя приходит Буря и ранит всех каждый ход.</div>
     <h3>Эффекты</h3><div class="m">Красные плохие, зелёные хорошие. Число у пета: сколько ходов ещё действует (у щита: сколько урона поглотит).</div>${fxLegend()}<h3>Стихии</h3><div class="ellg">${ELS.map(k=>`<span>${EI(k)} ${ELN[k]}</span>`).join('')}</div><div class="m"><span class="spdp">⏱ 15</span> инициатива карты: меньше число, раньше она сработает. Карты обеих сторон срабатывают вперемешку по инициативе. У ▼ своё число, оно внизу карты; при равенстве ▼ раньше ▲. Зелёное число: карта сейчас раньше обычного, красное: позже.</div>
     <h3>Классы</h3><div class="m">У каждого класса своё правило, оно работает на самого пета, где бы он ни стоял.</div>${P.pets.filter(p=>p.alive&&AURA[p.au]&&p.au!=='tok').map(p=>`<div>${petIc(p,1)} <b>${p.n}</b>${CLS[p.cls]?' '+CLS[p.cls].ic+' '+CLS[p.cls].n:''}: ${AURA[p.au]}</div>`).join('')}
@@ -4849,9 +4851,13 @@ document.addEventListener('pointermove',e=>{
       if(drag.viaPet){const vp=pet(S,drag.viaPet);src=app.querySelector(`[data-cell="p,${vp.r},${vp.c}"] .av`)}else src=drag.el||app.querySelector(`[data-card="${card.uid}"]`);
     }
     if(!src){drag=null;return}
-    const g=src.cloneNode(true);g.classList.add('ghost');g.style.width=src.offsetWidth+'px';g.style.height=src.offsetHeight+'px';document.body.appendChild(g);
+    const g=src.cloneNode(true);g.classList.add('ghost');g.style.width=src.offsetWidth+'px';g.style.height=src.offsetHeight+'px';
+    // 0.41.11 Anton: only the half being played follows the finger (▲ or ▼), not the whole card
+    const half=!drag.petMove&&!drag.viaPet&&HV()&&g.querySelector(':scope>[data-half]')?(drag.dn?'d':'u'):null;
+    if(half){const rh=[...src.children].filter(k=>k.dataset.half===half).map(k=>k.offsetHeight+'px').join(' ');for(const k of [...g.children])if(k.dataset.half!==half)k.remove();g.style.setProperty('grid-template-rows',rh,'important');g.classList.add('ghalf');g.style.height='auto';g.style.minHeight='0';g.style.aspectRatio='auto';g.style.rotate='none'}
+    document.body.appendChild(g);
     src.style.opacity='.3';
-    drag.on=true;document.body.classList.add('dragging');drag.g=g;drag.w=src.offsetWidth;drag.h=src.offsetHeight;hotEl.hidden=false;
+    drag.on=true;document.body.classList.add('dragging');drag.g=g;drag.w=src.offsetWidth;drag.h=half?g.offsetHeight:src.offsetHeight;hotEl.hidden=false;
     // 0.35.1 Anton: the aim ring sits just above the dragged card, the card stays under the finger
     drag.hot=Math.round(drag.h*.75/2+14);
     if(!drag.petMove&&HV()){if(drag.dn&&!drag.why){burnEl.innerHTML='▼ сюда: сыграть низ';burnEl.hidden=false}}
@@ -5001,8 +5007,8 @@ function zoneHelp(){
   <h3>Дистанция</h3><div class="m">Метка под зоной: жёлтый квадрат это столбец пета, по бокам на сколько столбцов он достаёт. Нет метки: куда угодно.</div>
   <div class="zgrid">${rr}</div>
   <h3>Эффекты</h3><div class="m">Значки эффектов временные, будут перерисованы.</div>
-  <div class="zgrid">${fr}</div></div></div>`}
-function zoneTabs(on){return`<div class="ztabs"><span>${['Эффекты','Значки карт'].map(n=>`<button class="pill ${n===on?'on':''}" data-fxt="${n==='Эффекты'?'e':'z'}">${n}</button>`).join('')}</span><button class="pill sm" data-act="fxs-close">✕</button></div>`}
+  <div class="zgrid">${fr}</div><div class="acts"><button class="btn main" data-act="fxs-close">Закрыть</button></div></div></div>`}
+function zoneTabs(on){return`<div class="ztabs"><span>${['Эффекты','Значки карт'].map(n=>`<button class="pill ${n===on?'on':''}" data-fxt="${n==='Эффекты'?'e':'z'}">${n}</button>`).join('')}</span></div>`}
 const _fxSheet0=fxSheet;
 fxSheet=function(){if(ui.fxTab==='z')return zoneHelp();
   return _fxSheet0().replace(/<div style="display:flex;align-items:center;justify-content:space-between"><h2 style="margin:0">Эффекты<\/h2><button class="pill sm" data-act="fxs-close">✕<\/button><\/div>/,zoneTabs('Эффекты'))};
@@ -5425,7 +5431,7 @@ document.addEventListener('click',ev=>{const b=ev.target.closest&&ev.target.clos
 // 0.38.0 Anton: the battle screen never scrolls, hand cards a bit larger and in ONE row; «Лупа» is not a variant any more but how every card behaves.
 // So the variants with several rows of cards (Крупная рука, Список, Сетка карт) and «Лупа» left the list (their code below stays unused).
 const LAYS=[
- {k:'fan',ic:'🃏',n:'Веер (обычный)',d:'Карты веером с лёгким наклоном. Тап поднимает карту целиком, второй тап открывает её окно. Тянуть можно любую.'},
+ {k:'fan',ic:'🃏',n:'Веер (обычный)',d:'Карты веером с лёгким наклоном. Тап поднимает карту целиком, второй тап опускает её обратно, долгое нажатие показывает её крупно. Тянуть можно любую.'},
  {k:'base',ic:'▦',n:'Ровный ряд',d:'Как было раньше: карты ровным рядом, тап открывает руку.'},
  {k:'tap',ic:'👆',n:'Тап вместо перетаскивания',d:'Тап по карте: под рукой панель с полным текстом, цели на поле подсвечены. Тапни цель или нажми «Сыграть». Поле не закрывается.'},
  {k:'focus',ic:'🎯',n:'Карта в фокусе',d:'Одна карта крупно с полным текстом, под ней значки остальных. Тап по значку переносит карту в фокус.'},
@@ -5553,7 +5559,7 @@ function layPlayed(e,up){const k=e.classList;if(!['pl','burned','plu','pld'].som
   const ub=document.createElement('span');ub.className='lpun';ub.setAttribute('role','button');ub.setAttribute('aria-label','Отменить ход этой картой');ub.innerHTML='<b>↺</b><span>отмена</span>';e.appendChild(ub)}
 
 /* ----- the switcher ----- */
-function layPickHtml(){return`<div class="over lay-over" data-act="lay-close"><div class="box"><div class="boxhd"><h2>Вид экрана боя</h2><button class="xb" data-act="lay-close" aria-label="Закрыть">✕</button></div>
+function layPickHtml(){return`<div class="over lay-over" data-act="lay-close"><div class="box"><div class="boxhd"><h2>Вид экрана боя</h2></div>
   <div class="m" style="font-size:12px;margin-bottom:6px">Меняются только экран и управление, правила те же. Выбор запоминается. В задачах всегда обычный вид.</div>
   <div class="laylist">${LAYS.map(l=>`<button class="layi ${l.k===LAY?'on':''}" data-act="lay-set" data-lay="${l.k}"><span class="layic">${l.ic}</span><span><b>${l.n}${l.k===LAY?' ✓':''}</b><span class="m">${l.d}</span></span></button>`).join('')}</div>
   <button class="btn main" data-act="lay-close">Готово</button></div></div>`}
@@ -5609,11 +5615,11 @@ function layOver(){const r=app.getBoundingClientRect(),pb=parseFloat(getComputed
 // otherwise every draw kept re-measuring the whole screen a dozen times, which made the battle lag on short phones
 let layFitK='',layFitN=0;
 function layFit(on){const B=document.body;
-  if(!on){layFitK='';if(B.dataset.bfit){delete B.dataset.bfit;delete B.dataset.hcl;delete B.dataset.tight;B.style.removeProperty('--bw')}return}
+  if(!on){layFitK='';if(B.dataset.bfit){delete B.dataset.bfit;delete B.dataset.hcl;delete B.dataset.tight;B.style.removeProperty('--bw');B.style.removeProperty('--hz')}return}
   const hd=app.querySelector('.hand.mini'),k=[innerWidth,innerHeight,typeof TN!=='undefined'?TN:5,LAY,hd?hd.children.length:0,[...app.children].map(e=>e.className).filter(c=>!/^(over|toast|detail)\b|\bnt-tip\b/.test(c)).join('|')].join('/');
   if(k===layFitK&&B.dataset.bfit&&layOver()<=0)return;
   layFitK=k;layFitN++;{const hz=app.querySelector('.hand.mini');if(hz)hz.style.zoom=''}
-  B.dataset.bfit=1;delete B.dataset.tight;B.dataset.tn=typeof TN!=='undefined'?TN:5;
+  B.dataset.bfit=1;delete B.dataset.tight;B.style.removeProperty('--hz');B.dataset.tn=typeof TN!=='undefined'?TN:5;
   const bd=app.querySelector('.board'),refit=()=>{if(bd&&typeof fitBoard==='function')fitBoard()};
   // shrink the board (down to minW % of the width) until the screen fits; true when it does
   const squeeze=minW=>{let o=layOver();if(o<=0)return true;if(!bd)return false;const h=bd.getBoundingClientRect().height;if(!(h>0))return false;
@@ -5622,6 +5628,9 @@ function layFit(on){const B=document.body;
   // larger cards first: 150 px, then 126 px, then the usual size; the board gives way down to 78 % before the cards shrink
   // 0.38.6 Anton: the fan overlaps cards, so they can be bigger still: an extra 182 px size, and the board may give way a little more
   const fan=LAY==='fan'&&layOn(),minW=fan?66:78;
+  // 0.41.11 Anton: on a small phone the cards get smaller first and the board keeps its full width; it gives way only with the smallest cards
+  if(innerHeight<=700){delete B.dataset.hcl;B.style.removeProperty('--bw');for(const z of [1,.92,.85,.8]){if(z<1)B.style.setProperty('--hz',z);refit();if(layOver()<=0)return}
+    if(squeeze(minW))return;B.dataset.tight=1;B.style.removeProperty('--bw');refit();squeeze(55);return}
   for(const t of fan?['xl','l','m','']:['l','m',''])
     {if(t)B.dataset.hcl=t;else delete B.dataset.hcl;B.style.removeProperty('--bw');refit();if(squeeze(minW))return}
   B.dataset.tight=1;B.style.removeProperty('--bw');refit();squeeze(55)}
@@ -5662,7 +5671,9 @@ document.addEventListener('click',e=>{
     const pe=G.P.plan.find(x=>x.card===card);if(pe){unplan(card);layClear();return render()}return}
   if(LAY_HALFTAP.has(LAY)&&(c.closest('.lfoc')||c.closest('.lwl,.lgr'))){e.stopPropagation();const hf=e.target.closest('[data-half]');
     return halfTap(card,!!hf&&hf.dataset.half==='d')}
-  if(LAY==='fan'&&inHand){e.stopPropagation();if(ui.lfan!==card.uid){ui.lfan=card.uid;return render()}return tapCard(card.uid)}
+  // 0.41.11 Anton: a second tap on the raised card lowers it again (no card window any more: the long press shows the card big);
+  // a tap on another card while one waits for its target drops the first and picks the new one
+  if(LAY==='fan'&&inHand){e.stopPropagation();if(ui.lfan!==card.uid){if(ui.sel&&ui.sel!==card.uid){layClear();ui.mover=null}ui.lfan=card.uid;return render()}ui.lfan=null;if(ui.sel===card.uid)layClear();return render()}
 },true);
 
 // Лупа: hold a hand card still to see it big above the hand
@@ -5673,7 +5684,7 @@ document.addEventListener('pointerdown',e=>{if(typeof G==='undefined'||!G||G.pha
   const card=layCard(c.dataset.card);if(!card)return;peekHide();
   pk={x:e.clientX,y:e.clientY,id:e.pointerId,t:setTimeout(()=>{if(!pk)return;const h=c.closest('.hand')||app.querySelector('.hand');const top=h?h.getBoundingClientRect().top:innerHeight*.6;
     peekEl.innerHTML=cardHtml(card).replace(/ data-card="[^"]*"/,'').replace('<button','<div').replace(/<\/button>\s*$/,'</div>');if(peekEl.firstElementChild)layWhy(peekEl.firstElementChild,card);
-    peekEl.hidden=false;peekEl.style.bottom=Math.max(8,Math.min(innerHeight-top+8,innerHeight-peekEl.offsetHeight*1.45-8))+'px';pk.on=true;try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}},260)}},true);
+    peekEl.hidden=false;peekEl.style.bottom=Math.max(8,Math.min(innerHeight-top+8,innerHeight-peekEl.offsetHeight*1.65-8))+'px';pk.on=true;try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}},260)}},true);
 document.addEventListener('pointermove',e=>{if(pk&&e.pointerId===pk.id&&Math.hypot(e.clientX-pk.x,e.clientY-pk.y)>=10)peekHide()},true);
 document.addEventListener('pointerup',e=>{if(pk&&e.pointerId===pk.id&&peekHide())suppress=Date.now()},true);
 document.addEventListener('pointercancel',()=>peekHide(),true);
@@ -5740,7 +5751,7 @@ body[data-lay=fan] .hand.mini.lfan>.card.lpd .lpst{left:2px;width:44px}body[data
 
 body .lyghost{display:block!important;overflow:visible;padding:0;contain:none}body .lyghost>.card{width:64px;height:100px!important}
 /* лупа */
-.lpeek{position:fixed;left:50%;width:150px;transform:translateX(-50%) scale(1.45);transform-origin:50% 100%;z-index:45;pointer-events:none;filter:drop-shadow(0 10px 24px #000c)}
+.lpeek{position:fixed;left:50%;width:150px;transform:translateX(-50%) scale(1.65);transform-origin:50% 100%;z-index:45;pointer-events:none;filter:drop-shadow(0 10px 24px #000c)}
 .lpeek>.card{width:150px;margin:0}
 body .hand .card{-webkit-touch-callout:none}
 .lpeek{isolation:isolate}
@@ -5906,7 +5917,7 @@ body[data-bfit][data-hcl=xl] .hand.mini:not(.lpl) .badge{width:26px;height:26px;
 html:has(body[data-bfit]){overflow:hidden;overscroll-behavior:none;height:100%}
 body[data-bfit]{box-sizing:border-box;margin:0;height:100dvh;overflow:hidden;overscroll-behavior:none;padding-block:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-bottom))}
 body[data-bfit] #app{min-height:100%}
-body[data-bfit] .board{width:var(--bw,100%);margin-inline:auto}
+body[data-bfit] .board{width:var(--bw,100%);margin-inline:auto}body[data-bfit] .hand.mini:not(.lpl){zoom:var(--hz,1)}
 body[data-bfit][data-tight] #app{gap:5px}
 /* Anton 0.38.3: in «Бой четвёрок» the hand has fewer cards, so it sits in the middle */
 body[data-bfit][data-tn="4"] .hand.mini:not(.lpl){justify-content:center}
@@ -6011,7 +6022,7 @@ if(typeof setApp==='function'){const sa0=setApp;setApp=function(h){
       for(const b of ms[1].querySelectorAll('[data-act^="lfam-"]')){const k=b.dataset.act.slice(5);if(k&&FAM[k])b.textContent=FAM[k].ic+' '+FAM[k].n}
       const lb=ms[2].querySelector('span.m');if(lb)lb.remove();
       ms[0].insertAdjacentHTML('beforebegin',`<div class="lfb"><button class="pill sm ${n?'on':''}" data-act="lfl-open">⚙ Фильтры и сортировка${n?' · '+n:''}</button><button class="pill sm" data-act="lib-shop">🛒 Лавка</button></div>`);
-      if(ui.lflt){const ov=document.createElement('div');ov.className='over';ov.dataset.act='lfl-x';ov.innerHTML='<div class="box lflbox"><div class="boxhd"><h2>Фильтры и сортировка</h2><button class="xb" data-act="lfl-x" aria-label="Закрыть">✕</button></div></div>';
+      if(ui.lflt){const ov=document.createElement('div');ov.className='over';ov.dataset.act='lfl-x';ov.innerHTML='<div class="box lflbox"><div class="boxhd"><h2>Фильтры и сортировка</h2></div></div>';
         const bx=ov.firstChild;[['Показать',ms[0]],['Семейства',ms[1]],['Сортировка',ms[2]]].forEach(([t,m])=>{const h4=document.createElement('h4');h4.textContent=t;m.removeAttribute('style');bx.append(h4,m)});
         bx.insertAdjacentHTML('beforeend','<div class="acts"><button class="btn main" data-act="lfl-x">Готово</button></div>');f.appendChild(ov)}
       else ms.forEach(m=>m.remove());
@@ -6420,7 +6431,7 @@ if(typeof layFit==='function'){const lf0=layFit;layFit=function(on){if(on&&typeo
   if(layFitN!==n0)ntGrow();else{const hd=app.querySelector(':scope>.hand.mini:not(.lpl)'),ba=app.querySelector(':scope>.bact');
     // the first fit can run before the screen settles; a large empty gap above the buttons later still lets the hand grow
     if(hd&&ba&&!hd.style.zoom&&ba.getBoundingClientRect().top-hd.getBoundingClientRect().bottom>40)ntGrow()}return r}}
-function ntGrow(){const hd=app.querySelector('.hand.mini:not(.lpl)');if(!hd)return;const B=document.body;B.classList.add('nt-meas');app.style.minHeight='0';
+function ntGrow(){if(innerHeight<=700)return;const hd=app.querySelector('.hand.mini:not(.lpl)');if(!hd)return;const B=document.body;B.classList.add('nt-meas');app.style.minHeight='0';
   const sp=-layOver();if(sp>20){const h=hd.getBoundingClientRect().height,z=Math.floor(Math.min(1.2,1+(sp-8)/h)*100)/100;hd.style.zoom=z;
     if(layOver()>0)hd.style.zoom=z>1.04?+((1+z)/2).toFixed(2):'';if(layOver()>0)hd.style.zoom=''}
   app.style.minHeight='';B.classList.remove('nt-meas')}
@@ -6505,6 +6516,34 @@ if(typeof document!=='undefined'&&document.head)document.head.insertAdjacentHTML
   if(side==='p'&&E&&ui.hop&&!ui.busy&&G&&!G.over){const p=petAt(G.P,r,c);
     if(p&&p.id===E.card.pet){delete E.sdir;delete E.sdir2;ui.hop=0;ui.stepE=null;ui.mover=null;ui.info=null;ui.msg=null;return render()}}
   return t0(side,r,c)}}
+/* ---------- 0.41.11 Anton (answers to the night interface questions) ----------
+   Shop: a purchase needs a second tap «Купить за 💎 N?»; a price you cannot pay says «Не хватает 💎 N» on tap.
+   Battle: a tap on the opponent's element stock says what it is. */
+{const s0=shopSheet;shopSheet=function(){const of=shopToday();let h=s0();
+  of.forEach((o,i)=>{if(o.b)return;const a=`data-act="buy-${i}"`;
+    // an unpayable price stays tappable (a disabled button gets no tap at all), it only looks dim
+    h=h.replace(`${a} disabled>`,`${a} data-short="1">`);
+    if(ui.shConf===i)h=h.replace(new RegExp(`(<button class="pill )on(" ${a}[^>]*>)💎 ${o.cost}<`),`$1on shconf$2Купить за 💎 ${o.cost}?<`)});
+  return h.replace(/· сейчас /g,'·&nbsp;сейчас&nbsp;')}}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-act^="buy-"]');
+  if(!b){if(ui.shConf!=null&&!(e.target.closest&&e.target.closest('.over .box'))){ui.shConf=null}return}
+  const i=+b.dataset.act.slice(4),o=shopToday()[i];if(!o||o.b)return;
+  if(META.stones<o.cost){e.stopPropagation();e.preventDefault();toast('Не хватает 💎 '+(o.cost-META.stones));return render()}
+  if(ui.shConf!==i){e.stopPropagation();e.preventDefault();ui.shConf=i;return render()}
+  ui.shConf=null},true);
+document.addEventListener('click',e=>{if(typeof G==='undefined'||!G||G.phase!=='battle')return;const p=e.target.closest&&e.target.closest('#app>.sb-opp .pool');
+  if(!p)return;toast('Стихии соперника: его запас на этот ход');render()},true);
+if(typeof document!=='undefined'&&document.head)document.head.insertAdjacentHTML('beforeend',`<style>
+.shi .pill[data-short]{opacity:.55}
+.ghost.ghalf{z-index:60!important;opacity:.97!important;background-color:#1E2739!important}
+.shi .pill.shconf{white-space:nowrap;min-width:0;padding-inline:12px;outline:2px solid var(--gold);outline-offset:1px;color:var(--gold)}
+/* a long window keeps its «Закрыть» at the bottom of the screen, not at the end of the scroll */
+.over>.box>.acts:last-child:has([data-act$="-close"],[data-act="lfl-x"]) {position:sticky;bottom:-1px;z-index:2;padding-top:10px;background:linear-gradient(to top,#151D2E 75%,rgba(21,29,46,0));box-shadow:0 30px 0 #151D2E}
+.over>.box>button.btn.main:last-child[data-act$="-close"]{position:sticky;bottom:0;z-index:2}
+/* every window closes with the same stone button (gold stays for «В бой») */
+.over .box .btn.main:is([data-act="fxs-close"],[data-act="lay-close"],[data-act="hint-close"],[data-act="rules-close"],[data-act="lfl-x"]){background:linear-gradient(180deg,#3A465F,#283247)!important;color:#E6ECF8!important;border-color:#4A5878!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 3px 0 #0B111E,0 30px 0 14px #151D2E,0 -10px 16px 4px #151D2E!important;text-shadow:none!important}
+.capl{margin:2px 0 4px;padding:8px 10px;border-radius:10px;background:#1E2537;box-shadow:inset 3px 0 0 var(--gold);font-size:13px;line-height:1.3;color:var(--fg)}
+</style>`);
 // perspective field: the tilted board keeps its flat layout height, so pull it up by the difference to reclaim the freed space
 function fitBoard(){for(const b of document.querySelectorAll('.board')){b.style.marginTop='';const lh=b.offsetHeight,vh=b.getBoundingClientRect().height;b.style.marginTop=(-(lh-vh)+4)+'px'}}
 if(typeof MutationObserver!=='undefined')new MutationObserver(()=>{for(const b of document.querySelectorAll('.board'))if(!b.dataset.fit){b.dataset.fit=1;fitBoard();break}}).observe(document.body,{childList:true,subtree:true});

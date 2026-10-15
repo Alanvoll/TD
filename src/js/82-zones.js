@@ -97,8 +97,8 @@ function zoneHelp(){
   <h3>Дистанция</h3><div class="m">Метка под зоной: жёлтый квадрат это столбец пета, по бокам на сколько столбцов он достаёт. Нет метки: куда угодно.</div>
   <div class="zgrid">${rr}</div>
   <h3>Эффекты</h3><div class="m">Значки эффектов временные, будут перерисованы.</div>
-  <div class="zgrid">${fr}</div></div></div>`}
-function zoneTabs(on){return`<div class="ztabs"><span>${['Эффекты','Значки карт'].map(n=>`<button class="pill ${n===on?'on':''}" data-fxt="${n==='Эффекты'?'e':'z'}">${n}</button>`).join('')}</span><button class="pill sm" data-act="fxs-close">✕</button></div>`}
+  <div class="zgrid">${fr}</div><div class="acts"><button class="btn main" data-act="fxs-close">Закрыть</button></div></div></div>`}
+function zoneTabs(on){return`<div class="ztabs"><span>${['Эффекты','Значки карт'].map(n=>`<button class="pill ${n===on?'on':''}" data-fxt="${n==='Эффекты'?'e':'z'}">${n}</button>`).join('')}</span></div>`}
 const _fxSheet0=fxSheet;
 fxSheet=function(){if(ui.fxTab==='z')return zoneHelp();
   return _fxSheet0().replace(/<div style="display:flex;align-items:center;justify-content:space-between"><h2 style="margin:0">Эффекты<\/h2><button class="pill sm" data-act="fxs-close">✕<\/button><\/div>/,zoneTabs('Эффекты'))};

@@ -72,7 +72,7 @@ if(typeof setApp==='function'){const sa0=setApp;setApp=function(h){
       for(const b of ms[1].querySelectorAll('[data-act^="lfam-"]')){const k=b.dataset.act.slice(5);if(k&&FAM[k])b.textContent=FAM[k].ic+' '+FAM[k].n}
       const lb=ms[2].querySelector('span.m');if(lb)lb.remove();
       ms[0].insertAdjacentHTML('beforebegin',`<div class="lfb"><button class="pill sm ${n?'on':''}" data-act="lfl-open">⚙ Фильтры и сортировка${n?' · '+n:''}</button><button class="pill sm" data-act="lib-shop">🛒 Лавка</button></div>`);
-      if(ui.lflt){const ov=document.createElement('div');ov.className='over';ov.dataset.act='lfl-x';ov.innerHTML='<div class="box lflbox"><div class="boxhd"><h2>Фильтры и сортировка</h2><button class="xb" data-act="lfl-x" aria-label="Закрыть">✕</button></div></div>';
+      if(ui.lflt){const ov=document.createElement('div');ov.className='over';ov.dataset.act='lfl-x';ov.innerHTML='<div class="box lflbox"><div class="boxhd"><h2>Фильтры и сортировка</h2></div></div>';
         const bx=ov.firstChild;[['Показать',ms[0]],['Семейства',ms[1]],['Сортировка',ms[2]]].forEach(([t,m])=>{const h4=document.createElement('h4');h4.textContent=t;m.removeAttribute('style');bx.append(h4,m)});
         bx.insertAdjacentHTML('beforeend','<div class="acts"><button class="btn main" data-act="lfl-x">Готово</button></div>');f.appendChild(ov)}
       else ms.forEach(m=>m.remove());

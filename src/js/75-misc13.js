@@ -15,5 +15,5 @@ function decoHtml(R){if(!R.map.deco){const d=[];for(let i=0;i<14;i++)d.push([Mat
 
 /* 🤖 autoplay: the Мастер plays the player's turns (handy for testing and watching) */
 function autoClick(act){if(act==='autoplay')ui.bIntro=null;if(act==='bspd'){META.spd=spdNow()%3+1;saveMeta();toast('Скорость боя ×'+META.spd+'. Тап по экрану во время хода пропускает анимацию.');render();return true}
-if(act!=='autoplay'||!G||G.phase!=='battle')return false;ui.auto=!ui.auto;META.autoOn=ui.auto;saveMeta();toast(ui.auto?'🤖 Автобой: Мастер играет за тебя. Останется включённым и в следующих боях. Нажми 🤖 ещё раз, чтобы выключить.':'🤖 Автобой выключен.');render();return true}
+if(act!=='autoplay'||!G||G.phase!=='battle')return false;ui.auto=!ui.auto;META.autoOn=false;saveMeta();toast(ui.auto?'🤖 Автобой: Мастер играет за тебя до конца этого боя. Нажми 🤖 ещё раз, чтобы выключить.':'🤖 Автобой выключен.');render();return true}
 
