@@ -393,3 +393,9 @@ body .top .lmenu-b{background:#1A2133;box-shadow:inset 0 0 0 1px #3D4659}
 .sb-opp .pool{gap:3px}
 .sb-opp .pool .chip{padding:0 4px;border-radius:10px;background:radial-gradient(circle at 40% 30%,#2A3246,#141925);box-shadow:inset 0 0 0 1px #3D4659;font-size:12px;line-height:20px}
 .sb-opp .side-name{font-size:11px;letter-spacing:.06em}
+/* artists r4 #5: the line under the field is a quiet moonlit rule, not a glowing gold one; the elements caption is a small label */
+.front::before{height:1px;background:linear-gradient(90deg,transparent,#9DB8FF22,#9DB8FF66,#9DB8FF22,transparent);box-shadow:none}
+.sb-el .side-name{font-size:11px;letter-spacing:.08em;color:#8B96B0}
+/* UI r22 minor: four two-digit stocks of the opponent fit one row at 360 */
+@media (max-width:380px){.sb-opp .pool .chip{padding:0 3px}.sb-opp .pool .chip .ei{width:13px;height:13px;background-size:contain}.sb-opp .pool{gap:2px}}
+@media (max-width:380px){.sb-opp:has(.pool .chip:nth-child(4)) .side-name{display:none}.sb-opp:has(.pool .chip:nth-child(4)) .pool{margin-left:auto}}
