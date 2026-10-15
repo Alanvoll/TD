@@ -447,3 +447,13 @@ body:has(#app>.rmap) #app>.top{position:sticky;top:0;z-index:6;background:linear
 /* UI r29: messages are solid and, on screens with a pinned header, appear just under it instead of over the title */
 .toast{background:#141B2C}
 body:has(#app>.rmap) .toast{top:60px}
+/* night 168: critic r31/r21 — taps to 44px, one gold button in card help, moon picks in the pack list, slot bar fits at 360 */
+#app [data-act="lfl-open"],#app [data-act="lib-shop"],#app [data-act="fopen"],#app [data-act^="cx-"],#app [data-act^="qc-"],#app [data-act^="wc-"],#app [data-act^="ra-"],#app [data-act="r-quit"],#app [data-act="place-smart"],#app [data-act="place-rand"]{min-height:44px}
+.lair-more{min-height:44px}
+.qlook,.rnd{position:relative}.qlook::after,.rnd::after{content:'';position:absolute;inset:-6px}
+.over>.box .acts>.btn.main:is([data-act="m-play"],[data-act="m-dn"]){background:#2C3550!important;color:#FFE6A8!important;box-shadow:inset 0 0 0 2px #C9A04C,0 3px 0 #141B2C!important;text-shadow:none!important;border:0!important}
+.pk .pt.on[data-r],.pk .pt.on{border-color:#9DB8FF!important;box-shadow:inset 0 1px 0 #ffffff26,0 0 0 2px #0A0E18,0 3px 0 #05080F}
+.pk .pt .qt.on{background:#9DB8FF!important;color:#141B2C!important}
+.tside .tels{flex-wrap:wrap;font-size:11px!important;line-height:1.25;row-gap:0}
+.tside .tels .ei{width:13px;height:13px;background-size:contain}
+@media (max-width:380px){.tbar .tm .ts .cri{width:34px;height:34px}.tbar .tm .ts .em{line-height:0}}
