@@ -48,7 +48,7 @@ if(typeof document!=='undefined'&&document.documentElement){const r=document.doc
 if(typeof render==='function'){const rn0=render;render=function(){const r=rn0.apply(this,arguments);
   try{if(typeof G!=='undefined'&&G&&G.phase==='run'&&typeof document!=='undefined'){const c=document.querySelector('.rmap .rnd.can');
     const k=c&&c.style.left+c.style.top+document.querySelectorAll('.rmap .rnd.can').length;
-    if(c&&k!==ui.ntMapK){ui.ntMapK=k;const b=c.getBoundingClientRect();if(b.bottom>innerHeight-8||b.top<0){const m=c.closest('.rmap');if(m&&m.offsetHeight<=innerHeight-16)m.scrollIntoView({block:'start'});else c.scrollIntoView({block:'center'})}}}}catch(e){}
+    if(c&&k!==ui.ntMapK){ui.ntMapK=k;const b=c.getBoundingClientRect();if(b.bottom>innerHeight-8||b.top<0){const m=c.closest('.rmap');const th=(document.querySelector('#app>.top')||{}).offsetHeight||0;if(m&&m.offsetHeight<=innerHeight-16-th){m.scrollIntoView({block:'start'});scrollBy(0,-th-4)}else c.scrollIntoView({block:'center'})}}}}catch(e){}
   return r}}
 
 /* battle: the tip line («Тапни клетку врага…») no longer pushes the buttons off the screen — it floats over the top edge of the hand */
