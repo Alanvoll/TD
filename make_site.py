@@ -19,6 +19,10 @@ page=('<!doctype html>\n<html lang="ru">\n<head>\n<meta charset="utf-8">\n'
 os.makedirs(os.path.join(D,'docs'),exist_ok=True)
 open(os.path.join(D,'docs','index.html'),'w',encoding='utf-8').write(page)
 open(os.path.join(D,'docs','.nojekyll'),'w').close()
+# 0.43: creature pictures live next to the page as cr/<number>.webp
+import shutil
+if os.path.isdir(os.path.join(D,'src','cr')):
+  shutil.rmtree(os.path.join(D,'docs','cr'),ignore_errors=True);shutil.copytree(os.path.join(D,'src','cr'),os.path.join(D,'docs','cr'))
 # icons (apple-touch-icon.png, icon-192.png, icon-512.png) are kept in docs/ as files
 open(os.path.join(D,'docs','manifest.webmanifest'),'w',encoding='utf-8').write(
  '{"name":"Бой стаи","short_name":"Бой стаи","start_url":"./","scope":"./","display":"fullscreen",'

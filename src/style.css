@@ -735,3 +735,6 @@ body.dragging .hsheet,body.dragging .hs-back{opacity:0;pointer-events:none}
 .hand.mini.lfan .zc.hv .zb .zcost{bottom:calc(var(--zrow7,18px) + 6px)}
 .hand.mini.lfan .zc.hv .zcost:empty{display:none}
 body[data-bfit][data-hcl=m] .hand.mini.lfan .zc.hv .zcost .rr{width:11px!important;height:11px!important}body[data-bfit][data-hcl=m] .hand.mini.lfan .zc.hv .z1 .zcost{top:15px}body[data-bfit][data-hcl=m] .hand.mini.lfan .zc.hv .zb .zcost{bottom:18px}body[data-bfit][data-hcl=m] .hand.mini.lfan .zc.hv{--zcw:11px}
+/* 0.43: drawn creatures (images): keep the picture's shape, stand on the bottom edge */
+img.cri,img.cra{object-fit:contain;object-position:50% 100%;-webkit-user-drag:none;user-select:none}
+.lbig img.cra{width:100%;height:100%}
