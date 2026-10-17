@@ -65,7 +65,7 @@ function layOk(){const card=ui.lh&&layCard(ui.lh.uid);if(!card)return;const dn=u
 function layConfHtml(){const lh=ui.lh,card=lh&&layCard(lh.uid);if(!card)return'';const t=lh.dn?dnT(card.t):T[card.t],nm=`${lh.dn?'▼':'▲'} «${T[card.t].n}»`;
   if(lh.why)return`<div class="lconf"><span>${nm}: <span class="lbad">${lh.why}</span></span><button class="pill" data-act="lay-x" aria-label="Отмена">✕</button></div>`;
   if(layAuto(card,lh.dn))return`<div class="lconf"><span>${nm}: подсвечено, на кого сработает.</span><button class="btn main ${lh.dn?'dnb':''}" data-act="lay-ok">${lh.dn?'▼':'▲'} Сыграть</button><button class="pill" data-act="lay-x" aria-label="Отмена">✕</button></div>`;
-  return`<div class="lconf"><span>${nm}: тапни цель на поле${t.area==='ally'?' (своё существо)':''}.</span><button class="pill" data-act="lay-x" aria-label="Отмена">✕</button></div>`}
+  return`<div class="lconf"><span>${nm}: тапни цель на поле${t.area==='ally'?' (своё существо)':OWN.has(t.area)?' (своя клетка)':''}.</span><button class="pill" data-act="lay-x" aria-label="Отмена">✕</button></div>`}
 // light the cells an auto half will hit
 function layPaint(f){const lh=ui.lh,card=lh&&!lh.why&&layCard(lh.uid);if(!card||!layAuto(card,lh.dn))return;
   let list=[];try{list=dragCells({uid:card.uid,dn:lh.dn},null)}catch(e){}

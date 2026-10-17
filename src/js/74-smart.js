@@ -13,7 +13,7 @@ function smartApply(S,O,w){const byU=new Map([...O.hand,...O.deck].map(c=>[c.uid
 function smartPetW(p){if(p.tok)return .3;const d=(p.cards||[]).reduce((a,k)=>{const t=T[k];if(!t)return a;return a+(t.dmg||0)*(t.area==='enemies'||t.area==='row'?2:1)+(t.trap?t.trap.dmg:0)+(t.heal||0)*.7+(t.shield||0)*.5+(t.stun||t.freeze?3*K:0)},0);return 1+Math.min(1.2,d/(12*K))*.5}
 function smartSide(S,O){let v=0;
   for(const p of S.pets){if(!p.alive)continue;const w=smartPetW(p);if(p.tok){v+=p.hp*.3;continue}
-    const hp=p.ghost?0:p.hp;v+=(hp+Math.min(p.shield,SHIELD_CAP)*SW.sh)*(p.ghost?0:1)+(p.ghost?(p.down?3:1)*K:SW.alive*K*(1+(w-1)*SW.thr));
+    const hp=p.ghost?0:p.hp;v+=(hp+Math.min(p.shield,shCap(p))*SW.sh)*(p.ghost?0:1)+(p.ghost?(p.down?3:1)*K:SW.alive*K*(1+(w-1)*SW.thr));
     if(p.st)v-=(p.st.stun||0)*1.5*K+(p.st.burn||0)*.9*K+(p.st.slow?.4*K:0)+(p.st.root?.3*K:0)+(p.st.mark?.7*K:0)-(p.st.evade?.6*K:0)-(p.st.immune?.4*K:0);if(p.frozen)v-=1.5*K;
     if(p.r===0&&!p.ghost)v-=SW.front*K}
   // resources: elements we can actually spend, and cards in hand we can pay for

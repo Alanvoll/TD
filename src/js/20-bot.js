@@ -5,6 +5,7 @@ function botOptions(S,O,card){
   if(t.area==='enemies'||t.area==='self'||t.area==='allies'||t.area==='summon')return[{}];
   if(OFF.has(t.area)){const l=[];for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)l.push({cell:[r,c]});return l}
   if(t.area==='ally')return alive(S).map(p=>({petT:p.id}));
+  if(OWN.has(t.area)){const l=[];for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)l.push({cell:[r,c]});return l}
   if(STEP.has(t.area)){const l=[];for(const p of alive(S))if(!noMove(p))for(const d of dirsFor(p,card))if(inb(p.r+d[0],p.c+d[1]))l.push({petT:p.id,dir:d});return l}
   return[];
 }
@@ -32,9 +33,10 @@ function botScore(S,O,card,opt){
     if(t.chain&&hits)s+=t.chain/K*.8;
     if(!hits)s-=1.5;
   }
-  if(t.heal){const l=t.area==='ally'?[pet(S,opt.petT)]:t.area==='self'?[caster]:alive(S);for(const p of l)s+=Math.min(t.heal,p.ghost?0:p.max-p.hp)/K*.8}
-  if(t.cleanse||t.immune)s+=allyFxVal(t,t.area==='ally'?[pet(S,opt.petT)]:t.area==='self'?[caster]:alive(S));
-  if(t.shield){if(t.area==='self')s+=caster.hp<caster.max*.7?2:.5;else s+=alive(S).length*.5}
+  const own=OWN.has(t.area)?ownTargets(S,t,opt,caster):null;if(own&&!own.length&&(t.heal||t.shield||t.cleanse||t.immune))return s-1.5;
+  if(t.heal){const l=own||(t.area==='ally'?[pet(S,opt.petT)]:t.area==='self'?[caster]:alive(S));for(const p of l)s+=Math.min(t.heal,p.ghost?0:p.max-p.hp)/K*.8}
+  if(t.cleanse||t.immune)s+=allyFxVal(t,own||(t.area==='ally'?[pet(S,opt.petT)]:t.area==='self'?[caster]:alive(S)));
+  if(t.shield){if(t.area==='self')s+=caster.hp<caster.max*.7?2:.5;else s+=(own||alive(S)).length*.5}
   if(t.draw)s+=1.2;
   if(t.area==='summon')s+=alive(S).filter(p=>p.tok).length<2?(t.sum?2.2:3.5):-5;
   if(t.evade){const l=t.area==='self'?[caster]:alive(S);for(const p of l)if(!sv(p,'evade'))s+=p.hp<p.max*.7?1.3:.5}
@@ -92,9 +94,10 @@ function hardScore(S,O,card,opt,ctx){
     if(s<.3)return -2;
     return s;
   }
-  if(t.cleanse||t.immune)s+=allyFxVal(t,t.area==='ally'?[pet(S,opt.petT)]:t.area==='self'?[caster]:alive(S))*1.1;
-  if(t.heal){const l=t.area==='ally'?[pet(S,opt.petT)]:t.area==='self'?[caster]:alive(S);for(const p of l){const miss=p.ghost?0:p.max-p.hp;s+=Math.min(t.heal,miss)/K*(p.hp<p.max*.5?1.3:.7)}}
-  if(t.shield){const l=t.area==='self'?[caster]:alive(S);for(const p of l){const exp=Math.max(0,1.5+dangerAt(S,O,p.r,p.c))*1.2*K;s+=Math.min(t.shield,Math.max(0,exp-p.shield),SHIELD_CAP-p.shield)/K*.8}}
+  const own=OWN.has(t.area)?ownTargets(S,t,opt,caster):null;if(own&&!own.length&&(t.heal||t.shield||t.cleanse||t.immune))return -2;
+  if(t.cleanse||t.immune)s+=allyFxVal(t,own||(t.area==='ally'?[pet(S,opt.petT)]:t.area==='self'?[caster]:alive(S)))*1.1;
+  if(t.heal){const l=own||(t.area==='ally'?[pet(S,opt.petT)]:t.area==='self'?[caster]:alive(S));for(const p of l){const miss=p.ghost?0:p.max-p.hp;s+=Math.min(t.heal,miss)/K*(p.hp<p.max*.5?1.3:.7)}}
+  if(t.shield){const l=own||(t.area==='self'?[caster]:alive(S));for(const p of l){const exp=Math.max(0,1.5+dangerAt(S,O,p.r,p.c))*1.2*K;s+=Math.min(t.shield,Math.max(0,exp-p.shield),shCap(p)-p.shield)/K*.8}}
   if(t.draw)s+=1;
   if(t.area==='summon')s+=alive(S).filter(p=>p.tok).length<2?(t.sum?2.2:3.5):-5;
   if(t.evade){const l=t.area==='self'?[caster]:alive(S);for(const p of l)if(!sv(p,'evade'))s+=Math.max(0,.6+dangerAt(S,O,p.r,p.c)*.4)}

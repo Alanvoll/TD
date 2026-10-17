@@ -25,6 +25,7 @@ function dragCells(d,cell){
   else if(t.area==='allies')alive(S).forEach(p=>out.push(['p',p.r,p.c]));
   else if(!cell)return out;
   else if(OFF.has(t.area)){if(cell.s==='b')offCells(t.area,[cell.r,cell.c],caster,G.B).forEach(([r,c])=>out.push(['b',r,c]))}
+  else if(OWN.has(t.area)){if(cell.s==='p')offCells(t.area,[cell.r,cell.c]).forEach(([r,c])=>out.push(['p',r,c]))}
   else if(t.area==='ally'){if(cell.s==='p'&&petAt(S,cell.r,cell.c))out.push(['p',cell.r,cell.c])}
   else if(STEP.has(t.area)){const q=cell.s==='p'?petAt(S,cell.r,cell.c):null;if(q&&!noMove(q))out.push(['p',cell.r,cell.c])}
   return out;
@@ -133,6 +134,7 @@ function endDrag(e){
   const t=T[card.t];
   if(AUTO.has(t.area)){if(board)planPush(S,card,{},d.dn);return done()}
   if(OFF.has(t.area)){if(cell&&cell.s==='b')planPush(S,card,{cell:[cell.r,cell.c]},d.dn);return done()}
+  if(OWN.has(t.area)){if(cell&&cell.s==='p')planPush(S,card,{cell:[cell.r,cell.c]},d.dn);return done()}
   if(t.area==='ally'){const p=cell&&cell.s==='p'?petAt(S,cell.r,cell.c):null;if(p)planPush(S,card,{petT:p.id},d.dn);return done()}
   if(STEP.has(t.area)){const q=cell&&cell.s==='p'?petAt(S,cell.r,cell.c):null;if(q&&!noMove(q)){ui.sel=card.uid;ui.selDn=d.dn?card.uid:null;ui.mover=q.id;ui.msg='Теперь перетащи '+q.n+' на подсвеченную клетку или тапни её.';return render()}return done()}
   done();

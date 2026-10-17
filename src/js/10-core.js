@@ -17,10 +17,12 @@ const sm=(c,v)=>v?Math.max(1,Math.round(v*silaOf(c)/SILA0)):0;
 const ELS=['f','w','e','a','l','d','n','z'];const z0=()=>Object.fromEntries(ELS.map(k=>[k,0]));
 const ELN={f:'Огонь',w:'Вода',e:'Земля',a:'Воздух',l:'Свет',d:'Тьма',n:'Порядок',z:'Хаос',r:'Самая бедная стихия'};
 const OFF=new Set(['cell','hline','row','col','cross','sq2','melee','enemies']);
-const DEF=new Set(['self','ally','allies']);
+// 0.44 Anton (2026-10-17): shield and heal cards aim at own cells with the same shapes as attacks (o_ = own field)
+const OWN=new Set(['o_cell','o_hline','o_row','o_col','o_cross','o_sq2']);
+const DEF=new Set(['self','ally','allies',...OWN]);
 const STEP=new Set(['step']);
 const AUTO=new Set(['enemies','self','allies']);
-const AREA={row:'весь ряд',cell:'одна клетка',hline:'линия из 3 клеток',col:'весь столбец',cross:'крест',sq2:'квадрат 2×2',melee:'ближайший враг в выбранном столбце',enemies:'все враги',self:'на себя',ally:'свой пет',allies:'все свои',step:'по схеме карты'};
+const AREA={row:'весь ряд',cell:'одна клетка',hline:'линия из 3 клеток',col:'весь столбец',cross:'крест',sq2:'квадрат 2×2',melee:'ближайший враг в выбранном столбце',enemies:'все враги',self:'на себя',ally:'свой пет',allies:'все свои',step:'по схеме карты',o_cell:'своя клетка',o_hline:'3 свои клетки в ряд',o_row:'свой ряд',o_col:'свой столбец',o_cross:'крест на своём поле',o_sq2:'квадрат 2×2 на своём поле'};
 const T={
   // enemy cards: factions (h_), the golem boss (b_) and a few older ones they still use. Pet cards are built from CT below.
   acid:{n:"Кислота",cost:{e:1,any:1},spd:2,area:"cross",dmg:4,strip:1,burn:1,sub:{draw:1,short:"рука +1",txt:"Лимит руки +1 на следующий ход."},el:"e",dg:"w"},
@@ -145,7 +147,13 @@ const TOUGH=2;const ccOn=p=>p.frozen>0||sv(p,'stun')>0;const ccBlock=p=>p.tough>
 function canSt(p,k){if(!p||!p.alive||p.ghost)return false;if(k==='stun'&&ccBlock(p))return false;if(NEG.includes(k)){if(sv(p,'immune')>0)return false;if(p.sz&&(k==='stun'||k==='root'))return false;}return true}
 function applySt(p,k,n){if(!canSt(p,k))return false;p.st=p.st||{};p.st[k]=Math.max(sv(p,k),n);if(k==='burn'&&typeof BST_A!=='undefined'&&BST_A)p.burnBy=BST_A;return true}
 function cleanse(p){let n=0;if(p.st)for(const k of NEG)if(p.st[k]){if(k==='stun')p.tough=TOUGH;delete p.st[k];n++}if(p.frozen){p.frozen=0;p.tough=TOUGH;n++}return n}
-const addShield=(p,v,by,S)=>{const o=p.shield;p.shield=Math.min(SHIELD_CAP,p.shield+v);if(by&&typeof shSrcAdd==='function')shSrcAdd(S,p,by,p.shield-o)};
+// 0.43.1 (Anton 2026-10-17): the shield cap grows with the creature's Сила, like card numbers do
+// pets an own-side card reaches: one pet, the caster, the pets in its own-field shape, or all
+function ownTargets(S,t,x,caster){if(t.area==='ally')return[pet(S,x.petT)].filter(p=>p&&p.alive);if(t.area==='self')return caster?[caster]:[];
+  if(OWN.has(t.area)){let cell=x.cell;if(!cell&&x.petT){const q=pet(S,x.petT);if(q)cell=[q.r,q.c]}if(!cell)return[];const seen=new Set(),l=[];for(const[r,c]of offCells(t.area,cell)){const p=petAt(S,r,c);if(p&&p.alive&&!seen.has(p)){seen.add(p);l.push(p)}}return l}
+  return alive(S)}
+const shCap=p=>Math.round(SHIELD_CAP*silaOf(p)/SILA0);
+const addShield=(p,v,by,S)=>{const o=p.shield;p.shield=Math.min(shCap(p),p.shield+v);if(by&&typeof shSrcAdd==='function')shSrcAdd(S,p,by,p.shield-o)};
 let G,ui={sel:null,mover:null,hover:null,busy:false,flash:null,fx:{},rules:false};
 
 function mkSide(bot,team,pos){
@@ -296,6 +304,7 @@ function projPos(S,id){
 function dirsFor(p){if(typeof ui!=='undefined'&&ui.stepE&&ui.stepE.card&&ui.stepE.card.pet===p.id){const h=halfStp(ui.stepE);if(h)return MV[h.m].d}return MV[p.mv].d}
 function curStep(){const P=G.P,u=(drag&&drag.stepUid)||ui.sel;const c=u&&P.hand.find(k=>k.uid===u);return c&&STEP.has(T[c.t].area)?c:null}
 function offCells(area,cell,caster,O){
+  if(area&&area[1]==='_'&&area[0]==='o')area=area.slice(2);
   const out=(l)=>l.filter(([r,c])=>inb(r,c));
   if(area==='melee'){const col=cell?cell[1]:caster?caster.c:null;if(col==null||!O)return[];for(let r=0;r<ROWS;r++)if(petAt(O,r,col))return[[r,col]];return[]}
   if(area==='enemies')return alive(O).map(p=>[p.r,p.c]);

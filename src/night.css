@@ -375,6 +375,7 @@ body[data-bfit] .board .grid.field.enemyg{padding-top:30px}
 /* card help target field: stone cells, a calm red target */
 .mgrid i{background:#1E2537;box-shadow:inset 0 0 0 1px #2F3850}
 .mgrid i.b{background:#D94545;box-shadow:none}
+.mgrid i.g{background:var(--ally);box-shadow:none}
 .mgrid i.bf{background:#6E3340;box-shadow:none}
 /* main screen: round buttons without the gold ring */
 .lby-rbi{box-shadow:inset 0 1px 0 #ffffff26,inset 0 -3px 6px #0008,0 0 0 1.5px #3D4659,0 4px 0 1px #070A12,0 8px 14px #000a}
@@ -472,3 +473,9 @@ body:has(#app>.rmap) .toast{top:60px}
 .lair.rush .btn.main[data-act="rush-go"]{display:flex;width:100%;box-sizing:border-box;justify-content:center;align-items:center;min-height:50px}
 .over .box .modes>.btn[data-act="rules"],.over .box .modes>.btn[data-act="to-menu"]{white-space:nowrap;padding-left:8px;padding-right:8px;font-size:14px}
 @media (max-width:380px){.over .box .modes>.btn[data-act="rules"],.over .box .modes>.btn[data-act="to-menu"]{font-size:13px}}
+
+/* 0.44 own-field shapes for shield and heal cards: green, drawn over the creature */
+.board .grid.field .cell.prevo{background:color-mix(in srgb,var(--ally) 34%,#26304A)!important}
+.board .grid.field .cell.prevo::after,.board .grid.field .cell.plo::after{content:'';position:absolute;inset:2px;border-radius:7px;pointer-events:none;z-index:4}
+.board .grid.field .cell.prevo::after{border:3px solid var(--ally)}
+.board .grid.field .cell.plo::after{border:3px dashed var(--ally)}

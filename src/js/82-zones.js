@@ -7,6 +7,7 @@
 const ZR=(x,y,w,h,r,c,o)=>`<rect class="${c}" x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}"${o?` opacity="${o}"`:''}/>`;
 const ZSIDE=a=>a==='self'?'zs':DEF.has(a)||a==='summon'||a==='step'?'zo':'ze';
 function zoneBody(a,c){
+  if(a&&a[1]==='_'&&a[0]==='o')a=a.slice(2);
   switch(a){
     case'cell':case'ally':case'trapc':return ZR(8,8,12,12,2.5,c);
     case'hline':return[1,10,19].map(x=>ZR(x,9,8,10,2,c)).join('');

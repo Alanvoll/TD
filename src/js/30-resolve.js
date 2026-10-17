@@ -151,8 +151,8 @@ async function execMain(x){
     });
     L(S,`«${t.n}» (${caster.n}).`);return;
   }
-  if(t.area==='ally'||t.area==='allies'){
-    const l=t.area==='ally'?[pet(S,x.petT)].filter(p=>p.alive):alive(S);
+  if(t.area==='ally'||t.area==='allies'||OWN.has(t.area)){
+    const l=ownTargets(S,t,x,caster);
     await fxStep(S,l.map(p=>[p.r,p.c]),'good',()=>{for(const p of l){
       if(t.heal){const h=Math.min(healAmt(hlv(caster,t.heal)+(G.run?talH(S):0)),p.max-p.hp);p.hp+=h;bstHeal(S,p,h,0,caster);setFx(S,p,'+'+h,'good')}
       if(t.shield){const v=sm(caster,t.shield)+(G.run?talSh(S):0);addShield(p,v,caster,S);setFx(S,p,'щит '+v,'info')}
@@ -160,7 +160,7 @@ async function execMain(x){
       if(t.immune){applySt(p,'immune',t.immune);if(!t.heal&&!t.shield)setFx(S,p,'✨','info')}
       if(t.evade){applySt(p,'evade',t.evade);if(!t.heal&&!t.shield)setFx(S,p,'💨','info')}
     }});
-    L(S,`«${t.n}»${t.area==='ally'&&l[0]?' на '+l[0].n:''}.`);return;
+    L(S,`«${t.n}»${(t.area==='ally'||OWN.has(t.area))&&l.length?' на '+l.map(p=>p.n).join(', '):OWN.has(t.area)?': в клетках никого нет':''}.`);return;
   }
   if(t.area==='summon'){
     const free=[];for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(!petAt(S,r,c))free.push([r,c]);

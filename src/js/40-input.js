@@ -17,8 +17,9 @@ function bigArea(t){
   if(t.area==='melee'){on=new Set(['0-'+ac]);for(let r=1;r<ROWS;r++)on.add('f'+r+'-'+ac)}
   else on=new Set(offCells(t.area,[ar,ac],null,null).map(([r,c])=>r+'-'+c));
   let h=`<div class="mgrid" style="grid-template-columns:repeat(${COLS},1fr)">`;
-  for(let r=ROWS-1;r>=0;r--)for(let c=0;c<COLS;c++)h+=`<i class="${on.has(r+'-'+c)?'b':on.has('f'+r+'-'+c)?'bf':''}"></i>`;
-  return h+`</div><div class="m" style="font-size:11px">Поле соперника, фронт внизу.${t.area==='melee'?' Выбираешь любой столбец: удар летит по нему от фронта и бьёт первого, кто встретится.':' Пример: карта брошена в центр.'}</div>`;
+  const own=OWN.has(t.area);
+  for(let i=0;i<ROWS;i++){const r=own?i:ROWS-1-i;for(let c=0;c<COLS;c++)h+=`<i class="${on.has(r+'-'+c)?(OWN.has(t.area)?'g':'b'):on.has('f'+r+'-'+c)?'bf':''}"></i>`}
+  return h+`</div><div class="m" style="font-size:11px">${own?'Твоё поле, фронт вверху.':'Поле соперника, фронт внизу.'}${t.area==='melee'?' Выбираешь любой столбец: удар летит по нему от фронта и бьёт первого, кто встретится.':' Пример: карта брошена в центр.'}</div>`;
 }
 function cardModal(){
   const S=G.P,card=S.hand.find(c=>c.uid===ui.card);if(!card){ui.card=null;return''}
@@ -45,6 +46,10 @@ function tapCell(side,r,c){
   const t=card?selT(card):null,dn=isDnSel();
   if(card&&OFF.has(t.area)){
     if(side!=='b')return;
+    planPush(S,card,{cell:[r,c]},dn);ui.sel=null;ui.selDn=null;ui.msg=null;render();return;
+  }
+  if(card&&OWN.has(t.area)){
+    if(side!=='p')return;
     planPush(S,card,{cell:[r,c]},dn);ui.sel=null;ui.selDn=null;ui.msg=null;render();return;
   }
   if(card&&t.area==='ally'){

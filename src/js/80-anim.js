@@ -123,7 +123,7 @@ function renderScreen(){syncRar();
   <li><b>Класс</b> даёт пету своё правило: ${Object.values(CLS).map(c=>c.ic+' '+c.n+': '+AURA[c.au]).join('; ')}.</li>
   <li><b>Сила.</b> У каждого существа есть ⚔ Сила, обычно около 20. Карта бьёт, лечит и даёт щит в процентах от Силы своего существа, на карте сразу написано итоговое число. Сила растёт с уровнем.</li>
   <li><b>Строй.</b> Пет, у которого 2 или больше соседей по сторонам, получает на ${K} урона меньше от широких ударов (линия, ряд, столбец, крест, квадрат, все враги).</li>
-  <li><b>Щит</b> держится, пока его не собьют, и не бывает больше ${SHIELD_CAP}. Быстрый щит защищает уже в этом ходу, медленный пригодится в следующем.</li>
+  <li><b>Щит</b> держится, пока его не собьют, и не бывает больше ${SHIELD_CAP} при Силе 20. Этот потолок растёт вместе с Силой существа, как и числа его карт. Быстрый щит защищает уже в этом ходу, медленный пригодится в следующем.</li>
   <li><b>Ловушки</b> ставятся в клетку соперника в момент своей инициативы и живут 2 хода. Ловушка срабатывает, когда в её клетке оказывается враг.</li>
   <li><b>Эффекты</b> описаны в шпаргалке 💫. Вампиризм лечит на нанесённый урон. ⚡ Цепь: хаос перескакивает на другого врага.</li>
   <li><b>Победа</b>, когда у соперника не осталось петов.</li></ul>
@@ -168,7 +168,7 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(act==='m-close'){if(e.target===a||a.tagName==='BUTTON'){ui.card=null;render()}}
   else if(act==='m-play'){const S=G.P,card=S.hand.find(c=>c.uid===ui.card);ui.card=null;if(card&&!whyNot(S,card)){const t=T[card.t];ui.mover=null;ui.peek=null;ui.handOpen=false;
     if(AUTO.has(t.area)){S.plan.push({kind:'card',card,paid:payCard(S,card)});ui.sel=null;ui.msg=null}
-    else{ui.sel=card.uid;ui.msg=STEP.has(t.area)?'Тапни существо, которое пойдёт, потом подсвеченную клетку.':t.area==='ally'?'Тапни своё существо, на которое сыграть карту.':'Тапни клетку врага, куда сыграть карту.'}}render()}
+    else{ui.sel=card.uid;ui.msg=STEP.has(t.area)?'Тапни существо, которое пойдёт, потом подсвеченную клетку.':t.area==='ally'?'Тапни своё существо, на которое сыграть карту.':OWN.has(t.area)?'Тапни свою клетку, куда сыграть карту.':'Тапни клетку врага, куда сыграть карту.'}}render()}
   else if(act==='m-burn'){const card=G.P.hand.find(c=>c.uid===ui.card);ui.card=null;if(card)doBurn(card)}
   else if(act==='m-unplan'){const card=G.P.hand.find(c=>c.uid===ui.card);ui.card=null;if(card)unplan(card);render()}
   else if(act==='rules-close'){if(e.target===a||a.tagName==='BUTTON'){ui.rules=false;render()}}
@@ -182,8 +182,8 @@ document.getElementById('app').addEventListener('pointerover',e=>{
   if(e.pointerType!=='mouse')return;
   const a=e.target.closest('[data-cell]');if(!a||!ui.sel)return;
   const[s,r,c]=a.dataset.cell.split(',');
-  const nh=s==='b'?[+r,+c]:null;
-  if(String(nh)!==String(ui.hover)){ui.hover=nh;render()}
+  const nh=s==='b'?[+r,+c]:null,np=s==='p'?[+r,+c]:null;
+  if(String(nh)!==String(ui.hover)||String(np)!==String(ui.hoverP)){ui.hover=nh;ui.hoverP=np;render()}
 });
 
 function burnRestBtn(S){if(HV())return''; // 0.34: the «▼ Все вниз» button is gone, unplayed cards are discarded by themselves (puzzles keep it)

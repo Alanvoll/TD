@@ -15,6 +15,7 @@ function planMarks(){
     const t=e.kind==='burn'?dnT(e.card.t):T[e.card.t],caster=e.card.pet?pet(S,e.card.pet):null;
     if(OFF.has(t.area)){const l=offCells(t.area,e.cell,caster,G.B);for(const[r,c]of l){const k=anc(r,c);(m.b[k]=m.b[k]||[]).push(n)}
       if(t.area==='melee')for(const k of behindKeys(l[0]))(m.b[k]=m.b[k]||[]).push('?'+n)}
+    else if(OWN.has(t.area)&&e.cell){for(const[r,c]of offCells(t.area,e.cell)){const q=petAt(S,r,c),k=q?q.r+'-'+q.c:r+'-'+c;(m.p[k]=m.p[k]||[]).push(n)}}
     else{const l=t.area==='ally'?[pet(S,e.petT)]:t.area==='self'?[caster]:alive(S);for(const p of l)(m.p[p.r+'-'+p.c]=m.p[p.r+'-'+p.c]||[]).push(n)}
   });
   return m;
@@ -29,6 +30,9 @@ function gridHtml(S,side){
   const marks=planMarks()[side],ghosts=side==='p'?ghostMarks():{};
   let prev=new Set(),valid=false,dests=new Set();
   let prev2=new Set();
+  const prevO=new Set(),planO=new Set();
+  if(side==='p')for(const e of S.plan)if(e.card&&e.kind!=='burn'&&e.cell&&OWN.has(T[e.card.t].area))for(const[r,c]of offCells(T[e.card.t].area,e.cell)){const q=petAt(S,r,c);planO.add(q?q.r+'-'+q.c:r+'-'+c)}
+  if(t&&OWN.has(t.area)&&side==='p'){valid=true;if(ui.hoverP){for(const[r,c]of offCells(t.area,ui.hoverP)){const q=petAt(S,r,c);prevO.add(q?q.r+'-'+q.c:r+'-'+c)}}}
   if(t&&OFF.has(t.area)&&side==='b'){valid=true;if(ui.hover){const l=offCells(t.area,ui.hover,null,G.B);for(const[r,c]of l)prev.add(anc(r,c));if(t.area==='melee')for(const k of behindKeys(l[0]))prev2.add(k)}}
   const moveKind=t&&STEP.has(t.area)?t.area:null;
   let silIc=ui.mover?petIc(pet(P,ui.mover),1):null;
@@ -42,6 +46,7 @@ function gridHtml(S,side){
     if(p&&p.sz){if(drawn.has(p))continue;drawn.add(p);cls.push('big');span=` style="grid-row:span ${p.sz};grid-column:span ${p.sz}" data-span="${p.r},${p.c}"`}
     if(valid)cls.push('valid');
     if(prev.has(k))cls.push('prev');else if(prev2.has(k))cls.push('prev2');
+    if(prevO.has(k))cls.push('prevo');else if(planO.has(k))cls.push('plo');
     if(marks[k])cls.push(marks[k].some(n=>String(n)[0]!=='?')?'planned':'planned2');
     if(dests.has(k))cls.push('dest');
     if(ui.flash&&ui.flash.side===side&&ui.flash.keys.has(k))cls.push('fl-'+ui.flash.cls);
@@ -69,6 +74,7 @@ function gridHtml(S,side){
 function moveIcon(mv){const D=MV[mv]?MV[mv].d:[];let h='<span class="shape m5">';for(let r=-2;r<=2;r++)for(let c=-2;c<=2;c++)h+=`<i class="${!r&&!c?'o':D.some(d=>d[0]===r&&d[1]===c)?'g':''}"></i>`;return h+'</span>'}
 function shapeIcon(area){return zoneSvg(area,18)}
 const ART={cell:'в клетку',hline:'по линии из 3 клеток',row:'по всему ряду',col:'по всему столбцу',cross:'крестом',sq2:'по квадрату 2×2',melee:'ближайшему врагу в выбранном столбце',enemies:'всем врагам'};
+const ARO={o_cell:'Своему существу в клетке',o_hline:'Своим на линии из 3 клеток',o_row:'Своим в ряду',o_col:'Своим в столбце',o_cross:'Своим в кресте',o_sq2:'Своим в квадрате 2×2'};
 const ARW={cell:'Враг в клетке',hline:'Враги на линии из 3 клеток',row:'Враги в ряду',col:'Враги в столбце',cross:'Враги в кресте',sq2:'Враги в квадрате 2×2',melee:'Ближайший враг в столбце',enemies:'Все враги'};
 const numH=(v,b)=>v===b?String(v):`<b class="${v>b?'nup':'ndn'}">${v}</b>`;
 const shownDmg=(t,c,card)=>sm(c,(t.dmg||0)+(card&&card.ch||0));
@@ -85,7 +91,7 @@ function cardTxt(t,c,card){
     if(t.chain)s+=` Хаос перескакивает на другого врага: ещё ${numH(sm(c,t.chain),t.chain)}.`;
   }else{
     const l=[];if(t.shield)l.push('щит '+numH(sm(c,t.shield),t.shield));if(t.heal)l.push('+'+numH(hlv(c,t.heal),t.heal)+' здоровья');if(t.cleanse)l.push('снимает плохие эффекты');if(t.immune)l.push('иммунитет к плохим эффектам на '+hz(t.immune));if(t.evade)l.push('уклонение на '+hz(t.evade)+': первый удар по нему мимо');if(t.draw)l.push('лимит руки +'+t.draw+(t.dur>1?' на '+hz(t.dur):''));
-    s=(t.area==='self'?'Себе: ':t.area==='ally'?'Своему пету: ':'Всем своим: ')+l.join(', ')+'.';
+    s=(t.area==='self'?'Себе: ':t.area==='ally'?'Своему пету: ':OWN.has(t.area)?ARO[t.area]+': ':'Всем своим: ')+l.join(', ')+'.';
   }
   if(t.grow)s+=` Пока карта лежит в руке, каждый ход +${t.grow} урона (до +${4*K}).`;
   if(t.hpcost)s+=` Стоит ещё ${t.hpcost} здоровья.`;
