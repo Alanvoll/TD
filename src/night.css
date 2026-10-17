@@ -270,10 +270,7 @@ body[data-bfit] .board .grid.field.enemyg{position:relative}
 .qst>span>.m{font-weight:500;color:var(--mut)}
 /* run setup: the pinned button fades the list into it */
 .acts.stk::before{content:'';position:absolute;left:0;right:0;top:-24px;height:24px;background:linear-gradient(transparent,rgba(7,11,22,.85));pointer-events:none}
-/* round 3 (UI critic): the creature in the row in front covered the HP numbers of the one behind it.
-   HP now sits above the head: the row in front only reaches the feet of the row behind, so the numbers stay clear */
-.board .grid.field .cell .pet .hp{order:-2}
-.board .grid.field .cell .pet .hpn{order:-1}
+/* 0.44.1 Anton: health sits UNDER each creature (own and enemy), not high above the head where it looked like another creature's */
 .board .grid.field .cell .pet .av{margin-top:1px}
 /* round 4: on small phones the HP number was wider than the creature column and lost its first digit */
 .board .grid.field .cell .pet{min-width:max-content}

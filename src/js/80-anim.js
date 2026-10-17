@@ -17,7 +17,7 @@ const FID=[
   [{transform:'scaleX(1)'},{transform:'scaleX(-1)',offset:.5},{transform:'scaleX(1)'}],
   [{transform:'scale(1)'},{transform:'scale(.8,1.2)',offset:.3},{transform:'scale(1.15,.85)',offset:.6},{transform:'none'}],
   [{transform:'translateX(0)'},{transform:'translateX(-3px)',offset:.2},{transform:'translateX(3px)',offset:.4},{transform:'translateX(-2px)',offset:.6},{transform:'none'}]];
-setInterval(()=>{if(document.hidden)return;const ems=[...document.querySelectorAll('.cell .av:not(.frz):not(.stn) .em, .pk .em')];if(!ems.length)return;const e=ems[Math.floor(Math.random()*ems.length)];if(e.animate)e.animate(FID[Math.floor(Math.random()*FID.length)],{duration:700,easing:'ease-in-out',composite:'add'})},1300);
+setInterval(()=>{if(document.hidden)return;const ems=[...document.querySelectorAll('.cell .av:not(.frz):not(.stn) .em, .pk .em')];if(!ems.length)return;const e=ems[Math.floor(Math.random()*ems.length)];if(e.animate)e.animate(FID[Math.floor(Math.random()*FID.length)],{duration:700,easing:'ease-in-out',composite:e.classList.contains('art')?'replace':'add'})},1300);
 
 function qChip(x,st){
   const S=x.S,side=S===G.P?'me':'op',t=x.card?T[x.card.t]:null,pp=id=>id!=null?pet(S,id):null;
