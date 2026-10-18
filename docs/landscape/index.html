@@ -7098,14 +7098,14 @@ body.ls #app>.sb-piles{flex-direction:column;align-items:stretch;gap:4px}
 body.ls #app>.sb-piles .piles{display:flex;flex-wrap:wrap;gap:4px}
 body.ls #app>.sb-piles .pill{min-height:34px;padding:4px 10px}
 body.ls #app>.bact .pill{flex:0 0 auto;min-height:38px}
-body.ls[data-bfit] #app>.sb-opp{display:block;text-align:right;padding:0;margin:0;min-height:0}body.ls #app>.sb-opp .pool{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px;width:100%;margin-top:4px}
+body.ls[data-bfit] #app>.sb-opp{display:block;text-align:right;padding:0;margin:0;min-height:0}body.ls #app>.sb-opp .pool{display:flex;flex-wrap:nowrap;justify-content:flex-end;gap:2px;width:100%;margin-top:4px}
 body.ls #app>.front .qhint{display:none}body.ls #app>.front,body.ls #app>.front .qs{height:auto;flex-wrap:wrap;justify-content:flex-start;gap:4px}body.ls #app>.front::before{display:none}
 body.ls #app>.hand.mini{zoom:var(--lsZ,.6)!important;padding-top:8px!important;margin-top:0!important}
 /* sideways the hand lies flat (no fan tilt), so the cards stand straight and fully on screen */
 body.ls #app>.hand.mini.lfan>.card{--r:0deg!important;--y:0px!important}body.ls #app>.hand.mini.lfan>.card.lup{--y:-10px!important}
 body.ls #app>.bact .pill,body.ls #app>.sb-piles .pill,body.ls #app>.acts .btn{min-height:44px!important}
-body.ls #app>.front>*{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-body.ls .over .box{max-height:calc(100dvh - 16px);overflow-y:auto}
+body.ls #app>.front>*,body.ls #app>.front .qs>*{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+body.ls .over .box{box-sizing:border-box;max-height:calc(100dvh - 16px);overflow-y:auto}
 /* other screens stay as in the portrait game: the main menu keeps its tall layout and scrolls */
 body.ls .lby{overflow-y:auto;overflow-x:hidden}
 body.ls .lby-in{height:auto;min-height:max(100%,760px)}
@@ -7124,7 +7124,7 @@ body.ls .ls-turn b{font-size:44px;line-height:1}}
 }
 function lzFit(){const B=document.body;B.dataset.bfit=1;delete B.dataset.tight;B.style.removeProperty('--bw');
   const W=innerWidth,H=innerHeight,sm=H<380;
-  B.style.setProperty('--lsL',(sm?128:Math.min(170,Math.round(W*.17)))+'px');B.style.setProperty('--lsR',(sm?118:Math.min(160,Math.round(W*.16)))+'px');
+  B.style.setProperty('--lsL',(sm?128:Math.min(170,Math.round(W*.17)))+'px');B.style.setProperty('--lsR',(sm?134:Math.min(160,Math.round(W*.16)))+'px');
   B.style.setProperty('--lsH',Math.round(H*.38)+'px');
   B.dataset.hcl=sm?'':'m';B.style.removeProperty('--hz');
   // the hand is scaled to fit its row
@@ -7132,7 +7132,9 @@ function lzFit(){const B=document.body;B.dataset.bfit=1;delete B.dataset.tight;B
   // sideways the enemy field is to the right of the hand, so a drag often starts more sideways than up: the hand never scrolls here, so any direction drags
   if(hd)hd.classList.remove('scr');
   if(hd){B.style.setProperty('--lsZ',1);const h=hd.getBoundingClientRect().height,av=Math.round(H*.38);
-    if(h>0)B.style.setProperty('--lsZ',Math.max(.4,Math.min(1,(av-24)/h)).toFixed(3))}
+    if(h>0)B.style.setProperty('--lsZ',Math.max(.4,Math.min(1,(av-24)/h)).toFixed(3))
+    // never past the bottom of the screen, whatever the cards show
+    for(let i=0;i<6;i++){const b=hd.getBoundingClientRect().bottom;if(b<=H-2)break;const z=parseFloat(getComputedStyle(B).getPropertyValue('--lsZ'))||1;B.style.setProperty('--lsZ',(z*.96).toFixed(3))}}
   lzBoard()}
 // the tilted board looks shorter than the room it takes (it leans back from its bottom edge): stretch it so the picture fills its area
 function lzBoard(){const bd=app.querySelector('#app>.board');if(!bd)return;bd.style.height='';bd.style.marginTop='';
