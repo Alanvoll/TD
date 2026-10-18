@@ -50,7 +50,7 @@ body.ls #app>.front>*,body.ls #app>.front .qs>*{max-width:100%;overflow:hidden;t
 body.ls #app>.front .qc{max-width:calc(var(--lsL,150px) - 4px);box-sizing:border-box;display:flex;align-items:center;min-width:0}body.ls #app>.front .qc>i{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 body.ls #app>.sb-el .pool{flex-wrap:nowrap!important;gap:2px!important}body.ls #app>.sb-el .pool .chip{padding-inline:4px}
 /* the result window: the list scrolls, its buttons stay at the bottom */
-body.ls .over .box>.acts{position:sticky;bottom:-16px;margin-bottom:-16px;padding:10px 0 16px;background:linear-gradient(180deg,transparent,var(--panel,#1A2133) 30%);z-index:2}
+body.ls .over .box>.acts{position:sticky;bottom:-16px;margin-bottom:-16px;padding:22px 0 16px;background:linear-gradient(180deg,rgba(28,36,54,0),#1C2436 14px);z-index:2;margin-inline:-16px;padding-inline:16px}
 body.ls .over .box{box-sizing:border-box;max-height:calc(100dvh - 16px);overflow-y:auto}
 /* other screens stay as in the portrait game: the main menu keeps its tall layout and scrolls */
 body.ls .lby{overflow-y:auto;overflow-x:hidden}
